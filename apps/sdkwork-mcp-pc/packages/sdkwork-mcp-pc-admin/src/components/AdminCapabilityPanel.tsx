@@ -3,7 +3,6 @@ import {
   Badge,
   Button,
   DataPanel,
-  EmptyState,
   Field,
   SelectInput,
   TextArea,
@@ -22,6 +21,8 @@ import {
   type UpsertMcpResourceCommand,
   type UpsertMcpToolCommand,
 } from '@sdkwork/mcp-pc-core';
+
+import { SurfaceDrawer } from './SurfaceOverlay.tsx';
 
 type CapabilityKind = 'tool' | 'resource' | 'prompt';
 
@@ -82,6 +83,7 @@ export function AdminCapabilityPanel({
   const [promptForm, setPromptForm] = useState<UpsertMcpPromptCommand>(() =>
     defaultPrompt(defaultConnectorId),
   );
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const catalog = useMemo(() => {
     if (kind === 'tool') {
@@ -95,10 +97,10 @@ export function AdminCapabilityPanel({
 
   if (connectors.length === 0) {
     return (
-      <EmptyState
-        title="Add a connector first"
-        description="Tools, resources, and prompts are scoped to a connector."
-      />
+      <div className="empty-state">
+        <h3>Add a connector first</h3>
+        <p>Tools, resources, and prompts are scoped to a connector.</p>
+      </div>
     );
   }
 
@@ -114,29 +116,73 @@ export function AdminCapabilityPanel({
         await upsertAdminPrompt(clients, serverId, promptForm);
       }
       await onSaved();
+      setDrawerOpen(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-      <DataPanel>
-        <form onSubmit={onSubmit} className="grid gap-4 p-5">
-          <h3 className="text-sm font-semibold text-slate-900">Upsert capability</h3>
-          <div className="flex flex-wrap gap-2">
-            {(['tool', 'resource', 'prompt'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={`rounded-full px-3 py-1 text-xs font-medium ${kind === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
-                onClick={() => setKind(value)}
-              >
-                {value}
-              </button>
-            ))}
-          </div>
-          {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(['tool', 'resource', 'prompt'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`rounded-full px-3 py-1 text-xs font-medium ${kind === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+              onClick={() => setKind(value)}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+        <Button type="button" onClick={() => setDrawerOpen(true)}>
+          Add {kind}
+        </Button>
+      </div>
+      {error ? <p className="mb-4 text-sm text-rose-700">{error}</p> : null}
+      {catalog.length === 0 ? (
+        <div className="empty-state">
+          <h3>{`No ${kind}s yet`}</h3>
+          <p>Add a capability from the header action.</p>
+          <button type="button" className="skills-console-primary" onClick={() => setDrawerOpen(true)}>
+            Add {kind}
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {catalog.map((item) => (
+            <DataPanel key={item.id}>
+              <div className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="font-medium text-slate-900">{item.name}</h4>
+                  {'enabled' in item ? (
+                    <Badge tone={item.enabled ? 'success' : 'neutral'}>
+                      {item.enabled ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  ) : null}
+                </div>
+                {'tool_key' in item ? (
+                  <p className="mt-1 font-mono text-xs text-slate-500">{item.tool_key}</p>
+                ) : null}
+                {'resource_key' in item ? (
+                  <p className="mt-1 font-mono text-xs text-slate-500">{item.resource_key}</p>
+                ) : null}
+                {'prompt_key' in item ? (
+                  <p className="mt-1 font-mono text-xs text-slate-500">{item.prompt_key}</p>
+                ) : null}
+              </div>
+            </DataPanel>
+          ))}
+        </div>
+      )}
+      <SurfaceDrawer
+        open={drawerOpen}
+        title={`Save ${kind}`}
+        onClose={() => setDrawerOpen(false)}
+      >
+        <form onSubmit={onSubmit} className="grid gap-4">
           <Field label="Connector">
             <SelectInput
               value={
@@ -256,40 +302,14 @@ export function AdminCapabilityPanel({
               </Field>
             </>
           ) : null}
-          <Button type="submit">Save {kind}</Button>
-        </form>
-      </DataPanel>
-      <section>
-        {catalog.length === 0 ? (
-          <EmptyState title={`No ${kind}s yet`} description="Upsert a capability using the form." />
-        ) : (
-          <div className="grid gap-3">
-            {catalog.map((item) => (
-              <DataPanel key={item.id}>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <h4 className="font-medium text-slate-900">{item.name}</h4>
-                    {'enabled' in item ? (
-                      <Badge tone={item.enabled ? 'success' : 'neutral'}>
-                        {item.enabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    ) : null}
-                  </div>
-                  {'tool_key' in item ? (
-                    <p className="mt-1 font-mono text-xs text-slate-500">{item.tool_key}</p>
-                  ) : null}
-                  {'resource_key' in item ? (
-                    <p className="mt-1 font-mono text-xs text-slate-500">{item.resource_key}</p>
-                  ) : null}
-                  {'prompt_key' in item ? (
-                    <p className="mt-1 font-mono text-xs text-slate-500">{item.prompt_key}</p>
-                  ) : null}
-                </div>
-              </DataPanel>
-            ))}
+          <div className="sdkwork-surface-drawer-form-actions">
+            <Button type="button" variant="secondary" onClick={() => setDrawerOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Save {kind}</Button>
           </div>
-        )}
-      </section>
+        </form>
+      </SurfaceDrawer>
     </div>
   );
 }

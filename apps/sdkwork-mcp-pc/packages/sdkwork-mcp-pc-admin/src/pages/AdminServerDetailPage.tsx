@@ -1,10 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  Badge,
   Button,
-  DataPanel,
-  EmptyState,
   ErrorAlert,
   Field,
   formatMcpPublishStatus,
@@ -13,6 +10,7 @@ import {
   PageHeader,
   TextInput,
 } from '@sdkwork/mcp-pc-commons';
+import { ConfirmModal, SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
 import {
   deleteAdminConnector,
   fetchServerDetail,
@@ -47,6 +45,9 @@ export function AdminServerDetailPage() {
   const [tab, setTab] = useState<AdminTab>('connectors');
   const [error, setError] = useState<string | null>(null);
   const [connectorForm, setConnectorForm] = useState<UpsertMcpConnectorCommand>(defaultConnector);
+  const [connectorDrawerOpen, setConnectorDrawerOpen] = useState(false);
+  const [deleteConnectorKey, setDeleteConnectorKey] = useState<string | null>(null);
+  const [deletingConnector, setDeletingConnector] = useState(false);
   const { data, error: detailError, loading, reload } = useAsyncResource(async () => {
     const detail = await fetchServerDetail(clients, serverKey);
     const connectors = await listAdminConnectors(clients, detail.server.id);
@@ -62,22 +63,27 @@ export function AdminServerDetailPage() {
     try {
       await upsertAdminConnector(clients, data.server.id, connectorForm);
       setConnectorForm(defaultConnector);
+      setConnectorDrawerOpen(false);
       await reload();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
   }
 
-  async function onDeleteConnector(connectorKey: string) {
-    if (!data) {
+  async function confirmDeleteConnector() {
+    if (!data || !deleteConnectorKey) {
       return;
     }
+    setDeletingConnector(true);
     setError(null);
     try {
-      await deleteAdminConnector(clients, data.server.id, connectorKey);
+      await deleteAdminConnector(clients, data.server.id, deleteConnectorKey);
+      setDeleteConnectorKey(null);
       await reload();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setDeletingConnector(false);
     }
   }
 
@@ -96,7 +102,7 @@ export function AdminServerDetailPage() {
   const { server, tools, resources, prompts, connectors } = data;
 
   return (
-    <div>
+    <div className="embedded-fill-page">
       <div className="mb-4">
         <Link
           to={serversBasePath}
@@ -131,10 +137,74 @@ export function AdminServerDetailPage() {
         ))}
       </div>
       {tab === 'connectors' ? (
-        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <DataPanel>
-            <form onSubmit={onCreateConnector} className="grid gap-4 p-5">
-              <h3 className="text-sm font-semibold text-slate-900">Upsert connector</h3>
+        <section className="embedded-fill-page" style={{ padding: 0 }}>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => {
+                setConnectorForm(defaultConnector);
+                setConnectorDrawerOpen(true);
+              }}
+            >
+              Add connector
+            </Button>
+          </div>
+          <div className="data-surface">
+            <div className="table-frame">
+              {connectors.length === 0 ? (
+                <div className="empty-state">
+                  <h3>No connectors</h3>
+                  <p>Add a connector to publish runtime configuration.</p>
+                  <button
+                    type="button"
+                    className="skills-console-primary"
+                    onClick={() => {
+                      setConnectorForm(defaultConnector);
+                      setConnectorDrawerOpen(true);
+                    }}
+                  >
+                    Add connector
+                  </button>
+                </div>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Connector</th>
+                      <th>Transport</th>
+                      <th>Publish</th>
+                      <th>Lifecycle</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {connectors.map((connector) => (
+                      <tr key={connector.id}>
+                        <td>{connector.connector_key}</td>
+                        <td>{formatMcpTransport(connector.transport)}</td>
+                        <td>{formatMcpPublishStatus(connector.publish_status)}</td>
+                        <td>{connector.lifecycle_status}</td>
+                        <td>
+                          <Button
+                            variant="danger"
+                            onClick={() => setDeleteConnectorKey(connector.connector_key)}
+                          >
+                            Delete
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+          <SurfaceDrawer
+            open={connectorDrawerOpen}
+            title="Upsert connector"
+            onClose={() => setConnectorDrawerOpen(false)}
+          >
+            <form onSubmit={onCreateConnector} className="grid gap-4">
               <Field label="Connector key">
                 <TextInput
                   value={connectorForm.connector_key}
@@ -177,56 +247,46 @@ export function AdminServerDetailPage() {
                   }
                 />
               </Field>
-              <Button type="submit">Save connector</Button>
-            </form>
-          </DataPanel>
-          <section>
-            {connectors.length === 0 ? (
-              <EmptyState
-                title="No connectors"
-                description="Add a connector to publish runtime configuration."
-              />
-            ) : (
-              <div className="grid gap-3">
-                {connectors.map((connector) => (
-                  <DataPanel key={connector.id}>
-                    <div className="flex items-start justify-between gap-4 p-4">
-                      <div>
-                        <h3 className="font-medium text-slate-900">{connector.connector_key}</h3>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {formatMcpTransport(connector.transport)}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Badge tone="brand">
-                            {formatMcpPublishStatus(connector.publish_status)}
-                          </Badge>
-                          <Badge>{connector.lifecycle_status}</Badge>
-                        </div>
-                      </div>
-                      <Button
-                        variant="danger"
-                        onClick={() => onDeleteConnector(connector.connector_key)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </DataPanel>
-                ))}
+              <div className="sdkwork-surface-drawer-form-actions">
+                <Button type="button" variant="secondary" onClick={() => setConnectorDrawerOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save connector</Button>
               </div>
-            )}
-          </section>
-        </div>
+            </form>
+          </SurfaceDrawer>
+          <ConfirmModal
+            open={deleteConnectorKey != null}
+            title="Delete connector?"
+            description={`Delete “${deleteConnectorKey ?? ''}”. This cannot be undone.`}
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+            busy={deletingConnector}
+            onCancel={() => setDeleteConnectorKey(null)}
+            onConfirm={() => {
+              void confirmDeleteConnector();
+            }}
+          />
+        </section>
       ) : tab === 'capabilities' ? (
-        <AdminCapabilityPanel
-          serverId={server.id}
-          connectors={connectors}
-          tools={tools}
-          resources={resources}
-          prompts={prompts}
-          onSaved={reload}
-        />
+        <div className="data-surface">
+          <div className="table-frame">
+            <AdminCapabilityPanel
+              serverId={server.id}
+              connectors={connectors}
+              tools={tools}
+              resources={resources}
+              prompts={prompts}
+              onSaved={reload}
+            />
+          </div>
+        </div>
       ) : (
-        <AdminServerSettingsPanel server={server} serverKey={serverKey} onSaved={reload} />
+        <div className="data-surface">
+          <div className="table-frame">
+            <AdminServerSettingsPanel server={server} serverKey={serverKey} onSaved={reload} />
+          </div>
+        </div>
       )}
     </div>
   );

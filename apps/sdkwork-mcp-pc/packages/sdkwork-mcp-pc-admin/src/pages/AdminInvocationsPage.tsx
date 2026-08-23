@@ -1,7 +1,5 @@
 import {
   Badge,
-  DataPanel,
-  EmptyState,
   ErrorAlert,
   LoadingState,
   PageHeader,
@@ -24,16 +22,20 @@ export function AdminInvocationsPage() {
   }
 
   return (
-    <div>
+    <div className="embedded-fill-page">
       <PageHeader
         title="Invocation Audit"
         description="Append-only audit trail with trace correlation and idempotency keys."
       />
-      {!invocations || invocations.length === 0 ? (
-        <EmptyState title="No invocations recorded" description="Runtime workers append audit rows via admin API." />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
+      <div className="data-surface">
+        <div className="table-frame">
+          {!invocations || invocations.length === 0 ? (
+            <div className="empty-state">
+              <h3>No invocations recorded</h3>
+              <p>Runtime workers append audit rows via admin API.</p>
+            </div>
+          ) : (
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">Target</th>
@@ -62,9 +64,10 @@ export function AdminInvocationsPage() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
-      )}
-      <p className="mt-4 text-xs text-slate-500">
+      </div>
+      <p className="text-xs text-slate-500">
         Showing {invocations?.length ?? 0} recent rows. Sensitive payload fields remain governed by redaction policy.
       </p>
     </div>
