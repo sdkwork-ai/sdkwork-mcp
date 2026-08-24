@@ -40,6 +40,38 @@ profiles:
         tls: dtupay.cn
         mode: web+api
         web: adaptive
+      - domain: mcp-dev.skubc.com
+        tls: skubc.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.skubc.cn
+        tls: skubc.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.zowalk.com
+        tls: zowalk.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.zowalk.cn
+        tls: zowalk.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.offer86.com
+        tls: offer86.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.offer86.cn
+        tls: offer86.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.86offer.com
+        tls: 86offer.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.86offer.cn
+        tls: 86offer.cn
+        mode: web+api
+        web: adaptive
     packages: []
     overrides:
       topology:
@@ -83,6 +115,38 @@ profiles:
         web: adaptive
       - domain: mcp.dtupay.cn
         tls: dtupay.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.skubc.com
+        tls: skubc.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.skubc.cn
+        tls: skubc.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.zowalk.com
+        tls: zowalk.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.zowalk.cn
+        tls: zowalk.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.offer86.com
+        tls: offer86.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.offer86.cn
+        tls: offer86.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.86offer.com
+        tls: 86offer.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.86offer.cn
+        tls: 86offer.cn
         mode: web+api
         web: adaptive
     packages: []
@@ -130,6 +194,38 @@ profiles:
         tls: dtupay.cn
         mode: web+api
         web: adaptive
+      - domain: mcp-dev.skubc.com
+        tls: skubc.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.skubc.cn
+        tls: skubc.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.zowalk.com
+        tls: zowalk.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.zowalk.cn
+        tls: zowalk.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.offer86.com
+        tls: offer86.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.offer86.cn
+        tls: offer86.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.86offer.com
+        tls: 86offer.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp-dev.86offer.cn
+        tls: 86offer.cn
+        mode: web+api
+        web: adaptive
     packages: []
     overrides:
       topology:
@@ -173,6 +269,38 @@ profiles:
         web: adaptive
       - domain: mcp.dtupay.cn
         tls: dtupay.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.skubc.com
+        tls: skubc.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.skubc.cn
+        tls: skubc.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.zowalk.com
+        tls: zowalk.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.zowalk.cn
+        tls: zowalk.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.offer86.com
+        tls: offer86.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.offer86.cn
+        tls: offer86.cn
+        mode: web+api
+        web: adaptive
+      - domain: mcp.86offer.com
+        tls: 86offer.com
+        mode: web+api
+        web: adaptive
+      - domain: mcp.86offer.cn
+        tls: 86offer.cn
         mode: web+api
         web: adaptive
     packages: []
