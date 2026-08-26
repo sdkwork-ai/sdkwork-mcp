@@ -40,10 +40,10 @@ export function AdminCategoriesPage() {
 
   function openEdit(category: NonNullable<typeof categories>[number]) {
     setForm({
-      category_code: category.category_code,
-      name: category.name,
-      description: category.description,
-      sort_order: category.sort_order,
+      category_code: category.category_code ?? undefined,
+      name: category.name ?? undefined,
+      description: category.description ?? undefined,
+      sort_order: category.sort_order ?? undefined,
     });
     setDrawerOpen(true);
   }

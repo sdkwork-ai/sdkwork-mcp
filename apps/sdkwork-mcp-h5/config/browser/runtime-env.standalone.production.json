@@ -1,0 +1,19 @@
+{
+  "environment": "production",
+  "deploymentProfile": "standalone",
+  "profileId": "standalone.production",
+  "runtimeTarget": "browser",
+  "browserOriginMode": "same-origin",
+  "mcp": {
+    "apiBaseUrl": "http://127.0.0.1:8095/app/v3/api",
+    "backendApiBaseUrl": "http://127.0.0.1:8095/backend/v3/api"
+  },
+  "appbase": {
+    "loginUrl": "http://127.0.0.1:3900"
+  },
+  "appApiBaseUrl": "/",
+  "backendApiBaseUrl": "/",
+  "driveAppApiBaseUrl": "/",
+  "appbaseAppApiBaseUrl": "/",
+  "deployAppApiBaseUrl": "/"
+}
