@@ -15,6 +15,7 @@
   "dependencies": {
     "@sdkwork/mcp-pc-core": "workspace:*",
     "@sdkwork/mcp-pc-commons": "workspace:*",
+    "@sdkwork/utils": "workspace:*",
     "react": "^19.1.0",
     "react-router-dom": "^7.6.0"
   },
