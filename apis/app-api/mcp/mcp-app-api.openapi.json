@@ -25,7 +25,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.listCategories",
-        "operationId": "mcp.listCategories",
+        "operationId": "list",
         "parameters": [
           {
             "name": "page",
@@ -179,7 +179,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.listServers",
-        "operationId": "mcp.listServers",
+        "operationId": "list",
         "parameters": [
           {
             "name": "page",
@@ -331,7 +331,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.createOwnServer",
-        "operationId": "mcp.createOwnServer",
+        "operationId": "create",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -344,7 +344,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "OK",
             "content": {
               "application/json": {
@@ -440,7 +440,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.listOwnedServers",
-        "operationId": "mcp.listOwnedServers",
+        "operationId": "list",
         "parameters": [
           {
             "name": "page",
@@ -594,7 +594,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.getServer",
-        "operationId": "mcp.getServer",
+        "operationId": "retrieve",
         "parameters": [
           {
             "name": "serverKey",
@@ -700,7 +700,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.updateOwnServer",
-        "operationId": "mcp.updateOwnServer",
+        "operationId": "update",
         "parameters": [
           {
             "name": "serverKey",
@@ -816,7 +816,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.deleteOwnServer",
-        "operationId": "mcp.deleteOwnServer",
+        "operationId": "delete",
         "parameters": [
           {
             "name": "serverKey",
@@ -828,38 +828,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/SdkWorkApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "data"
-                      ],
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "item"
-                          ],
-                          "properties": {
-                            "item": {
-                              "$ref": "#/components/schemas/McpServerRecord"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+          "204": {
+            "description": "OK"
           },
           "400": {
             "description": "Problem detail",
@@ -924,15 +894,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.listTools",
-        "operationId": "mcp.listTools",
+        "operationId": "list",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           },
           {
@@ -1087,15 +1058,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.getTool",
-        "operationId": "mcp.getTool",
+        "operationId": "retrieve",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           },
           {
@@ -1204,15 +1176,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.listResources",
-        "operationId": "mcp.listResources",
+        "operationId": "list",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           },
           {
@@ -1367,15 +1340,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.listPrompts",
-        "operationId": "mcp.listPrompts",
+        "operationId": "list",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           },
           {
@@ -1530,15 +1504,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.upsertOwnConnector",
-        "operationId": "mcp.upsertOwnConnector",
+        "operationId": "create",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           }
         ],
@@ -1553,7 +1528,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "OK",
             "content": {
               "application/json": {
@@ -1649,15 +1624,16 @@
           "mcp"
         ],
         "summary": "MCP mcp.deleteOwnConnector",
-        "operationId": "mcp.deleteOwnConnector",
+        "operationId": "delete",
         "parameters": [
           {
             "name": "serverId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           },
           {
@@ -1670,38 +1646,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/SdkWorkApiResponse"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "data"
-                      ],
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "item"
-                          ],
-                          "properties": {
-                            "item": {
-                              "$ref": "#/components/schemas/McpConnectorRecord"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+          "204": {
+            "description": "OK"
           },
           "400": {
             "description": "Problem detail",
@@ -1766,7 +1712,7 @@
           "mcp"
         ],
         "summary": "MCP mcp.listInvocations",
-        "operationId": "mcp.listInvocations",
+        "operationId": "list",
         "parameters": [
           {
             "name": "page",
@@ -1819,8 +1765,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "format": "int64",
+              "x-sdkwork-int64-string": true
             }
           }
         ],
@@ -2232,8 +2179,9 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
@@ -2249,8 +2197,9 @@
             "nullable": true
           },
           "parent_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "sort_order": {
             "type": "integer"
@@ -2280,8 +2229,9 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
@@ -2297,9 +2247,10 @@
             "nullable": true
           },
           "category_id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "nullable": true
+            "nullable": true,
+            "x-sdkwork-int64-string": true
           },
           "category_code": {
             "type": "string",
@@ -2348,15 +2299,17 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
           },
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "connector_key": {
             "type": "string"
@@ -2391,19 +2344,22 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
           },
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "tool_key": {
             "type": "string"
@@ -2445,19 +2401,22 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
           },
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "resource_key": {
             "type": "string"
@@ -2491,19 +2450,22 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
           },
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "prompt_key": {
             "type": "string"
@@ -2533,15 +2495,17 @@
         ],
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "uuid": {
             "type": "string"
           },
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "invocation_kind": {
             "type": "string"
@@ -2580,13 +2544,15 @@
         ],
         "properties": {
           "server_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "connector_id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "nullable": true
+            "nullable": true,
+            "x-sdkwork-int64-string": true
           },
           "invocation_kind": {
             "type": "string",
@@ -2652,8 +2618,9 @@
             "type": "string"
           },
           "category_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "category_code": {
             "type": "string"
@@ -2687,8 +2654,9 @@
             "type": "string"
           },
           "category_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "category_code": {
             "type": "string"
@@ -2726,8 +2694,9 @@
             "type": "string"
           },
           "parent_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "sort_order": {
             "type": "integer"
@@ -2806,8 +2775,9 @@
             "type": "string"
           },
           "category_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "category_code": {
             "type": "string"
@@ -2838,8 +2808,9 @@
             "type": "string"
           },
           "category_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "category_code": {
             "type": "string"
@@ -2906,8 +2877,9 @@
         ],
         "properties": {
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "tool_key": {
             "type": "string"
@@ -2949,8 +2921,9 @@
         ],
         "properties": {
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "resource_key": {
             "type": "string"
@@ -2982,8 +2955,9 @@
         ],
         "properties": {
           "connector_id": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string",
+            "format": "int64",
+            "x-sdkwork-int64-string": true
           },
           "prompt_key": {
             "type": "string"

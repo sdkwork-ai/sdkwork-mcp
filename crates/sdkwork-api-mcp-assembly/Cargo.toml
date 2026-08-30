@@ -20,5 +20,5 @@ sdkwork-intelligence-mcp-repository-sqlx = { workspace = true }
 sdkwork-intelligence-mcp-service = { workspace = true }
 sdkwork_mcp_database_host.workspace = true
 sdkwork-routes-mcp-shared.workspace = true
-sdkwork_routes_mcp_app_api.workspace = true
-sdkwork_routes_mcp_backend_api.workspace = true
+sdkwork_routes_mcp_app_api = { workspace = true }
+sdkwork_routes_mcp_backend_api = { workspace = true }

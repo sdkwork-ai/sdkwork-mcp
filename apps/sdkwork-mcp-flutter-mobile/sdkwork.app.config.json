@@ -60,11 +60,15 @@
         "id": "mcp-flutter-mobile-primary-icon",
         "type": "ICON",
         "purpose": "PRIMARY",
+        "url": "https://cdn.sdkwork.com/apps/mcp-flutter-mobile/assets/icon-1024.png",
         "platform": "APP",
         "locale": "en-US",
         "width": 1024,
         "height": 1024,
         "format": "PNG",
+        "fileSizeBytes": 524288,
+        "alphaChannel": false,
+        "sortOrder": 0,
         "enabled": true,
         "metadata": {
           "generatedPlaceholder": true
@@ -75,8 +79,52 @@
         "generatedPlaceholder": true
       }
     },
-    "screenshots": [],
-    "previews": [],
+    "screenshots": [
+      {
+        "id": "mcp-flutter-mobile-web-screenshot",
+        "type": "SCREENSHOT",
+        "purpose": "CATALOG_SCREENSHOT",
+        "url": "https://cdn.sdkwork.com/apps/mcp-flutter-mobile/media/web-screenshot.png",
+        "platform": "WEB",
+        "locale": "en-US",
+        "deviceClass": "BROWSER",
+        "displayType": "WEB_DESKTOP",
+        "width": 1920,
+        "height": 1080,
+        "format": "PNG",
+        "fileSizeBytes": 1048576,
+        "alphaChannel": false,
+        "caption": "SDKWork MCP Mobile product screenshot.",
+        "sortOrder": 0,
+        "enabled": true,
+        "metadata": {
+          "generatedPlaceholder": true,
+          "altText": "SDKWork MCP Mobile app screenshot."
+        }
+      }
+    ],
+    "previews": [
+      {
+        "id": "mcp-flutter-mobile-catalog-preview",
+        "type": "PREVIEW_IMAGE",
+        "purpose": "CATALOG_PREVIEW",
+        "url": "https://cdn.sdkwork.com/apps/mcp-flutter-mobile/media/preview-cover.png",
+        "platform": "WEB",
+        "locale": "en-US",
+        "width": 1600,
+        "height": 900,
+        "format": "PNG",
+        "fileSizeBytes": 786432,
+        "alphaChannel": false,
+        "caption": "SDKWork MCP Mobile preview.",
+        "sortOrder": 0,
+        "enabled": true,
+        "metadata": {
+          "generatedPlaceholder": true,
+          "altText": "SDKWork MCP Mobile preview cover."
+        }
+      }
+    ],
     "metadata": {
       "assetVersion": "0.1.0",
       "defaultLocale": "en-US"
@@ -84,7 +132,9 @@
   },
   "publish": {
     "status": "BETA",
-    "installSkill": false,
+    "installSkill": {
+      "name": "sdkwork-skills-app"
+    },
     "platforms": [
       "APP",
       "APP_ANDROID",
@@ -99,7 +149,10 @@
       "workspaceRoot": "apps/sdkwork-mcp-flutter-mobile",
       "framework": "flutter",
       "managedBy": "sdkwork-mcp-client-scaffold"
-    }
+    },
+    "defaultPackageId": "linux-x64-standalone-server-tar-gz",
+    "stores": [],
+    "storeUrl": "https://sdkwork.com/apps/mcp-flutter-mobile"
   },
   "environments": {
     "development": {
@@ -115,7 +168,48 @@
   },
   "artifacts": {
     "installConfig": {
-      "packages": [],
+      "defaultPackageId": "linux-x64-standalone-server-tar-gz",
+      "installCommand": "sdkwork install mcp-flutter-mobile",
+      "launchCommand": "sdkwork open mcp-flutter-mobile",
+      "uninstallCommand": "sdkwork uninstall mcp-flutter-mobile",
+      "packages": [
+        {
+          "id": "linux-x64-standalone-server-tar-gz",
+          "name": "Mcp Flutter Mobile standalone server archive",
+          "sourceType": "BINARY_URL",
+          "packageFormat": "TAR_GZ",
+          "platform": "API",
+          "url": "https://cdn.sdkwork.com/apps/mcp-flutter-mobile/STABLE/0.1.0/linux-x64-standalone-server-tar-gz-0.1.0.tar.gz",
+          "architecture": "x64",
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "1d698ff23f63aa3abc6a52755b10ede172ec570223530286a7ec2a9fd1e45a34",
+          "deploymentProfile": "standalone",
+          "runtimeTarget": "server",
+          "profileBinding": "fixed",
+          "enabled": true,
+          "metadata": {
+            "releaseBuildDeferred": false
+          }
+        },
+        {
+          "id": "linux-x64-cloud-server-tar-gz",
+          "name": "Mcp Flutter Mobile cloud server archive",
+          "sourceType": "BINARY_URL",
+          "packageFormat": "TAR_GZ",
+          "platform": "API",
+          "url": "https://cdn.sdkwork.com/apps/mcp-flutter-mobile/STABLE/0.1.0/linux-x64-cloud-server-tar-gz-0.1.0.tar.gz",
+          "architecture": "x64",
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "b43e1afc09534a180a52910b37deff12be39e26f8799f8aeecdc4388c9194b03",
+          "deploymentProfile": "cloud",
+          "runtimeTarget": "server",
+          "profileBinding": "fixed",
+          "enabled": true,
+          "metadata": {
+            "releaseBuildDeferred": false
+          }
+        }
+      ],
       "metadata": {
         "workspaceRoot": "apps/sdkwork-mcp-flutter-mobile",
         "framework": "flutter",
@@ -129,7 +223,29 @@
     "latest": {
       "STABLE": "0.1.0"
     },
-    "notes": []
+    "notes": [
+      {
+        "version": "0.1.0",
+        "releaseChannel": "STABLE",
+        "title": "SDKWork MCP Mobile 0.1.0",
+        "summary": "SDKWork MCP Mobile initialized standard release.",
+        "content": "Initial SDKWork App Standard v3 manifest for SDKWork MCP Mobile.",
+        "highlights": [
+          "SDKWork App Standard v3 configuration initialized",
+          "platform_app projection metadata standardized",
+          "Download package matrix normalized"
+        ],
+        "packageIds": [
+          "linux-x64-standalone-server-tar-gz",
+          "linux-x64-cloud-server-tar-gz"
+        ],
+        "publishedAt": "2026-05-07T00:00:00Z",
+        "current": true,
+        "forceUpdate": false,
+        "minSupportedVersion": "0.1.0",
+        "metadata": {}
+      }
+    ]
   },
   "security": {
     "checksumRequired": true,
