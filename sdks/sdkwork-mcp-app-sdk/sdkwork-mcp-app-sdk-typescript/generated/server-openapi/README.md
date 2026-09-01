@@ -33,7 +33,7 @@ const params = {
   cursor: 'cursor',
   q: 'q',
 };
-const result = await client.mcp.listCategories(params);
+const result = await client.mcp.categories.list(params);
 ```
 
 ## Authentication
@@ -74,7 +74,7 @@ const params = {
   cursor: 'cursor',
   q: 'q',
 };
-const result = await client.mcp.listCategories(params);
+const result = await client.mcp.categories.list(params);
 ```
 
 ## Error Handling
@@ -89,7 +89,7 @@ try {
     cursor: 'cursor',
     q: 'q',
   };
-  const result = await client.mcp.listCategories(params);
+  const result = await client.mcp.categories.list(params);
 } catch (error) {
   if (error instanceof AuthenticationError) {
     console.error('Authentication failed:', error.message);

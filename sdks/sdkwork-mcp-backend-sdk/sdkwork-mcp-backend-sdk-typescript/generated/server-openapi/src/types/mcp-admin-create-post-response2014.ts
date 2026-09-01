@@ -1,7 +1,7 @@
 import type { McpResourceRecord } from './mcp-resource-record';
 import type { PageInfo } from './page-info';
 
-export interface McpListResourcesResponse {
+export interface McpAdminCreatePostResponse2014 {
   code: 0;
   data: unknown & { items: McpResourceRecord[]; pageInfo: PageInfo; };
   /** Server-owned request correlation id. */

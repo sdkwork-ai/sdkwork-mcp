@@ -44,7 +44,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "cd488dba4be341a57c6494d01a0e5460e5029b2a4ab345c67952690bfa3ae9d8"
+      "sha256": "413cdbd0754a7e5d743288f5d0dff4cdac59abbcc9ac2262fe105180c8dbffb7"
     },
     {
       "path": "sdkwork-sdk.json",
@@ -60,7 +60,7 @@
     },
     {
       "path": "src/api/mcp.ts",
-      "sha256": "c95e7ac017314be6390030cf0082ef23462add459e342662ddfcddd41679ad90"
+      "sha256": "ad61d5cb84be58bf19b9d3b2cdf3dd05a31355fc8406a4395c0f98b21e42dca3"
     },
     {
       "path": "src/api/paths.ts",
@@ -108,63 +108,55 @@
     },
     {
       "path": "src/types/index.ts",
-      "sha256": "21a188f9aee02f8451f34a8a73df5cca6c7592ba5774dab1acb52acb1a61002b"
+      "sha256": "675ed368ce5fa4680475d9599c360ba22f600b57b6ad69013bacf5de15218bc4"
     },
     {
-      "path": "src/types/mcp-admin-append-invocation-response.ts",
-      "sha256": "8c52190d1e7a7d0712207cb372546e8234859462f999a764cc28e6909b815fba"
+      "path": "src/types/mcp-admin-create-post-response201.ts",
+      "sha256": "5f344101ac616ac21cb88cba9f8afd92b9d6ea28b6f203856ad2c757498303a5"
     },
     {
-      "path": "src/types/mcp-admin-create-server-response.ts",
-      "sha256": "4f9cc4656b881d7f0f8063a4156933b05ac066a9818980959a0a5d1f5c0e1238"
+      "path": "src/types/mcp-admin-create-post-response2012.ts",
+      "sha256": "0289e5a99486a19e4cbd7517a89c4582836202175d6b32bd369702eceb2fd2f9"
     },
     {
-      "path": "src/types/mcp-admin-delete-connector-response.ts",
-      "sha256": "565ff37028ca1c06cf869c90c2d9c0921fa5d8d04fb0ae6ac41f0b980e6679a5"
+      "path": "src/types/mcp-admin-create-post-response2013.ts",
+      "sha256": "db0a01d9b8835544a2d78b9bf2db5a7f3323b742b9092a9513b98bec0567a46b"
     },
     {
-      "path": "src/types/mcp-admin-delete-server-response.ts",
-      "sha256": "8a97b3c7c0fe0d3ba0d743a0fe12d49b7abebe799f36191291fc6739e2911cc4"
+      "path": "src/types/mcp-admin-create-post-response2014.ts",
+      "sha256": "2abf52a83080629c19f29b8217ebb982950a09c17fae624e656cef1a01df457a"
     },
     {
-      "path": "src/types/mcp-admin-list-categories-response.ts",
-      "sha256": "184e235d0dce6ffab0190f8aa61472187e36f606f29d574511b9e3aab243147c"
+      "path": "src/types/mcp-admin-create-post-response2015.ts",
+      "sha256": "7b81a1740eda0d271f1270fb75b0079b522e2f9bffbf94d6e770697f9388a73f"
     },
     {
-      "path": "src/types/mcp-admin-list-connectors-response.ts",
-      "sha256": "d7139b6a04257b014e8cc0350c1ad520cf73d0dc8c5e084a7d29d82efb5c9e91"
+      "path": "src/types/mcp-admin-create-post-response2016.ts",
+      "sha256": "15f4d44d645e2531f823241c402660892c1c7fea03fb0f037a89b6f16684950b"
     },
     {
-      "path": "src/types/mcp-admin-list-invocations-response.ts",
-      "sha256": "116debbe18e4bea66ec197c4aa337784be00067b9b8410a1bd41f5797aa95303"
+      "path": "src/types/mcp-admin-create-response201.ts",
+      "sha256": "fdd471e912d902bac8cf7ae236de382c8ef1847a2d7a70ad10be022f3d3bfdb0"
     },
     {
-      "path": "src/types/mcp-admin-list-servers-response.ts",
-      "sha256": "0a23d62692bcf6656297da97b763115341fc9872c1f49cf528b10459eb2df12d"
+      "path": "src/types/mcp-admin-list-get-response.ts",
+      "sha256": "029f3ca300a90c75c806342061f6bd0b530d1ccc667a901205ee20fd9eec242e"
     },
     {
-      "path": "src/types/mcp-admin-update-server-response.ts",
-      "sha256": "50dbcded491faeb23a8201280cb10ceeafcd9446a9d675b6942ffbab68470a93"
+      "path": "src/types/mcp-admin-list-get-response2.ts",
+      "sha256": "a6de339fe89682f005a18c44f6f91807295083ba1d779df6ac80bcb64f7a84f1"
     },
     {
-      "path": "src/types/mcp-admin-upsert-category-response.ts",
-      "sha256": "792e88b8f1aa1a4623fef5a1ffefb8ea060175c7d74fe7f101aa1a3dee4642dc"
+      "path": "src/types/mcp-admin-list-get-response3.ts",
+      "sha256": "e1233efd962f851cb4047b7a3efb439e4ec5a4132e56a5892580d6dfd5d3ef44"
     },
     {
-      "path": "src/types/mcp-admin-upsert-connector-response.ts",
-      "sha256": "8785a066e9a5b8c86649bca5c1494660f9cbfebb56d3a469f60313d631f47496"
+      "path": "src/types/mcp-admin-list-response.ts",
+      "sha256": "d36aceeefb09f5dae9023231ba96ba6dccb32e2a88455692cdb9dc5a2521225b"
     },
     {
-      "path": "src/types/mcp-admin-upsert-prompt-response.ts",
-      "sha256": "369d3790341507fbc8295d541f07713937aa9aa7679ee532f2866b175194ad08"
-    },
-    {
-      "path": "src/types/mcp-admin-upsert-resource-response.ts",
-      "sha256": "353d7cdce7450fa5a538816c50aca9a4c84836d0f52e35bbfddd8ee2d54c0c97"
-    },
-    {
-      "path": "src/types/mcp-admin-upsert-tool-response.ts",
-      "sha256": "5b7873b54eab2fd14e31d140e8726b0e1754be85a09b8f60fd185e0610ae5b50"
+      "path": "src/types/mcp-admin-update-response.ts",
+      "sha256": "0cc7eb4b52479ae2fb2546bc274549df5c9e550a727cc87ee501db3b4e692822"
     },
     {
       "path": "src/types/mcp-connector-record.ts",
@@ -268,7 +260,7 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "7c8a6c2b00fb208ec28e1e6045194487d1b3e563d6c44cef4783fd4fe0e8ffad"
+      "sha256": "35f6f0baf03ca4245339f0a532b02c6b0c8e64d66852a2f77d38ae063b2024b8"
     }
   ],
   "scaffoldFiles": [

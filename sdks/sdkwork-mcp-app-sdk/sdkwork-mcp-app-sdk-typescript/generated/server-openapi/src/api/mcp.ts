@@ -4,49 +4,7 @@ import type { ApiRequestOptions, HttpClient } from '../http/client';
 import type { CreateOwnMcpServerCommand, McpConnectorRecord, McpInvocationRecord, McpPromptRecord, McpResourceRecord, McpServerCategoryRecord, McpServerRecord, McpToolRecord, PageInfo, UpdateOwnMcpServerCommand, UpsertOwnMcpConnectorCommand } from '../types';
 
 
-export interface McpListCategoriesParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListServersParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListOwnedServersParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListToolsParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListResourcesParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListPromptsParams {
-  page?: number;
-  pageSize?: number;
-  cursor?: string;
-  q?: string;
-}
-
-export interface McpListInvocationsParams {
+export interface McpInvocationsListParams {
   page?: number;
   pageSize?: number;
   cursor?: string;
@@ -54,7 +12,7 @@ export interface McpListInvocationsParams {
   serverId?: string;
 }
 
-export class McpApi {
+export class McpInvocationsApi {
   private client: HttpClient;
 
   constructor(client: HttpClient) {
@@ -62,61 +20,109 @@ export class McpApi {
   }
 
 
-/** MCP mcp.listCategories */
-  async listCategories(params?: McpListCategoriesParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerCategoryRecord[]; pageInfo: PageInfo; }> {
+/** MCP mcp.listInvocations */
+  async list(params?: McpInvocationsListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpInvocationRecord[]; pageInfo: PageInfo; }> {
+    const query = buildQueryString([
+      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
+      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
+      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
+      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
+      { name: 'server_id', value: params?.serverId, style: 'form', explode: true, allowReserved: false },
+    ]);
+    return this.client.request<{ items: McpInvocationRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/invocations`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+  }
+}
+
+export class McpServersConnectorsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** MCP mcp.upsertOwnConnector */
+  async create(serverId: string, body: UpsertOwnMcpConnectorCommand, requestOptions?: ApiRequestOptions): Promise<McpConnectorRecord> {
+    return this.client.request<McpConnectorRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/connectors`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'POST' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
+  }
+
+/** MCP mcp.deleteOwnConnector */
+  async delete(serverId: string, connectorKey: string, requestOptions?: ApiRequestOptions): Promise<void> {
+    return this.client.request<void>(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/connectors/${serializePathParameter(connectorKey, { name: 'connectorKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'DELETE' as any });
+  }
+}
+
+export interface McpServersPromptsListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpServersPromptsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** MCP mcp.listPrompts */
+  async list(serverId: string, params?: McpServersPromptsListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpPromptRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.request<{ items: McpServerCategoryRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/categories`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+    return this.client.request<{ items: McpPromptRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/prompts`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+  }
+}
+
+export interface McpServersResourcesListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpServersResourcesApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
   }
 
-/** MCP mcp.listServers */
-  async listServers(params?: McpListServersParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerRecord[]; pageInfo: PageInfo; }> {
+
+/** MCP mcp.listResources */
+  async list(serverId: string, params?: McpServersResourcesListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpResourceRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.request<{ items: McpServerRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+    return this.client.request<{ items: McpResourceRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/resources`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+  }
+}
+
+export interface McpServersToolsListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpServersToolsApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
   }
 
-/** MCP mcp.createOwnServer */
-  async createOwnServer(body: CreateOwnMcpServerCommand, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
-    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'POST' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
-  }
-
-/** MCP mcp.listOwnedServers */
-  async listOwnedServers(params?: McpListOwnedServersParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerRecord[]; pageInfo: PageInfo; }> {
-    const query = buildQueryString([
-      { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
-      { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
-      { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
-      { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-    ]);
-    return this.client.request<{ items: McpServerRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/owned`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
-  }
-
-/** MCP mcp.getServer */
-  async getServer(serverKey: string, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
-    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'item' });
-  }
-
-/** MCP mcp.updateOwnServer */
-  async updateOwnServer(serverKey: string, body: UpdateOwnMcpServerCommand, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
-    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'PATCH' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
-  }
-
-/** MCP mcp.deleteOwnServer */
-  async deleteOwnServer(serverKey: string, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
-    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'DELETE' as any, sdkworkUnwrapKind: 'item' });
-  }
 
 /** MCP mcp.listTools */
-  async listTools(serverId: string, params?: McpListToolsParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpToolRecord[]; pageInfo: PageInfo; }> {
+  async list(serverId: string, params?: McpServersToolsListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpToolRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
@@ -127,53 +133,133 @@ export class McpApi {
   }
 
 /** MCP mcp.getTool */
-  async getTool(serverId: string, toolKey: string, requestOptions?: ApiRequestOptions): Promise<McpToolRecord> {
+  async retrieve(serverId: string, toolKey: string, requestOptions?: ApiRequestOptions): Promise<McpToolRecord> {
     return this.client.request<McpToolRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/tools/${serializePathParameter(toolKey, { name: 'toolKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'item' });
   }
+}
 
-/** MCP mcp.listResources */
-  async listResources(serverId: string, params?: McpListResourcesParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpResourceRecord[]; pageInfo: PageInfo; }> {
+export interface McpServersOwnedListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpServersOwnedApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** MCP mcp.listOwnedServers */
+  async list(params?: McpServersOwnedListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.request<{ items: McpResourceRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/resources`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+    return this.client.request<{ items: McpServerRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/owned`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+  }
+}
+
+export interface McpServersListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpServersApi {
+  private client: HttpClient;
+  public readonly owned: McpServersOwnedApi;
+  public readonly tools: McpServersToolsApi;
+  public readonly resources: McpServersResourcesApi;
+  public readonly prompts: McpServersPromptsApi;
+  public readonly connectors: McpServersConnectorsApi;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+    this.owned = new McpServersOwnedApi(client);
+    this.tools = new McpServersToolsApi(client);
+    this.resources = new McpServersResourcesApi(client);
+    this.prompts = new McpServersPromptsApi(client);
+    this.connectors = new McpServersConnectorsApi(client);
   }
 
-/** MCP mcp.listPrompts */
-  async listPrompts(serverId: string, params?: McpListPromptsParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpPromptRecord[]; pageInfo: PageInfo; }> {
+
+/** MCP mcp.listServers */
+  async list(params?: McpServersListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.request<{ items: McpPromptRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/prompts`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+    return this.client.request<{ items: McpServerRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/servers`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
   }
 
-/** MCP mcp.upsertOwnConnector */
-  async upsertOwnConnector(serverId: string, body: UpsertOwnMcpConnectorCommand, requestOptions?: ApiRequestOptions): Promise<McpConnectorRecord> {
-    return this.client.request<McpConnectorRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/connectors`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'POST' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
+/** MCP mcp.createOwnServer */
+  async create(body: CreateOwnMcpServerCommand, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
+    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'POST' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
   }
 
-/** MCP mcp.deleteOwnConnector */
-  async deleteOwnConnector(serverId: string, connectorKey: string, requestOptions?: ApiRequestOptions): Promise<McpConnectorRecord> {
-    return this.client.request<McpConnectorRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverId, { name: 'serverId', style: 'simple', explode: false })}/connectors/${serializePathParameter(connectorKey, { name: 'connectorKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'DELETE' as any, sdkworkUnwrapKind: 'item' });
+/** MCP mcp.getServer */
+  async retrieve(serverKey: string, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
+    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'item' });
   }
 
-/** MCP mcp.listInvocations */
-  async listInvocations(params?: McpListInvocationsParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpInvocationRecord[]; pageInfo: PageInfo; }> {
+/** MCP mcp.updateOwnServer */
+  async update(serverKey: string, body: UpdateOwnMcpServerCommand, requestOptions?: ApiRequestOptions): Promise<McpServerRecord> {
+    return this.client.request<McpServerRecord>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'PATCH' as any, body, contentType: 'application/json', sdkworkUnwrapKind: 'item' });
+  }
+
+/** MCP mcp.deleteOwnServer */
+  async delete(serverKey: string, requestOptions?: ApiRequestOptions): Promise<void> {
+    return this.client.request<void>(appApiPath(`/mcp/servers/${serializePathParameter(serverKey, { name: 'serverKey', style: 'simple', explode: false })}`), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'DELETE' as any });
+  }
+}
+
+export interface McpCategoriesListParams {
+  page?: number;
+  pageSize?: number;
+  cursor?: string;
+  q?: string;
+}
+
+export class McpCategoriesApi {
+  private client: HttpClient;
+
+  constructor(client: HttpClient) {
+    this.client = client;
+  }
+
+
+/** MCP mcp.listCategories */
+  async list(params?: McpCategoriesListParams, requestOptions?: ApiRequestOptions): Promise<{ items: McpServerCategoryRecord[]; pageInfo: PageInfo; }> {
     const query = buildQueryString([
       { name: 'page', value: params?.page, style: 'form', explode: true, allowReserved: false },
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
-      { name: 'server_id', value: params?.serverId, style: 'form', explode: true, allowReserved: false },
     ]);
-    return this.client.request<{ items: McpInvocationRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/invocations`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
+    return this.client.request<{ items: McpServerCategoryRecord[]; pageInfo: PageInfo; }>(appendQueryString(appApiPath(`/mcp/categories`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
   }
+}
+
+export class McpApi {
+  public readonly categories: McpCategoriesApi;
+  public readonly servers: McpServersApi;
+  public readonly invocations: McpInvocationsApi;
+
+  constructor(client: HttpClient) {
+    this.categories = new McpCategoriesApi(client);
+    this.servers = new McpServersApi(client);
+    this.invocations = new McpInvocationsApi(client);
+  }
+
 }
 
 export function createMcpApi(client: HttpClient): McpApi {

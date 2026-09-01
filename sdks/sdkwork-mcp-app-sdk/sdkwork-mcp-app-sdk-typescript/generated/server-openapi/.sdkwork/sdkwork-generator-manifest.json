@@ -44,7 +44,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "0fc74558855ff0f301e5766b662daac795881a01e255924a802c6572d382fa9e"
+      "sha256": "6f92cd051981aa218dc564bf6c18675e7bbdb15e121f253d26676c0ac39bb1b8"
     },
     {
       "path": "sdkwork-sdk.json",
@@ -60,7 +60,7 @@
     },
     {
       "path": "src/api/mcp.ts",
-      "sha256": "5f69aa3708e4ad52b0bf48a50878aca610242e20e365ac2b63f65ae6d9c0aecb"
+      "sha256": "082a6a999e4ca9f70850f3fb00aef0bc8e0c3a9c38854e03182aba22694d3cbe"
     },
     {
       "path": "src/api/paths.ts",
@@ -103,68 +103,56 @@
       "sha256": "4869607f1a3fbdb9f43bc74736a1d2a60f0d3fa1f6ce99ddc5616568a801ba8a"
     },
     {
+      "path": "src/types/create-post-response201.ts",
+      "sha256": "5f146af979ec07655a69e71a84b1e3ea69a614861a87b6618f9017908bedd22d"
+    },
+    {
+      "path": "src/types/create-response201.ts",
+      "sha256": "41360d42c38fd9e6212c01f606a1bc7a4f696fed362f82b8d18ce2bc2d05cd48"
+    },
+    {
       "path": "src/types/field-error.ts",
       "sha256": "7688827a804d5c888fdf626b89e3356832f858e24f0657069b6b842a31ae6907"
     },
     {
       "path": "src/types/index.ts",
-      "sha256": "054e83bf04b1a81f7a4620560339aef4184eb9b8c795d48993b27fe3cce8042d"
+      "sha256": "ba2d3d52d5ce34d32c854153004b097b460c1d1d5c3ee751a2cca81fc835b416"
+    },
+    {
+      "path": "src/types/list-get-response.ts",
+      "sha256": "3955e5032d452c74f04b251c38ab016fb8756c27f3d446f9336ba4f3fb72e6fc"
+    },
+    {
+      "path": "src/types/list-get-response2.ts",
+      "sha256": "5215ae5fd490c42f67213540dc2e98c9608254493cc33db88cfa35aef6a3fdc8"
+    },
+    {
+      "path": "src/types/list-get-response3.ts",
+      "sha256": "50589e132a0f6abd2454b0a80d4c1d161e8b28e9750a723c7a064de1c8aa8a14"
+    },
+    {
+      "path": "src/types/list-get-response4.ts",
+      "sha256": "97bddf1f3fbf6fc35706270bf1cd1cb82523d6a0a66688fd43fd83daa759d2b8"
+    },
+    {
+      "path": "src/types/list-get-response5.ts",
+      "sha256": "a05da1e9ae467e385cd354b3b5fa14880ede9c98430f55a107972400e22ac822"
+    },
+    {
+      "path": "src/types/list-get-response6.ts",
+      "sha256": "95535a565735509cfc0e8a075a321e15426783fdbadea9c3269d2861936afd71"
+    },
+    {
+      "path": "src/types/list-response.ts",
+      "sha256": "93d0ad446dd7e7b51f3e98c3c354557c1177fcd1dab2fe2f5a0a196da3ab3c7b"
     },
     {
       "path": "src/types/mcp-connector-record.ts",
       "sha256": "9be571eb645d16835e07ade33801e92cafbb11a9b0aef4806cf046b188dc3168"
     },
     {
-      "path": "src/types/mcp-create-own-server-response.ts",
-      "sha256": "ccd54950ccb7cf944e6e05517dc8f1baac85ebb44406daa095aff8c391b53b61"
-    },
-    {
-      "path": "src/types/mcp-delete-own-connector-response.ts",
-      "sha256": "6434acaf0eec80686ca282c5cc03090c2afbe46d565853622bab45b2604cbcb3"
-    },
-    {
-      "path": "src/types/mcp-delete-own-server-response.ts",
-      "sha256": "7def3741218b5c6ddfd8987a73740072a3bac81a6fdf6b0f5f73953accef5043"
-    },
-    {
-      "path": "src/types/mcp-get-server-response.ts",
-      "sha256": "1874e1f75400f45ecf5bdf15cab532273dc90e12f3b55048b6ea6fc795f8301e"
-    },
-    {
-      "path": "src/types/mcp-get-tool-response.ts",
-      "sha256": "d4bcd95178edde5b03d4738f395646a0cc21aeb2d07506200b9d9db959bd9ca7"
-    },
-    {
       "path": "src/types/mcp-invocation-record.ts",
       "sha256": "170743dfa84315e3dae4d71e864c8d0afa9def30f40261885a66d8e220c7a688"
-    },
-    {
-      "path": "src/types/mcp-list-categories-response.ts",
-      "sha256": "2d327b76d0e94621a08f56028629a74f5bc5a25d37b30a4acdad5f82ab19ce55"
-    },
-    {
-      "path": "src/types/mcp-list-invocations-response.ts",
-      "sha256": "768eeec8020120ad57431052dbb44948bc90687d8de72fd657959bd05fba04fd"
-    },
-    {
-      "path": "src/types/mcp-list-owned-servers-response.ts",
-      "sha256": "c7a732e97f67710188f52a4372c7b86cfb8239798f9fd65214c6edbd126ca653"
-    },
-    {
-      "path": "src/types/mcp-list-prompts-response.ts",
-      "sha256": "245e8aaf04956b9f07a0206b8e2b9089764cb63e482a3193374f5dc2062130c4"
-    },
-    {
-      "path": "src/types/mcp-list-resources-response.ts",
-      "sha256": "6830b6167f599a94e8f49c44577d9850b76269e4dcc45f624459e7170e65c113"
-    },
-    {
-      "path": "src/types/mcp-list-servers-response.ts",
-      "sha256": "8bdc285bf18b453c19ef1739fdb629e74862ae46d0e45ec2e57bdc0daf287aad"
-    },
-    {
-      "path": "src/types/mcp-list-tools-response.ts",
-      "sha256": "b2f70954d886a8d70aac5c20ba591eb19858de72469ffee3472d1ae5f17cb462"
     },
     {
       "path": "src/types/mcp-prompt-record.ts",
@@ -187,20 +175,20 @@
       "sha256": "cadcab0741558dda9b8353a2a80ddc7e79bdd67921b4fdbbe1f400aa3a2187c1"
     },
     {
-      "path": "src/types/mcp-update-own-server-response.ts",
-      "sha256": "2d070b0eb830d7efc7e1ccfe9582e1423666ca23ae7647aa85dd3477f934f1b7"
-    },
-    {
-      "path": "src/types/mcp-upsert-own-connector-response.ts",
-      "sha256": "3566db0327a3381157012800c28b34e18f902a99aab8d0fd19e622273602bbf7"
-    },
-    {
       "path": "src/types/page-info.ts",
       "sha256": "0bf2b44313bc24851eb9ffb6063c1b9eb043e1e5721c8ace8882a3cfa21c932a"
     },
     {
       "path": "src/types/problem-detail.ts",
       "sha256": "c41fdf6433e1167d2fb1f3ac38fd13eb77178f4c0633c9e27824f1e1687ee4f6"
+    },
+    {
+      "path": "src/types/retrieve-get-response.ts",
+      "sha256": "ff12b16fab3505aba7727ced8621b5dccf4368084db035f547fdd32244f9d0ac"
+    },
+    {
+      "path": "src/types/retrieve-response.ts",
+      "sha256": "6d147a73bb6bafb7680fd91f2c76c6414b6671b266be61366bcd12dd116600fd"
     },
     {
       "path": "src/types/sdk-work-api-response.ts",
@@ -243,6 +231,10 @@
       "sha256": "d1b2ca636027bf770317451e1a61f1948523a6f0781240f6266d025ac2f1d4e8"
     },
     {
+      "path": "src/types/update-response.ts",
+      "sha256": "2fc79e7a91c8c5b9b99fb7c5ed12fc65946f8735b73d55e51024ef34eba31b48"
+    },
+    {
       "path": "src/types/upsert-mcp-connector-command.ts",
       "sha256": "36be3065901da9d5cab61d38245bc9832756d23e1a2a13c24f09ec9576585ae7"
     },
@@ -268,7 +260,7 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "7c8a6c2b00fb208ec28e1e6045194487d1b3e563d6c44cef4783fd4fe0e8ffad"
+      "sha256": "35f6f0baf03ca4245339f0a532b02c6b0c8e64d66852a2f77d38ae063b2024b8"
     }
   ],
   "scaffoldFiles": [

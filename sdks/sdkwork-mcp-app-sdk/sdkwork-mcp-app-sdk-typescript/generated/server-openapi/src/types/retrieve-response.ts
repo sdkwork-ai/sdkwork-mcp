@@ -1,6 +1,6 @@
 import type { McpServerRecord } from './mcp-server-record';
 
-export interface McpAdminUpdateServerResponse {
+export interface RetrieveResponse {
   code: 0;
   data: unknown & { item: McpServerRecord; };
   /** Server-owned request correlation id. */

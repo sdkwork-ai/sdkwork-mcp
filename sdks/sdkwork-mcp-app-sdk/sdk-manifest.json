@@ -24,73 +24,73 @@
   "operations": [
     {
       "method": "POST",
-      "operationId": "mcp.createOwnServer",
+      "operationId": "create",
       "path": "/app/v3/api/mcp/servers"
     },
     {
+      "method": "POST",
+      "operationId": "create",
+      "path": "/app/v3/api/mcp/servers/{serverId}/connectors"
+    },
+    {
       "method": "DELETE",
-      "operationId": "mcp.deleteOwnConnector",
+      "operationId": "delete",
+      "path": "/app/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "DELETE",
+      "operationId": "delete",
       "path": "/app/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
     },
     {
-      "method": "DELETE",
-      "operationId": "mcp.deleteOwnServer",
-      "path": "/app/v3/api/mcp/servers/{serverKey}"
-    },
-    {
       "method": "GET",
-      "operationId": "mcp.getServer",
-      "path": "/app/v3/api/mcp/servers/{serverKey}"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.getTool",
-      "path": "/app/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.listCategories",
+      "operationId": "list",
       "path": "/app/v3/api/mcp/categories"
     },
     {
       "method": "GET",
-      "operationId": "mcp.listInvocations",
-      "path": "/app/v3/api/mcp/invocations"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.listOwnedServers",
-      "path": "/app/v3/api/mcp/servers/owned"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.listPrompts",
-      "path": "/app/v3/api/mcp/servers/{serverId}/prompts"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.listResources",
-      "path": "/app/v3/api/mcp/servers/{serverId}/resources"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcp.listServers",
+      "operationId": "list",
       "path": "/app/v3/api/mcp/servers"
     },
     {
       "method": "GET",
-      "operationId": "mcp.listTools",
+      "operationId": "list",
+      "path": "/app/v3/api/mcp/servers/owned"
+    },
+    {
+      "method": "GET",
+      "operationId": "list",
       "path": "/app/v3/api/mcp/servers/{serverId}/tools"
     },
     {
-      "method": "PATCH",
-      "operationId": "mcp.updateOwnServer",
+      "method": "GET",
+      "operationId": "list",
+      "path": "/app/v3/api/mcp/servers/{serverId}/resources"
+    },
+    {
+      "method": "GET",
+      "operationId": "list",
+      "path": "/app/v3/api/mcp/servers/{serverId}/prompts"
+    },
+    {
+      "method": "GET",
+      "operationId": "list",
+      "path": "/app/v3/api/mcp/invocations"
+    },
+    {
+      "method": "GET",
+      "operationId": "retrieve",
       "path": "/app/v3/api/mcp/servers/{serverKey}"
     },
     {
-      "method": "POST",
-      "operationId": "mcp.upsertOwnConnector",
-      "path": "/app/v3/api/mcp/servers/{serverId}/connectors"
+      "method": "GET",
+      "operationId": "retrieve",
+      "path": "/app/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
+    },
+    {
+      "method": "PATCH",
+      "operationId": "update",
+      "path": "/app/v3/api/mcp/servers/{serverKey}"
     }
   ],
   "managedBy": "tools/mcp_sdk_generator_runner.mjs",
