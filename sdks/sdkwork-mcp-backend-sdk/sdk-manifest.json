@@ -24,73 +24,73 @@
   "operations": [
     {
       "method": "POST",
-      "operationId": "mcpAdmin.create",
+      "operationId": "mcpAdmin.appendInvocation",
+      "path": "/backend/v3/api/mcp/invocations"
+    },
+    {
+      "method": "POST",
+      "operationId": "mcpAdmin.createServer",
+      "path": "/backend/v3/api/mcp/servers"
+    },
+    {
+      "method": "DELETE",
+      "operationId": "mcpAdmin.deleteConnector",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
+    },
+    {
+      "method": "DELETE",
+      "operationId": "mcpAdmin.deleteServer",
+      "path": "/backend/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.listCategories",
+      "path": "/backend/v3/api/mcp/categories"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.listConnectors",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/connectors"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.listInvocations",
+      "path": "/backend/v3/api/mcp/invocations"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.listServers",
+      "path": "/backend/v3/api/mcp/servers"
+    },
+    {
+      "method": "PUT",
+      "operationId": "mcpAdmin.updateServer",
+      "path": "/backend/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "POST",
+      "operationId": "mcpAdmin.upsertCategory",
       "path": "/backend/v3/api/mcp/categories"
     },
     {
       "method": "POST",
-      "operationId": "mcpAdmin.create",
-      "path": "/backend/v3/api/mcp/servers"
-    },
-    {
-      "method": "POST",
-      "operationId": "mcpAdmin.create",
+      "operationId": "mcpAdmin.upsertConnector",
       "path": "/backend/v3/api/mcp/servers/{serverId}/connectors"
     },
     {
       "method": "POST",
-      "operationId": "mcpAdmin.create",
-      "path": "/backend/v3/api/mcp/servers/{serverId}/tools"
-    },
-    {
-      "method": "POST",
-      "operationId": "mcpAdmin.create",
-      "path": "/backend/v3/api/mcp/servers/{serverId}/resources"
-    },
-    {
-      "method": "POST",
-      "operationId": "mcpAdmin.create",
+      "operationId": "mcpAdmin.upsertPrompt",
       "path": "/backend/v3/api/mcp/servers/{serverId}/prompts"
     },
     {
       "method": "POST",
-      "operationId": "mcpAdmin.create",
-      "path": "/backend/v3/api/mcp/invocations"
+      "operationId": "mcpAdmin.upsertResource",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/resources"
     },
     {
-      "method": "DELETE",
-      "operationId": "mcpAdmin.delete",
-      "path": "/backend/v3/api/mcp/servers/{serverKey}"
-    },
-    {
-      "method": "DELETE",
-      "operationId": "mcpAdmin.delete",
-      "path": "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcpAdmin.list",
-      "path": "/backend/v3/api/mcp/categories"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcpAdmin.list",
-      "path": "/backend/v3/api/mcp/servers"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcpAdmin.list",
-      "path": "/backend/v3/api/mcp/servers/{serverId}/connectors"
-    },
-    {
-      "method": "GET",
-      "operationId": "mcpAdmin.list",
-      "path": "/backend/v3/api/mcp/invocations"
-    },
-    {
-      "method": "PUT",
-      "operationId": "mcpAdmin.update",
-      "path": "/backend/v3/api/mcp/servers/{serverKey}"
+      "method": "POST",
+      "operationId": "mcpAdmin.upsertTool",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/tools"
     }
   ],
   "managedBy": "tools/mcp_sdk_generator_runner.mjs",
