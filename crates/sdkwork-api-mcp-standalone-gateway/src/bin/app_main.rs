@@ -1,8 +1,8 @@
 use sdkwork_api_mcp_standalone_gateway::serve_router;
+use sdkwork_web_bootstrap::{ApiModuleRegistry, infra_public_path_prefixes};
 use sdkwork_iam_web_adapter::{
     build_web_framework_builder, iam_web_request_context_resolver_from_env,
 };
-use sdkwork_web_bootstrap::{infra_public_path_prefixes, ComposedApiAssembly};
 
 #[tokio::main]
 async fn main() {
@@ -17,7 +17,10 @@ async fn main() {
         assembly.route_manifest.clone(),
         infra_public_path_prefixes(),
     );
-    let router = ComposedApiAssembly::try_compose("SDKWork MCP API", vec![assembly])
+    let mut module_registry = ApiModuleRegistry::new();
+    module_registry.add_modules(vec![assembly]);
+    let router = module_registry
+        .try_compose("SDKWork MCP API")
         .expect("compose sdkwork-mcp API contribution")
         .into_hosted(framework)
         .router;
