@@ -169,8 +169,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers": {
@@ -323,8 +322,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       },
       "post": {
         "tags": [
@@ -430,8 +428,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.servers.create"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/owned": {
@@ -584,8 +581,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverKey}": {
@@ -692,8 +688,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       },
       "patch": {
         "tags": [
@@ -808,8 +803,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.servers.update"
+        "x-sdkwork-request-context": "WebRequestContext"
       },
       "delete": {
         "tags": [
@@ -884,8 +878,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.servers.delete"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/tools": {
@@ -1048,8 +1041,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/tools/{toolKey}": {
@@ -1166,8 +1158,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/resources": {
@@ -1330,8 +1321,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/prompts": {
@@ -1494,8 +1484,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.marketplace.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/connectors": {
@@ -1614,8 +1603,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.connectors.create"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}": {
@@ -1702,8 +1690,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.connectors.delete"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     },
     "/app/v3/api/mcp/invocations": {
@@ -1866,8 +1853,7 @@
         "x-sdkwork-resource": "mcp",
         "x-sdkwork-public": false,
         "x-sdkwork-api-surface": "app-api",
-        "x-sdkwork-request-context": "WebRequestContext",
-        "x-sdkwork-permission": "mcp.invocations.read"
+        "x-sdkwork-request-context": "WebRequestContext"
       }
     }
   },
