@@ -1,0 +1,15 @@
+{
+  "environment": "demo",
+  "deploymentProfile": "standalone",
+  "profileId": "standalone.demo",
+  "runtimeTarget": "browser",
+  "browserOriginMode": "same-origin",
+  "tenantId": "1",
+  "appApiBaseUrl": "/",
+  "backendApiBaseUrl": "/",
+  "driveAppApiBaseUrl": "/",
+  "appbaseAppApiBaseUrl": "/",
+  "deployAppApiBaseUrl": "/",
+  "openApiBaseUrl": "/",
+  "sdkBaseUrl": "/"
+}

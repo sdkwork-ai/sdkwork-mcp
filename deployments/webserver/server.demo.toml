@@ -1,0 +1,13 @@
+environment = "demo"
+
+[http]
+
+[[http.server]]
+listen = ["80"]
+serverName = ["mcp-demo.sdkwork.com", "mcp-demo.birdcoder.com", "mcp-demo.dtupay.com", "mcp-demo.noaper.com", "mcp-demo.sdkwork.cn", "mcp-demo.birdcoder.cn", "mcp-demo.dtupay.cn", "mcp-demo.noaper.cn", "mcp-demo.skubc.com", "mcp-demo.skubc.cn", "mcp-demo.zowalk.com", "mcp-demo.zowalk.cn", "mcp-demo.offer86.com", "mcp-demo.offer86.cn", "mcp-demo.86offer.com", "mcp-demo.86offer.cn"]
+include = ["snippets/adaptive-web.named-locations.conf", "snippets/gateway-api-locations.nonproduction.conf"]
+
+[[http.server.location]]
+match = "/"
+include = ["snippets/adaptive-web.dispatch.conf"]
+
