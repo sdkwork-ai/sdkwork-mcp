@@ -1,12 +1,7 @@
+import { readRuntimeEnv } from '@sdkwork/sdk-common';
 import { isBlank, trim } from '@sdkwork/utils';
 
-export function readRuntimeEnv(name: string): string | undefined {
-  const meta = import.meta as ImportMeta & {
-    env?: Record<string, string | boolean | undefined>;
-  };
-  const value = meta.env?.[name];
-  return typeof value === 'string' && !isBlank(trim(value)) ? trim(value) : undefined;
-}
+export { readRuntimeEnv };
 
 export function normalizeApiBaseUrl(baseUrl: string): string {
   const normalized = trim(baseUrl);

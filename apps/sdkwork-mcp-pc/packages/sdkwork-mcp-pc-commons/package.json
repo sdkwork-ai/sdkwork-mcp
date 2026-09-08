@@ -13,6 +13,7 @@
     "./driveUri": "./src/driveUri.ts"
   },
   "dependencies": {
+    "@sdkwork/sdk-common": "workspace:*",
     "@sdkwork/utils": "workspace:*"
   },
   "peerDependencies": {

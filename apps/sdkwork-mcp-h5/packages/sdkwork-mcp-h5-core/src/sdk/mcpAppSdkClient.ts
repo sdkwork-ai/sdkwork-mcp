@@ -3,6 +3,7 @@ import {
   type SdkworkAppClient as GeneratedSdkworkMCPAppClient,
 } from "@sdkwork/mcp-app-sdk";
 import type { SdkworkAppConfig } from "@sdkwork/mcp-app-sdk";
+import { resolveBaseUrl } from "@sdkwork/sdk-common";
 import type { Interceptors } from "@sdkwork/sdk-common";
 
 import {
@@ -23,12 +24,14 @@ export type { McpServerRecord } from "@sdkwork/mcp-app-sdk";
 let mcpAppSdkClient: SdkworkMCPAppClient | null = null;
 
 export function resolveMCPAppSdkBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_SDKWORK_MCP_H5_APP_API_BASE_URL;
-  if (typeof fromEnv === "string" && fromEnv.trim().length > 0) {
-    return fromEnv.trim();
-  }
-  const publicUrl = import.meta.env.VITE_SDKWORK_MCP_H5_APPLICATION_PUBLIC_HTTP_URL ?? "http://127.0.0.1:8095";
-  return `${String(publicUrl).replace(/\/+$/u, "")}/app/v3/api`;
+  // Single shared base-url key; candidates may be comma/semicolon separated and
+  // the matching API host is chosen from the current page's environment+brand
+  // (https page -> https://api-*, http page -> http://api-*). preservePath keeps
+  // the /app/v3/api suffix this SDK client expects.
+  return resolveBaseUrl({
+    envKey: "SDKWORK_API_BASE_URL",
+    preservePath: true,
+  }).url;
 }
 
 export function createMCPAppSdkClientConfig(

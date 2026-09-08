@@ -1,11 +1,12 @@
 import { createClient as createDriveSdkClient, type SdkworkDriveAppClient } from '@sdkwork/drive-app-sdk';
 import type { AuthTokenManager } from '@sdkwork/sdk-common';
+import { resolveBaseUrl } from '@sdkwork/sdk-common';
 import { createClient as createAppSdkClient, type SdkworkAppClient } from '@sdkwork/mcp-app-sdk';
 import {
   createClient as createBackendSdkClient,
   type SdkworkBackendClient,
 } from '@sdkwork/mcp-backend-sdk';
-import { normalizeApiBaseUrl, readRuntimeEnv } from '@sdkwork/mcp-pc-commons/runtime';
+import { normalizeApiBaseUrl } from '@sdkwork/mcp-pc-commons/runtime';
 
 import { createMCPTokenManager } from './session';
 
@@ -30,25 +31,26 @@ export type MCPClients = {
 
 let cachedClients: MCPClients | null = null;
 
+function resolveSharedApiBaseUrl(): string {
+  // Single shared base-url key; candidates may be comma/semicolon separated and
+  // the matching API host is chosen from the current page's environment+brand
+  // (https page -> https://api-*, http page -> http://api-*). These SDK clients
+  // expect a bare origin, so the default (no preservePath) applies. The former
+  // MCP/DRIVE-specific env keys are deprecated — one shared key drives all
+  // three clients.
+  return resolveBaseUrl({ envKey: 'SDKWORK_API_BASE_URL' }).url;
+}
+
 function resolveAppApiBaseUrl(config?: MCPClientConfig): string {
-  return normalizeApiBaseUrl(
-    config?.appApiBaseUrl ?? readRuntimeEnv('VITE_SDKWORK_MCP_APP_API_BASE_URL') ?? '',
-  );
+  return normalizeApiBaseUrl(config?.appApiBaseUrl ?? resolveSharedApiBaseUrl());
 }
 
 function resolveBackendApiBaseUrl(config?: MCPClientConfig): string {
-  return normalizeApiBaseUrl(
-    config?.backendApiBaseUrl ?? readRuntimeEnv('VITE_SDKWORK_MCP_BACKEND_API_BASE_URL') ?? '',
-  );
+  return normalizeApiBaseUrl(config?.backendApiBaseUrl ?? resolveSharedApiBaseUrl());
 }
 
 function resolveDriveAppApiBaseUrl(config?: MCPClientConfig): string {
-  return normalizeApiBaseUrl(
-    config?.driveAppApiBaseUrl ??
-      readRuntimeEnv('VITE_SDKWORK_DRIVE_APP_API_BASE_URL') ??
-      readRuntimeEnv('VITE_SDKWORK_MCP_APP_API_BASE_URL') ??
-      '',
-  );
+  return normalizeApiBaseUrl(config?.driveAppApiBaseUrl ?? resolveSharedApiBaseUrl());
 }
 
 function createAuthenticatedClientConfig(

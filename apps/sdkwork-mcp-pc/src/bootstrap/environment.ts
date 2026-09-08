@@ -1,3 +1,4 @@
+import { readRuntimeEnv, resolveBaseUrl, splitBaseUrls } from '@sdkwork/sdk-common';
 import manifest from '../../../../sdkwork.app.config.json';
 
 export type SdkworkMCPPcEnvironment = 'development' | 'test' | 'staging' | 'production';
@@ -77,6 +78,23 @@ function envValue(key: string): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
+/**
+ * Shared base-url key (`SDKWORK_API_BASE_URL`). Candidates may be comma- or
+ * semicolon-separated; the matching API host is chosen from the current page's
+ * environment+brand (https page -> https://api-*, http page -> http://api-*).
+ * Returns the resolved bare-origin base URL, or `undefined` when the shared
+ * key is unset so the legacy `VITE_SDKWORK_MCP_PC_SDK_BASE_URL` profile chain
+ * still applies. The former MCP/DRIVE-specific env keys are deprecated — one
+ * shared key drives app, backend and drive base URLs.
+ */
+function sharedApiBaseUrl(): string | undefined {
+  const raw = readRuntimeEnv('SDKWORK_API_BASE_URL');
+  if (!raw || splitBaseUrls(raw).length === 0) {
+    return undefined;
+  }
+  return resolveBaseUrl({ envKey: 'SDKWORK_API_BASE_URL' }).url;
+}
+
 function resolveEnvironment(mode: string): SdkworkMCPPcEnvironment {
   return environmentByMode[mode] ?? 'development';
 }
@@ -119,7 +137,7 @@ export function resolveSdkworkMCPPcRuntimeConfig(
 
   return {
     appApiBaseUrl:
-      envValue('VITE_SDKWORK_MCP_APP_API_BASE_URL') ??
+      sharedApiBaseUrl() ??
       sdkBaseUrls?.appApiBaseUrl ??
       APP_API_PREFIX,
     appDisplayName: manifest.app.displayName,
@@ -132,7 +150,7 @@ export function resolveSdkworkMCPPcRuntimeConfig(
       tokenStorage: 'browser-session',
     },
     backendApiBaseUrl:
-      envValue('VITE_SDKWORK_MCP_BACKEND_API_BASE_URL') ??
+      sharedApiBaseUrl() ??
       sdkBaseUrls?.backendApiBaseUrl ??
       BACKEND_API_PREFIX,
     buildMode: environment,
@@ -140,8 +158,7 @@ export function resolveSdkworkMCPPcRuntimeConfig(
     defaultTenantId,
     deploymentMode: 'web',
     driveAppApiBaseUrl:
-      envValue('VITE_SDKWORK_DRIVE_APP_API_BASE_URL') ??
-      envValue('VITE_SDKWORK_MCP_APP_API_BASE_URL') ??
+      sharedApiBaseUrl() ??
       sdkBaseUrls?.appApiBaseUrl ??
       APP_API_PREFIX,
     environment,
