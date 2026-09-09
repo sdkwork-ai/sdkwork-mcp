@@ -1,6 +1,6 @@
 import { createClient as createDriveSdkClient, type SdkworkDriveAppClient } from '@sdkwork/drive-app-sdk';
-import type { AuthTokenManager } from '@sdkwork/sdk-common';
-import { resolveBaseUrl } from '@sdkwork/sdk-common';
+import {AuthTokenManager} from '@sdkwork/sdk-common';
+import {resolveBaseUrlWithAlignProtocol} from '@sdkwork/sdk-common';
 import { createClient as createAppSdkClient, type SdkworkAppClient } from '@sdkwork/mcp-app-sdk';
 import {
   createClient as createBackendSdkClient,
@@ -38,7 +38,7 @@ function resolveSharedApiBaseUrl(): string {
   // expect a bare origin, so the default (no preservePath) applies. The former
   // MCP/DRIVE-specific env keys are deprecated — one shared key drives all
   // three clients.
-  return resolveBaseUrl({ envKey: 'SDKWORK_API_BASE_URL' }).url;
+  return resolveBaseUrlWithAlignProtocol({ envKey: 'SDKWORK_API_BASE_URL' }).url;
 }
 
 function resolveAppApiBaseUrl(config?: MCPClientConfig): string {

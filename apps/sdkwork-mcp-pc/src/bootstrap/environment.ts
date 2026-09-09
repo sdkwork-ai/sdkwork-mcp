@@ -1,4 +1,4 @@
-import { readRuntimeEnv, resolveBaseUrl, splitBaseUrls } from '@sdkwork/sdk-common';
+import {readRuntimeEnv, resolveBaseUrlWithAlignProtocol, splitBaseUrls} from '@sdkwork/sdk-common';
 import manifest from '../../../../sdkwork.app.config.json';
 
 export type SdkworkMCPPcEnvironment = 'development' | 'test' | 'staging' | 'production';
@@ -92,7 +92,7 @@ function sharedApiBaseUrl(): string | undefined {
   if (!raw || splitBaseUrls(raw).length === 0) {
     return undefined;
   }
-  return resolveBaseUrl({ envKey: 'SDKWORK_API_BASE_URL' }).url;
+  return resolveBaseUrlWithAlignProtocol({ envKey: 'SDKWORK_API_BASE_URL' }).url;
 }
 
 function resolveEnvironment(mode: string): SdkworkMCPPcEnvironment {

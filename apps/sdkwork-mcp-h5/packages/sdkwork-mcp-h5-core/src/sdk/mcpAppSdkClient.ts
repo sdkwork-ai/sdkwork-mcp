@@ -3,8 +3,8 @@ import {
   type SdkworkAppClient as GeneratedSdkworkMCPAppClient,
 } from "@sdkwork/mcp-app-sdk";
 import type { SdkworkAppConfig } from "@sdkwork/mcp-app-sdk";
-import { resolveBaseUrl } from "@sdkwork/sdk-common";
-import type { Interceptors } from "@sdkwork/sdk-common";
+import {resolveBaseUrlWithAlignProtocol} from "@sdkwork/sdk-common";
+import {Interceptors} from "@sdkwork/sdk-common";
 
 import {
   createSdkworkChatRequestContextInterceptors,
@@ -28,7 +28,7 @@ export function resolveMCPAppSdkBaseUrl(): string {
   // the matching API host is chosen from the current page's environment+brand
   // (https page -> https://api-*, http page -> http://api-*). preservePath keeps
   // the /app/v3/api suffix this SDK client expects.
-  return resolveBaseUrl({
+  return resolveBaseUrlWithAlignProtocol({
     envKey: "SDKWORK_API_BASE_URL",
     preservePath: true,
   }).url;
