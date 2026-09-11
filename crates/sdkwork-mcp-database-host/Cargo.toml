@@ -1,10 +1,14 @@
 [package]
+rust-version.workspace = true
 name = "sdkwork-mcp-database-host"
 edition.workspace = true
 license.workspace = true
 version.workspace = true
 description = "SDKWork MCP database lifecycle bootstrap."
 
+
+[lints]
+workspace = true
 [lib]
 name = "sdkwork_mcp_database_host"
 path = "src/lib.rs"
