@@ -130,7 +130,7 @@ export function AdminCapabilityPanel({
             <button
               key={value}
               type="button"
-              className={`rounded-full px-3 py-1 text-xs font-medium ${kind === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${kind === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
               onClick={() => setKind(value)}
             >
               {value}
@@ -141,7 +141,7 @@ export function AdminCapabilityPanel({
           Add {kind}
         </Button>
       </div>
-      {error ? <p className="mb-4 text-sm text-rose-700">{error}</p> : null}
+      {error ? <p className="mb-4 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
       {catalog.length === 0 ? (
         <div className="empty-state">
           <h3>{`No ${kind}s yet`}</h3>
@@ -156,7 +156,7 @@ export function AdminCapabilityPanel({
             <DataPanel key={item.id}>
               <div className="p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h4 className="font-medium text-slate-900">{item.name}</h4>
+                  <h4 className="font-medium text-slate-900 dark:text-zinc-100">{item.name}</h4>
                   {'enabled' in item ? (
                     <Badge tone={item.enabled ? 'success' : 'neutral'}>
                       {item.enabled ? 'Enabled' : 'Disabled'}
@@ -164,13 +164,13 @@ export function AdminCapabilityPanel({
                   ) : null}
                 </div>
                 {'tool_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.tool_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.tool_key}</p>
                 ) : null}
                 {'resource_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.resource_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.resource_key}</p>
                 ) : null}
                 {'prompt_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.prompt_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.prompt_key}</p>
                 ) : null}
               </div>
             </DataPanel>
@@ -182,7 +182,9 @@ export function AdminCapabilityPanel({
         title={`Save ${kind}`}
         onClose={() => setDrawerOpen(false)}
       >
-        <form onSubmit={onSubmit} className="grid gap-4">
+        {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
+            standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
+        <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
           <Field label="Connector">
             <SelectInput
               value={

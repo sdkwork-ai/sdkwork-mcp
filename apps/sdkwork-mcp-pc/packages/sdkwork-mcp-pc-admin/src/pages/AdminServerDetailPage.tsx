@@ -106,7 +106,7 @@ export function AdminServerDetailPage() {
       <div className="mb-4">
         <Link
           to={serversBasePath}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           ← Back to servers
         </Link>
@@ -120,7 +120,7 @@ export function AdminServerDetailPage() {
           <ErrorAlert message={error} />
         </div>
       ) : null}
-      <div className="mb-6 flex gap-2 border-b border-slate-200">
+      <div className="mb-6 flex gap-2 border-b border-slate-200 dark:border-zinc-800">
         {([
           ['connectors', `Connectors (${connectors.length})`],
           ['capabilities', `Capabilities (${tools.length + resources.length + prompts.length})`],
@@ -129,7 +129,7 @@ export function AdminServerDetailPage() {
           <button
             key={value}
             type="button"
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === value ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === value ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
             onClick={() => setTab(value)}
           >
             {label}
@@ -204,7 +204,9 @@ export function AdminServerDetailPage() {
             title="Upsert connector"
             onClose={() => setConnectorDrawerOpen(false)}
           >
-            <form onSubmit={onCreateConnector} className="grid gap-4">
+            {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
+                standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
+            <form onSubmit={onCreateConnector} className="skills-console-form grid gap-4">
               <Field label="Connector key">
                 <TextInput
                   value={connectorForm.connector_key}

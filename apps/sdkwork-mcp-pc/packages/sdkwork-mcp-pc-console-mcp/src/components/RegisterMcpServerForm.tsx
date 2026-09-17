@@ -1,7 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { isBlank, trim } from '@sdkwork/utils';
 import {
-  Button,
   ErrorAlert,
   Field,
   SelectInput,
@@ -90,7 +89,7 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
+    <form onSubmit={onSubmit} className="skills-console-form">
       {error ? <ErrorAlert message={error} /> : null}
       <Field label={t('register.field.serverKey')}>
         <TextInput
@@ -161,14 +160,27 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
         />
       </Field>
       <Field label={t('register.field.icon')} hint={t('register.field.icon.hint')}>
-        <div className="flex items-center gap-3">
-          <input ref={iconInputRef} type="file" accept="image/*" />
-          <Button type="button" variant="secondary" onClick={onUploadIcon} disabled={uploading || submitting}>
-            {uploading ? t('register.uploading') : t('register.uploadIcon')}
-          </Button>
-        </div>
+        {/* Deliberately NO flex wrapper: the host contract `.skills-console-field` is
+            `display: grid` and forces `width: 100%` on every nested `input`
+            (webserver `src/index.css:1853-1864`). Putting the file input in a flex row
+            makes that `width: 100%` resolve against the row and starve the button, which
+            then shrinks below `max-content` and wraps its label. The host grid already
+            stacks the two children into their own rows — comply with it, don't fight it. */}
+        <input
+          ref={iconInputRef}
+          type="file"
+          accept="image/*"
+          aria-label={t('register.field.icon')}
+        />
+        {/* Console button styling comes from `.skills-console-field button[type="button"]`
+            (token-driven: `width: max-content` + panel-muted background + text-primary).
+            A `Button variant="secondary"` would paint a hardcoded `bg-white` under an
+            inherited light text colour — white on white in dark mode. */}
+        <button type="button" onClick={onUploadIcon} disabled={uploading || submitting}>
+          {uploading ? t('register.uploading') : t('register.uploadIcon')}
+        </button>
         {trim(form.iconRef) ? (
-          <span className="text-xs text-slate-500">{form.iconRef}</span>
+          <small className="skills-console-field-hint">{form.iconRef}</small>
         ) : null}
       </Field>
       <div className="sdkwork-surface-drawer-form-actions">
@@ -177,9 +189,13 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
             {t('dialog.cancel')}
           </button>
         ) : null}
-        <Button type="submit" disabled={isBlank(trim(form.serverKey)) || uploading || submitting}>
+        <button
+          className="skills-console-primary"
+          type="submit"
+          disabled={isBlank(trim(form.serverKey)) || uploading || submitting}
+        >
           {t('register.submit')}
-        </Button>
+        </button>
       </div>
     </form>
   );

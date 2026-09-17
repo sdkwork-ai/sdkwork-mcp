@@ -2,6 +2,19 @@
 @import 'tailwindcss';
 @source '../../../../sdkwork-iam/apps/sdkwork-iam-pc/packages/sdkwork-auth-pc-react/src';
 @source '../../../../sdkwork-ui/sdkwork-ui-pc-react/src';
+@source '../packages';
+
+/* Bind the `dark:` variant to the `.dark` mode root instead of Tailwind v4's
+   default `@media (prefers-color-scheme: dark)`. Without this binding the paired
+   `dark:` utilities in the shared packages follow the OPERATING SYSTEM
+   preference, while the rest of this app (body colour, no theme provider) stays
+   light — producing a half-dark UI on any dark-mode machine.
+   `THEME_DARKMODE_SPEC.md` §4 / §8 F4 (P0). Same binding as sdkwork-drive and
+   sdkwork-webserver. This app mounts no `SdkworkThemeProvider`, so no `.dark`
+   ancestor exists here and the variant stays inert; when the console packages
+   are embedded in the Web Server host, which does set `.dark` on <html>, it
+   activates and follows the live mode. */
+@variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;

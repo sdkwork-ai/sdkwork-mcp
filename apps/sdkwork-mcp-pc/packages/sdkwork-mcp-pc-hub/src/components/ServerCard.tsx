@@ -12,19 +12,19 @@ export function ServerCard({ server }: { server: McpServerRecord }) {
   return (
     <Link
       to={`/mcp-hub/${encodeURIComponent(server.server_key)}`}
-      className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+      className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">{server.name}</h3>
-          <p className="mt-1 font-mono text-xs text-slate-500">{server.server_key}</p>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-zinc-100">{server.name}</h3>
+          <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{server.server_key}</p>
         </div>
         <Badge tone={healthTone(server.health_status)}>{formatMcpHealth(server.health_status)}</Badge>
       </div>
       {server.description ? (
-        <p className="mt-3 line-clamp-2 text-sm text-slate-600">{server.description}</p>
+        <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-zinc-400">{server.description}</p>
       ) : (
-        <p className="mt-3 text-sm text-slate-400">No description provided.</p>
+        <p className="mt-3 text-sm text-slate-400 dark:text-zinc-500">No description provided.</p>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
         <Badge tone="brand">{formatMcpTransport(server.transport)}</Badge>

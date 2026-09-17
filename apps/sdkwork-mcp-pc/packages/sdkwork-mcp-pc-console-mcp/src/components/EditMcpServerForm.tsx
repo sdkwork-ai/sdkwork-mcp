@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { isBlank, trim } from '@sdkwork/utils';
 import {
-  Button,
   ErrorAlert,
   Field,
   LoadingState,
@@ -98,7 +97,7 @@ export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpSer
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
+    <form onSubmit={onSubmit} className="skills-console-form">
       {error ? <ErrorAlert message={error} /> : null}
       <Field label={t('edit.field.name')}>
         <TextInput
@@ -138,9 +137,13 @@ export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpSer
             {t('dialog.cancel')}
           </button>
         ) : null}
-        <Button type="submit" disabled={isBlank(trim(form.name)) || submitting}>
+        <button
+          className="skills-console-primary"
+          type="submit"
+          disabled={isBlank(trim(form.name)) || submitting}
+        >
           {t('edit.save')}
-        </Button>
+        </button>
       </div>
     </form>
   );

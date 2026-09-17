@@ -114,7 +114,7 @@ export function AdminServersPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500">Loading servers…</p>;
+    return <p className="text-sm text-slate-500 dark:text-zinc-400">Loading servers…</p>;
   }
 
   return (
@@ -140,8 +140,8 @@ export function AdminServersPage() {
               </button>
             </div>
           ) : (
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
               <tr>
                 <th className="px-4 py-3">Server</th>
                 <th className="px-4 py-3">Transport</th>
@@ -150,17 +150,17 @@ export function AdminServersPage() {
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {servers.map((server) => (
                 <tr key={server.id}>
                   <td className="px-4 py-3">
                     <Link
                       to={`${serversBasePath}/${encodeURIComponent(server.server_key)}`}
-                      className="font-medium text-blue-600 hover:text-blue-700"
+                      className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       {server.name}
                     </Link>
-                    <p className="font-mono text-xs text-slate-500">{server.server_key}</p>
+                    <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">{server.server_key}</p>
                   </td>
                   <td className="px-4 py-3">{formatMcpTransport(server.transport)}</td>
                   <td className="px-4 py-3">
@@ -188,7 +188,10 @@ export function AdminServersPage() {
         description="Register transport metadata, visibility, and a drive-backed icon."
         onClose={() => setCreateOpen(false)}
       >
-        <form onSubmit={onSubmit} className="grid gap-4">
+        {/* `skills-console-form` is the host console contract (`display:grid; gap:14px;
+            max-width:40rem`); `grid gap-4` covers the standalone `sdkwork-mcp-pc` app,
+            whose Tailwind entry defines no console contract at all. */}
+        <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
           <Field label="Server key">
             <TextInput
               value={form.server_key}

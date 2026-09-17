@@ -49,7 +49,7 @@ export function MCPServerDetailPage() {
   return (
     <div>
       <div className="mb-4">
-        <Link to="/mcp-hub" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+        <Link to="/mcp-hub" className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
           ← Back to marketplace
         </Link>
       </div>
@@ -63,32 +63,32 @@ export function MCPServerDetailPage() {
       <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <DataPanel>
           <div className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Server key</p>
-            <p className="mt-1 font-mono text-sm text-slate-900">{server.server_key}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-400">Server key</p>
+            <p className="mt-1 font-mono text-sm text-slate-900 dark:text-zinc-100">{server.server_key}</p>
           </div>
         </DataPanel>
         <DataPanel>
           <div className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Transport</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{formatMcpTransport(server.transport)}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-400">Transport</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-zinc-100">{formatMcpTransport(server.transport)}</p>
           </div>
         </DataPanel>
         <DataPanel>
           <div className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Visibility</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{formatMcpVisibility(server.visibility)}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-400">Visibility</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-zinc-100">{formatMcpVisibility(server.visibility)}</p>
           </div>
         </DataPanel>
         <DataPanel>
           <div className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Lifecycle</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-zinc-400">Lifecycle</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-zinc-100">
               {formatMcpLifecycle(server.lifecycle_status)}
             </p>
           </div>
         </DataPanel>
       </div>
-      <div className="mb-4 flex gap-2 border-b border-slate-200">
+      <div className="mb-4 flex gap-2 border-b border-slate-200 dark:border-zinc-800">
         {([
           ['tools', `Tools (${tools.length})`],
           ['resources', `Resources (${resources.length})`],
@@ -97,7 +97,7 @@ export function MCPServerDetailPage() {
           <button
             key={value}
             type="button"
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === value ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === value ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
             onClick={() => setTab(value)}
           >
             {label}
@@ -112,7 +112,7 @@ export function MCPServerDetailPage() {
             <DataPanel key={item.id}>
               <div className="p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-medium text-slate-900">{item.name}</h3>
+                  <h3 className="font-medium text-slate-900 dark:text-zinc-100">{item.name}</h3>
                   {'enabled' in item ? (
                     <Badge tone={item.enabled ? 'success' : 'neutral'}>
                       {item.enabled ? 'Enabled' : 'Disabled'}
@@ -120,18 +120,18 @@ export function MCPServerDetailPage() {
                   ) : null}
                 </div>
                 {'tool_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.tool_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.tool_key}</p>
                 ) : null}
                 {'resource_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.resource_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.resource_key}</p>
                 ) : null}
                 {'prompt_key' in item ? (
-                  <p className="mt-1 font-mono text-xs text-slate-500">{item.prompt_key}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.prompt_key}</p>
                 ) : null}
                 {'description' in item && item.description ? (
-                  <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">{item.description}</p>
                 ) : null}
-                {'uri' in item ? <p className="mt-2 text-sm text-slate-600">{item.uri}</p> : null}
+                {'uri' in item ? <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">{item.uri}</p> : null}
                 {'risk_level' in item ? (
                   <div className="mt-3">
                     <Badge tone={item.risk_level === 'high' ? 'danger' : 'neutral'}>

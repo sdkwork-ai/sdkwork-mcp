@@ -13,19 +13,21 @@ const adminLinks = [
 
 function navClassName({ isActive }: { isActive: boolean }) {
   return `rounded-lg px-3 py-2 text-sm font-medium transition ${
-    isActive ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+    isActive
+      ? 'bg-blue-600 text-white'
+      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
   }`;
 }
 
 export function MCPShell() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
       <div className="mx-auto flex min-h-screen max-w-7xl">
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white px-4 py-6 md:block">
+        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white px-4 py-6 md:block dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mb-8">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">SDKWork</p>
-            <h1 className="text-xl font-semibold text-slate-900">MCP Platform</h1>
-            <p className="mt-1 text-xs text-slate-500">Registry · Marketplace · Admin</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">SDKWork</p>
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-zinc-100">MCP Platform</h1>
+            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">Registry · Marketplace · Admin</p>
           </div>
           <nav className="space-y-6">
             <div>
@@ -51,14 +53,14 @@ export function MCPShell() {
           </nav>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-slate-200 bg-white px-4 py-4 md:hidden">
-            <h1 className="text-lg font-semibold text-slate-900">SDKWork MCP</h1>
+          <header className="border-b border-slate-200 bg-white px-4 py-4 md:hidden dark:border-zinc-800 dark:bg-zinc-900">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-zinc-100">SDKWork MCP</h1>
             <nav className="mt-3 flex flex-wrap gap-2">
               {[...primaryLinks, ...adminLinks].map((link) => (
                 <NavLink
                   key={link.to}
                   to={link.to}
-                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300"
                 >
                   {link.label}
                 </NavLink>

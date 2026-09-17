@@ -85,8 +85,8 @@ export function AdminCategoriesPage() {
               </button>
             </div>
           ) : (
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Code</th>
@@ -94,11 +94,11 @@ export function AdminCategoriesPage() {
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {categories.map((category) => (
                 <tr key={category.id}>
-                  <td className="px-4 py-3 font-medium text-slate-900">{category.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600">{category.category_code}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-zinc-100">{category.name}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-zinc-400">{category.category_code}</td>
                   <td className="px-4 py-3">{category.sort_order}</td>
                   <td className="px-4 py-3">
                     <Button type="button" variant="secondary" onClick={() => openEdit(category)}>
@@ -118,7 +118,9 @@ export function AdminCategoriesPage() {
         title={form.category_code ? 'Save category' : 'Create category'}
         onClose={() => setDrawerOpen(false)}
       >
-        <form onSubmit={onSubmit} className="grid gap-4">
+        {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
+            standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
+        <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
           <Field label="Category code">
             <TextInput
               value={form.category_code}

@@ -91,8 +91,8 @@ export function AdminServerSettingsPanel({
   return (
     <DataPanel>
       <form onSubmit={onSubmit} className="grid max-w-2xl gap-4 p-5">
-        <h3 className="text-sm font-semibold text-slate-900">Server settings</h3>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">Server settings</h3>
+        {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
         <Field label="Name">
           <TextInput
             value={form.name ?? ''}

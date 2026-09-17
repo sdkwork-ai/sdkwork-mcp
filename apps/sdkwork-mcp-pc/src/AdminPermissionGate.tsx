@@ -35,11 +35,11 @@ export function AdminPermissionGate({
   if (!allowed) {
     return (
       <section className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">Access denied</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-zinc-100">Access denied</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-zinc-400">
           You do not have permission to access this MCP admin surface.
         </p>
-        <p className="mt-4 font-mono text-xs text-slate-500">{permission}</p>
+        <p className="mt-4 font-mono text-xs text-slate-500 dark:text-zinc-400">{permission}</p>
       </section>
     );
   }

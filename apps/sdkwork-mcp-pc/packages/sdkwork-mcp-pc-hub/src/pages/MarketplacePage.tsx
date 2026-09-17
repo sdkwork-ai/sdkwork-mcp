@@ -54,9 +54,9 @@ export function MCPMarketplacePage() {
         description="Discover governed MCP servers, connectors, and capabilities curated for your tenant."
       />
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <aside className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Search</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-400">Search</p>
             <TextInput
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -65,11 +65,11 @@ export function MCPMarketplacePage() {
             />
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Categories</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-400">Categories</p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`rounded-full px-3 py-1 text-xs font-medium ${categoryCode === null ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${categoryCode === null ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
                 onClick={() => setCategoryCode(null)}
               >
                 All
@@ -78,7 +78,7 @@ export function MCPMarketplacePage() {
                 <button
                   key={category.id}
                   type="button"
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${categoryCode === category.category_code ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${categoryCode === category.category_code ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
                   onClick={() => setCategoryCode(category.category_code)}
                 >
                   {category.name}
@@ -87,11 +87,11 @@ export function MCPMarketplacePage() {
             </div>
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Transport</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-zinc-400">Transport</p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`rounded-full px-3 py-1 text-xs font-medium ${transport === null ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${transport === null ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
                 onClick={() => setTransport(null)}
               >
                 Any
@@ -100,7 +100,7 @@ export function MCPMarketplacePage() {
                 <button
                   key={value}
                   type="button"
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${transport === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'}`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${transport === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
                   onClick={() => setTransport(value)}
                 >
                   {value}
@@ -110,7 +110,7 @@ export function MCPMarketplacePage() {
           </div>
         </aside>
         <section>
-          <p className="mb-4 text-sm text-slate-600">
+          <p className="mb-4 text-sm text-slate-600 dark:text-zinc-400">
             Showing {filteredServers.length} of {data.servers.length} servers
           </p>
           {filteredServers.length === 0 ? (
