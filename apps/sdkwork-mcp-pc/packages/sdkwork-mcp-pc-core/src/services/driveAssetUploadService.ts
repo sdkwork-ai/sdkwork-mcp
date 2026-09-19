@@ -6,11 +6,18 @@ import {
   resolveMCPDriveSpaceId,
 } from '@sdkwork/mcp-pc-commons/runtime';
 
+import { MCP_SERVER_ASSET_UPLOAD, MCP_SERVER_ICON_UPLOAD } from '../sdk/uploadDeclaration';
+
+/**
+ * `appResourceType`, `scene`, and `source` are not accepted here: they are the application's
+ * upload identity, owned by `specs/upload.declaration.json` and consumed from
+ * `../sdk/uploadDeclaration` (DRIVE_SPEC.md section 18.3). A caller combines none of them.
+ * `uploadProfileCode` stays overridable because the profile follows the content shape
+ * (DRIVE_SPEC.md section 18.3), and defaults to the declared value.
+ */
 export type DriveAssetUploadOptions = {
   spaceId?: string;
   parentNodeId?: string;
-  appResourceType?: string;
-  scene?: string;
   uploadProfileCode?: DriveUploaderProfile;
 };
 
@@ -28,13 +35,13 @@ export async function uploadDriveAsset(
 
   const uploadResult = await driveClient.uploader.upload({
     file,
-    appResourceType: options.appResourceType ?? 'mcp-pc-asset-upload',
+    appResourceType: MCP_SERVER_ASSET_UPLOAD.appResourceType,
     appResourceId: file.name,
-    scene: options.scene ?? 'mcp_self_service_asset_upload',
-    source: 'pc_local_file',
+    scene: MCP_SERVER_ASSET_UPLOAD.scene,
+    source: MCP_SERVER_ASSET_UPLOAD.source,
     spaceId,
     parentNodeId: options.parentNodeId ?? resolveMCPDriveParentNodeId(),
-    uploadProfileCode: options.uploadProfileCode ?? 'generic',
+    uploadProfileCode: options.uploadProfileCode ?? MCP_SERVER_ASSET_UPLOAD.uploadProfileCode,
     originalFileName: file.name,
     contentType: file.type || 'application/octet-stream',
   });
@@ -47,8 +54,6 @@ export async function uploadServerIcon(
   file: File,
 ): Promise<string> {
   return uploadDriveAsset(driveClient, file, {
-    appResourceType: 'mcp-server-icon',
-    scene: 'mcp_server_icon_upload',
-    uploadProfileCode: 'image',
+    uploadProfileCode: MCP_SERVER_ICON_UPLOAD.uploadProfileCode,
   });
 }

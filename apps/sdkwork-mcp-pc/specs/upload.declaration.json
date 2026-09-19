@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "appId": "sdkwork-mcp-pc",
+  "declarations": [
+    {
+      "appResourceType": "mcp.server_asset",
+      "appResourceIdKind": "entity",
+      "scene": "mcp-self-service-asset-upload",
+      "source": "sdkwork-mcp-pc",
+      "uploadProfileCode": "generic",
+      "retention": "long_term",
+      "purpose": "MCP server package or resource uploaded by an author from the self-service surface."
+    },
+    {
+      "appResourceType": "mcp.server_icon",
+      "appResourceIdKind": "entity",
+      "scene": "mcp-server-icon-upload",
+      "source": "sdkwork-mcp-pc",
+      "uploadProfileCode": "image",
+      "retention": "long_term",
+      "purpose": "MCP server icon image uploaded so the server listing can be rendered in the catalog."
+    }
+  ]
+}

@@ -40,6 +40,15 @@ export {
 export { MCPClientsProvider, useMCPClients } from './context';
 
 export {
+  MCP_APP_ID,
+  MCP_UPLOAD_SOURCE,
+  MCP_UPLOAD_DECLARATIONS,
+  MCP_SERVER_ASSET_UPLOAD,
+  MCP_SERVER_ICON_UPLOAD,
+  type McpUploadDeclarationEntry,
+} from './sdk/uploadDeclaration';
+
+export {
   fetchMarketplaceCatalog,
   fetchServerDetail,
   fetchConsoleOverview,
