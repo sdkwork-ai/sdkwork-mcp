@@ -43,6 +43,15 @@ export function clearStoredTokens(): void {
 }
 
 export function createMCPTokenManager(): AuthTokenManager {
+  // Deliberately credential-source-agnostic. The bootstrap Access-Token fallback
+  // (`IAM_CREDENTIAL_ENTRY_SPEC` section 4/5, `APP_SDK_INTEGRATION_SPEC` section 4)
+  // belongs to the *host* projection, not to this package-level default: the
+  // renderer host injects its own session-backed manager through
+  // `MCPClientsProvider clients={...}` (`apps/sdkwork-mcp-pc/src/bootstrap/
+  // sessionTokenManager.ts`), and shared consumers of `getMCPClients()` are
+  // bundled by hosts outside this repository. Making this fallback read the
+  // credential explicitly would force every such host to carry the private
+  // credential-entry dependency for a path it never executes.
   return createTokenManager();
 }
 

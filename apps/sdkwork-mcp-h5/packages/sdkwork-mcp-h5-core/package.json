@@ -21,6 +21,7 @@
     "@sdkwork/utils": "workspace:*",
     "@sdkwork/mcp-app-sdk": "workspace:*",
     "@sdkwork/iam-contracts": "workspace:*",
+    "@sdkwork/iam-credential-entry": "workspace:*",
     "@sdkwork/sdk-common": "workspace:*"
   },
   "peerDependencies": {
