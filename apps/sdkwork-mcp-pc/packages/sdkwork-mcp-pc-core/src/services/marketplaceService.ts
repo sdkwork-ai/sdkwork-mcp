@@ -12,6 +12,20 @@ import { unwrapSdkWorkPage } from '../sdk/sdkPage';
 
 const catalogListParams = { pageSize: 200 } as const;
 
+/**
+ * Published MCP category dictionary, on its own.
+ *
+ * `fetchMarketplaceCatalog` bundles this with a full server sweep, which is the
+ * wrong cost profile for a form that only needs the category options. The
+ * console register/edit drawers call this instead.
+ */
+export async function listPublishedMcpCategories(
+  clients: MCPClients,
+): Promise<McpServerCategoryRecord[]> {
+  const response = await clients.app.mcp.categories.list(catalogListParams);
+  return unwrapSdkWorkPage<McpServerCategoryRecord>(response).items;
+}
+
 export async function fetchMarketplaceCatalog(clients: MCPClients) {
   const [categoryResponse, serverResponse] = await Promise.all([
     clients.app.mcp.categories.list(catalogListParams),

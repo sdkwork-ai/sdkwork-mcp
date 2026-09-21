@@ -28,6 +28,7 @@ const enUs = {
   "register.uploadIcon": "Upload Icon",
   "register.created": "Registered MCP server {id}.",
   "register.error.selectIcon": "Select an icon image to upload through sdkwork-drive.",
+  "register.error.categoryRequired": "Select a category before registering the MCP server.",
   "register.field.serverKey": "Server key",
   "register.field.name": "Display name",
   "register.field.description": "Description",
@@ -35,7 +36,7 @@ const enUs = {
   "register.field.commandRef": "Command reference",
   "register.field.commandRef.hint": "Drive reference to the local command descriptor",
   "register.field.endpointUrl": "Endpoint URL",
-  "register.field.categoryCode": "Category code",
+  "register.field.category": "Category",
   "register.field.tags": "Tags",
   "register.field.tags.hint": "Comma separated",
   "register.field.icon": "Icon",
@@ -45,7 +46,6 @@ const enUs = {
   "register.placeholder.description": "What this MCP server provides",
   "register.placeholder.commandRef": "drive://spaces/.../nodes/...",
   "register.placeholder.endpointUrl": "https://mcp.example.com/sse",
-  "register.placeholder.categoryCode": "general",
   "register.placeholder.tags": "workspace, tools",
   "edit.title": "Edit {serverKey}",
   "edit.description":
@@ -56,11 +56,20 @@ const enUs = {
   "edit.notFound": "MCP server {serverKey} was not found in your workspace.",
   "edit.field.name": "Display name",
   "edit.field.description": "Description",
-  "edit.field.categoryCode": "Category code",
+  "edit.field.category": "Category",
+  "edit.error.categoryRequired": "Keep a managed category selected before saving.",
   "edit.field.tags": "Tags",
   "edit.field.tags.hint": "Comma separated",
   "edit.field.iconRef": "Icon reference",
   "edit.placeholder.iconRef": "drive://spaces/.../nodes/...",
+  "category.loading": "Loading categories…",
+  "category.empty.title": "No categories available",
+  "category.empty.description":
+    "An administrator has not published any MCP category yet. Ask an administrator to create one before registering servers.",
+  "category.groupLabel": "MCP category",
+  "category.searchPlaceholder": "Search categories",
+  "category.noMatch": "No category matches your search.",
+  "category.selected": "Selected: {name}",
   "mine.visibility.private": "private",
   "mine.visibility.tenant": "tenant",
   "mine.visibility.public": "public",
@@ -97,6 +106,7 @@ const zhCn: Record<keyof typeof enUs, string> = {
   "register.uploadIcon": "上传图标",
   "register.created": "已注册 MCP 服务器 {id}。",
   "register.error.selectIcon": "请选择要通过 sdkwork-drive 上传的图标图片。",
+  "register.error.categoryRequired": "注册 MCP 服务器前，请先选择分类。",
   "register.field.serverKey": "服务器标识",
   "register.field.name": "显示名称",
   "register.field.description": "描述",
@@ -104,7 +114,7 @@ const zhCn: Record<keyof typeof enUs, string> = {
   "register.field.commandRef": "命令引用",
   "register.field.commandRef.hint": "本地命令描述符的 Drive 引用",
   "register.field.endpointUrl": "端点 URL",
-  "register.field.categoryCode": "分类代码",
+  "register.field.category": "分类",
   "register.field.tags": "标签",
   "register.field.tags.hint": "逗号分隔",
   "register.field.icon": "图标",
@@ -114,7 +124,6 @@ const zhCn: Record<keyof typeof enUs, string> = {
   "register.placeholder.description": "该 MCP 服务器提供的能力",
   "register.placeholder.commandRef": "drive://spaces/.../nodes/...",
   "register.placeholder.endpointUrl": "https://mcp.example.com/sse",
-  "register.placeholder.categoryCode": "general",
   "register.placeholder.tags": "workspace, tools",
   "edit.title": "编辑 {serverKey}",
   "edit.description": "更新你拥有的 MCP 服务器元数据。传输方式与服务器标识不可更改。",
@@ -124,11 +133,19 @@ const zhCn: Record<keyof typeof enUs, string> = {
   "edit.notFound": "工作区中未找到 MCP 服务器 {serverKey}。",
   "edit.field.name": "显示名称",
   "edit.field.description": "描述",
-  "edit.field.categoryCode": "分类代码",
+  "edit.field.category": "分类",
+  "edit.error.categoryRequired": "保存前请保持已选择受管分类。",
   "edit.field.tags": "标签",
   "edit.field.tags.hint": "逗号分隔",
   "edit.field.iconRef": "图标引用",
   "edit.placeholder.iconRef": "drive://spaces/.../nodes/...",
+  "category.loading": "正在加载分类…",
+  "category.empty.title": "暂无可用分类",
+  "category.empty.description": "管理员尚未发布任何 MCP 分类。请先请管理员创建分类，再注册 MCP 服务器。",
+  "category.groupLabel": "MCP 分类",
+  "category.searchPlaceholder": "搜索分类",
+  "category.noMatch": "没有匹配的分类。",
+  "category.selected": "已选择：{name}",
   "mine.visibility.private": "私有",
   "mine.visibility.tenant": "租户",
   "mine.visibility.public": "公开",
@@ -193,4 +210,25 @@ export function formatMcpHealthLocalized(locale: McpConsoleLocale, value: string
     default:
       return value;
   }
+}
+
+/**
+ * Label bundle for the managed category picker.
+ *
+ * Declared once here so the register and edit forms cannot drift apart on
+ * wording, and so `McpCategorySelect` stays free of i18n key knowledge (it
+ * accepts plain strings).
+ */
+export function mcpCategorySelectLabels(
+  translate: (key: McpConsoleMessageKey, values?: Record<string, string | number>) => string,
+) {
+  return {
+    loading: translate("category.loading"),
+    emptyTitle: translate("category.empty.title"),
+    emptyDescription: translate("category.empty.description"),
+    groupLabel: translate("category.groupLabel"),
+    searchPlaceholder: translate("category.searchPlaceholder"),
+    noMatch: translate("category.noMatch"),
+    selected: (name: string) => translate("category.selected", { name }),
+  };
 }

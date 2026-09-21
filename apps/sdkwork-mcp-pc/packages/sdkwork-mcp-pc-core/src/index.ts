@@ -52,6 +52,7 @@ export {
   fetchMarketplaceCatalog,
   fetchServerDetail,
   fetchConsoleOverview,
+  listPublishedMcpCategories,
 } from './services/marketplaceService';
 
 export {

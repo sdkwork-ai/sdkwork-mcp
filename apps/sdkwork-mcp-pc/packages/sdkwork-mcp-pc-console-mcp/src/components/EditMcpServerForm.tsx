@@ -14,6 +14,9 @@ import {
   type UpdateOwnMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
 import { useMcpConsoleT } from '../locale.tsx';
+import { mcpCategorySelectLabels } from '../i18n.ts';
+import { McpCategorySelect } from './McpCategorySelect.tsx';
+import { useMcpCategories } from '../hooks/useMcpCategories.ts';
 
 export interface EditMcpServerFormProps {
   serverKey: string;
@@ -24,6 +27,7 @@ export interface EditMcpServerFormProps {
 export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpServerFormProps) {
   const t = useMcpConsoleT();
   const clients = useMCPClients();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useMcpCategories();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -71,10 +75,14 @@ export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpSer
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (isBlank(trim(form.categoryCode))) {
+      setError(t('edit.error.categoryRequired'));
+      return;
+    }
     const command: UpdateOwnMcpServerCommand = {
       name: trim(form.name),
       ...(trim(form.description) ? { description: trim(form.description) } : {}),
-      ...(trim(form.categoryCode) ? { category_code: trim(form.categoryCode) } : {}),
+      category_code: trim(form.categoryCode),
       tags: form.tags
         .split(',')
         .map((value) => trim(value))
@@ -112,10 +120,16 @@ export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpSer
           onChange={(event) => setForm({ ...form, description: event.target.value })}
         />
       </Field>
-      <Field label={t('edit.field.categoryCode')}>
-        <TextInput
+      <Field label={t('edit.field.category')}>
+        {categoriesError ? <ErrorAlert message={categoriesError} /> : null}
+        <McpCategorySelect
+          id="edit-mcp-category"
+          categories={categories}
           value={form.categoryCode}
-          onChange={(event) => setForm({ ...form, categoryCode: event.target.value })}
+          loading={categoriesLoading}
+          disabled={submitting}
+          onChange={(categoryCode) => setForm({ ...form, categoryCode })}
+          labels={mcpCategorySelectLabels(t)}
         />
       </Field>
       <Field label={t('edit.field.tags')} hint={t('edit.field.tags.hint')}>
@@ -140,7 +154,7 @@ export function EditMcpServerForm({ serverKey, onSuccess, onCancel }: EditMcpSer
         <button
           className="skills-console-primary"
           type="submit"
-          disabled={isBlank(trim(form.name)) || submitting}
+          disabled={isBlank(trim(form.name)) || isBlank(trim(form.categoryCode)) || submitting}
         >
           {t('edit.save')}
         </button>

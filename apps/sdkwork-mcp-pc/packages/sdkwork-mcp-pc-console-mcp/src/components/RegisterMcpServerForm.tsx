@@ -14,6 +14,9 @@ import {
   type CreateOwnMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
 import { useMcpConsoleT } from '../locale.tsx';
+import { mcpCategorySelectLabels } from '../i18n.ts';
+import { McpCategorySelect } from './McpCategorySelect.tsx';
+import { useMcpCategories } from '../hooks/useMcpCategories.ts';
 
 type TransportKind = 'stdio' | 'sse' | 'http' | 'streamable-http';
 
@@ -38,6 +41,7 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
   const t = useMcpConsoleT();
   const clients = useMCPClients();
   const iconInputRef = useRef<HTMLInputElement>(null);
+  const { categories, loading: categoriesLoading, error: categoriesError } = useMcpCategories();
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -64,12 +68,16 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (isBlank(trim(form.categoryCode))) {
+      setError(t('register.error.categoryRequired'));
+      return;
+    }
     const command: CreateOwnMcpServerCommand = {
       server_key: trim(form.serverKey),
       name: trim(form.name),
       ...(trim(form.description) ? { description: trim(form.description) } : {}),
       transport: form.transport,
-      ...(trim(form.categoryCode) ? { category_code: trim(form.categoryCode) } : {}),
+      category_code: trim(form.categoryCode),
       tags: form.tags
         .split(',')
         .map((value) => trim(value))
@@ -145,11 +153,16 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
           />
         </Field>
       )}
-      <Field label={t('register.field.categoryCode')}>
-        <TextInput
+      <Field label={t('register.field.category')}>
+        {categoriesError ? <ErrorAlert message={categoriesError} /> : null}
+        <McpCategorySelect
+          id="register-mcp-category"
+          categories={categories}
           value={form.categoryCode}
-          onChange={(event) => setForm({ ...form, categoryCode: event.target.value })}
-          placeholder={t('register.placeholder.categoryCode')}
+          loading={categoriesLoading}
+          disabled={submitting}
+          onChange={(categoryCode) => setForm({ ...form, categoryCode })}
+          labels={mcpCategorySelectLabels(t)}
         />
       </Field>
       <Field label={t('register.field.tags')} hint={t('register.field.tags.hint')}>
@@ -192,7 +205,12 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
         <button
           className="skills-console-primary"
           type="submit"
-          disabled={isBlank(trim(form.serverKey)) || uploading || submitting}
+          disabled={
+            isBlank(trim(form.serverKey)) ||
+            isBlank(trim(form.categoryCode)) ||
+            uploading ||
+            submitting
+          }
         >
           {t('register.submit')}
         </button>
