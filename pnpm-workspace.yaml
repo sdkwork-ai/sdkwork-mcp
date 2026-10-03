@@ -41,6 +41,8 @@ packages:
   - "../sdkwork-appbase/packages/pc-react/foundation/sdkwork-command-pc-react"
   - "../sdkwork-search/apps/sdkwork-search-pc/packages/sdkwork-search-pc-react"
   - "../sdkwork-search/apps/sdkwork-search-common/packages/sdkwork-search-contracts"
+  - "../sdkwork-appbase/packages/mobile-react/foundation/sdkwork-appbase-mobile-react"
+  - "../sdkwork-appbase/packages/mobile-react/foundation/sdkwork-shell-mobile-react"
 
 catalog:
   react: ^19.2.8
