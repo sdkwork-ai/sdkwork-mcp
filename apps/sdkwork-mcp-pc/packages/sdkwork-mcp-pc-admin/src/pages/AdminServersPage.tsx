@@ -1,4 +1,4 @@
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isBlank, trim } from '@sdkwork/utils';
 import {
@@ -16,16 +16,29 @@ import {
 import { isDrivePackageRef } from '@sdkwork/mcp-pc-commons/driveUri';
 import {
   createAdminServer,
+  createMcpServerIconImageService,
   deleteAdminServer,
   listAdminServers,
+  updateAdminServer,
   useAsyncResource,
   useMCPClients,
   type CreateMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
+import {
+  DriveUploadImage,
+  useDriveUploadImageController,
+  useDriveUploadImageSnapshot,
+} from 'sdkwork-drive-pc-upload-image';
 
 import { ConfirmModal, SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
-import { uploadServerIcon } from '../services/driveAssetUploadService';
 import { useMcpAdminServersBasePath } from '../routeContext';
+
+const ICON_COPY = {
+  pickImage: 'Upload icon',
+  removeImage: 'Remove icon',
+  uploading: 'Uploading…',
+  uploadFailed: 'Upload failed',
+} as const;
 
 const defaultForm: CreateMcpServerCommand = {
   server_key: 'mcp.demo.sample',
@@ -43,10 +56,8 @@ type OwnedServer = Awaited<ReturnType<typeof listAdminServers>>[number];
 export function AdminServersPage() {
   const clients = useMCPClients();
   const serversBasePath = useMcpAdminServersBasePath();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<CreateMcpServerCommand>(defaultForm);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<OwnedServer | null>(null);
@@ -56,22 +67,18 @@ export function AdminServersPage() {
     [clients],
   );
 
-  async function onUploadIcon() {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
-      setError('Select an icon image to upload through sdkwork-drive.');
-      return;
-    }
-    setUploading(true);
-    setError(null);
-    try {
-      const iconRef = await uploadServerIcon(clients.drive, file);
-      setForm((current) => ({ ...current, icon_ref: iconRef }));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setUploading(false);
-    }
+  // Persist-first icon flow: the server record does not exist while the picker
+  // is open, so the controller holds the picked image in `pending` and the
+  // upload runs after `createAdminServer` returns the entity id (DRIVE_SPEC.md
+  // section 18.3 — appResourceId must anchor an existing entity).
+  const iconService = useMemo(() => createMcpServerIconImageService(clients.drive), [clients]);
+  const iconController = useDriveUploadImageController({ service: iconService, accept: ['image/*'] });
+  const iconSnapshot = useDriveUploadImageSnapshot(iconController);
+  const iconRefText = iconSnapshot.values[iconSnapshot.values.length - 1]?.uri ?? '';
+
+  function closeCreateDrawer() {
+    setCreateOpen(false);
+    iconController.clear();
   }
 
   async function onSubmit(event: FormEvent) {
@@ -79,14 +86,20 @@ export function AdminServersPage() {
     setSubmitting(true);
     setError(null);
     try {
-      if (form.icon_ref && !isDrivePackageRef(form.icon_ref)) {
-        throw new Error('icon_ref must be a sdkwork-drive URI.');
-      }
-      await createAdminServer(clients, {
+      const record = await createAdminServer(clients, {
         ...form,
         tags: form.tags?.filter((tag) => !isBlank(trim(tag))),
       });
+      const uploaded = await iconController.uploadPending({ appResourceId: record.id });
+      const iconRef = uploaded[uploaded.length - 1]?.uri;
+      if (iconRef !== undefined && !isDrivePackageRef(iconRef)) {
+        throw new Error('icon_ref must be a sdkwork-drive URI.');
+      }
+      if (iconRef !== undefined) {
+        await updateAdminServer(clients, record.server_key, { icon_ref: iconRef });
+      }
       setForm(defaultForm);
+      iconController.clear();
       setCreateOpen(false);
       await reload();
     } catch (cause) {
@@ -186,7 +199,7 @@ export function AdminServersPage() {
         open={createOpen}
         title="Create server"
         description="Register transport metadata, visibility, and a drive-backed icon."
-        onClose={() => setCreateOpen(false)}
+        onClose={closeCreateDrawer}
       >
         {/* `skills-console-form` is the host console contract (`display:grid; gap:14px;
             max-width:40rem`); `grid gap-4` covers the standalone `sdkwork-mcp-pc` app,
@@ -231,14 +244,22 @@ export function AdminServersPage() {
             />
           </Field>
           <Field label="Icon">
-            <input ref={fileInputRef} type="file" accept="image/*" className="text-sm" />
-            <Button type="button" variant="secondary" onClick={onUploadIcon} disabled={uploading}>
-              {uploading ? 'Uploading…' : 'Upload icon via drive'}
-            </Button>
-            <TextInput value={form.icon_ref ?? ''} readOnly placeholder="drive://spaces/.../nodes/..." />
+            <DriveUploadImage
+              controller={iconController}
+              service={iconService}
+              shape="circle"
+              sizePx={64}
+              accept={['image/*']}
+              copy={ICON_COPY}
+            />
+            {iconRefText ? (
+              <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
+                {iconRefText}
+              </span>
+            ) : null}
           </Field>
           <div className="sdkwork-surface-drawer-form-actions">
-            <Button type="button" variant="secondary" onClick={() => setCreateOpen(false)}>
+            <Button type="button" variant="secondary" onClick={closeCreateDrawer}>
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>

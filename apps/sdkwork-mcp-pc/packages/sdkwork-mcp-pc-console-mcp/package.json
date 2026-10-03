@@ -13,6 +13,8 @@
     }
   },
   "dependencies": {
+    "@sdkwork/drive-upload-image-core": "workspace:*",
+    "sdkwork-drive-pc-upload-image": "workspace:*",
     "@sdkwork/mcp-pc-core": "workspace:*",
     "@sdkwork/mcp-pc-commons": "workspace:*",
     "@sdkwork/utils": "workspace:*",

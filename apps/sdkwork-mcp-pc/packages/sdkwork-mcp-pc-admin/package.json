@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@sdkwork/drive-app-sdk": "workspace:*",
+    "@sdkwork/drive-upload-image-core": "workspace:*",
+    "sdkwork-drive-pc-upload-image": "workspace:*",
     "@sdkwork/mcp-pc-admin-core": "workspace:*",
     "@sdkwork/mcp-pc-commons": "workspace:*",
     "@sdkwork/mcp-pc-core": "workspace:*",

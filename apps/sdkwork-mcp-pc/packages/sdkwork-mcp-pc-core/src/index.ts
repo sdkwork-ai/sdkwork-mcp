@@ -82,9 +82,7 @@ export {
 } from './services/selfServiceService';
 
 export {
-  uploadDriveAsset,
-  uploadServerIcon,
-  type DriveAssetUploadOptions,
-} from './services/driveAssetUploadService';
+  createMcpServerIconImageService,
+} from './services/driveImageUploadService';
 
 export { useAsyncResource } from './hooks/useAsyncResource';

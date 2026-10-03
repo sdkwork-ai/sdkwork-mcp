@@ -1,5 +1,7 @@
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { isBlank, trim } from '@sdkwork/utils';
+import type { DriveUploadImageValue } from '@sdkwork/drive-upload-image-core';
+import { DriveUploadImage } from 'sdkwork-drive-pc-upload-image';
 import {
   Button,
   DataPanel,
@@ -13,13 +15,19 @@ import {
 } from '@sdkwork/mcp-pc-commons';
 import { isDrivePackageRef } from '@sdkwork/mcp-pc-commons/driveUri';
 import {
+  createMcpServerIconImageService,
   updateAdminServer,
   useMCPClients,
   type McpServerRecord,
   type UpdateMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
 
-import { uploadServerIcon } from '../services/driveAssetUploadService';
+const ICON_COPY = {
+  pickImage: 'Upload icon',
+  removeImage: 'Remove icon',
+  uploading: 'Uploading…',
+  uploadFailed: 'Upload failed',
+} as const;
 
 function toFormState(server: McpServerRecord): UpdateMcpServerCommand {
   return {
@@ -44,29 +52,18 @@ export function AdminServerSettingsPanel({
   onSaved: () => Promise<void>;
 }) {
   const clients = useMCPClients();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<UpdateMcpServerCommand>(() => toFormState(server));
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  async function onUploadIcon() {
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
-      setError('Select an icon image to upload through sdkwork-drive.');
-      return;
+  const iconService = useMemo(() => createMcpServerIconImageService(clients.drive), [clients]);
+  const iconValue = useMemo<DriveUploadImageValue | null>(() => {
+    const iconRef = trim(form.icon_ref ?? '');
+    if (isBlank(iconRef) || !isDrivePackageRef(iconRef)) {
+      return null;
     }
-    setUploading(true);
-    setError(null);
-    try {
-      const iconRef = await uploadServerIcon(clients.drive, file);
-      setForm((current) => ({ ...current, icon_ref: iconRef }));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setUploading(false);
-    }
-  }
+    return { uri: iconRef, source: 'drive' };
+  }, [form.icon_ref]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -160,11 +157,23 @@ export function AdminServerSettingsPanel({
           />
         </Field>
         <Field label="Icon">
-          <input ref={fileInputRef} type="file" accept="image/*" className="text-sm" />
-          <Button type="button" variant="secondary" onClick={onUploadIcon} disabled={uploading}>
-            {uploading ? 'Uploading…' : 'Upload icon via drive'}
-          </Button>
-          <TextInput value={form.icon_ref ?? ''} readOnly placeholder="drive://spaces/.../nodes/..." />
+          <DriveUploadImage
+            service={iconService}
+            appResourceId={server.id}
+            value={iconValue}
+            onChange={(value) =>
+              setForm((current) => ({ ...current, icon_ref: value?.uri ?? '' }))
+            }
+            shape="circle"
+            sizePx={64}
+            accept={['image/*']}
+            copy={ICON_COPY}
+          />
+          {form.icon_ref ? (
+            <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
+              {form.icon_ref}
+            </span>
+          ) : null}
         </Field>
         <Button type="submit" disabled={submitting}>
           {submitting ? 'Saving…' : 'Save settings'}

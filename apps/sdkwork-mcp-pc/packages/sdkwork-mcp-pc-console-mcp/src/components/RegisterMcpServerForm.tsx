@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { isBlank, trim } from '@sdkwork/utils';
 import {
   ErrorAlert,
@@ -8,11 +8,17 @@ import {
   TextInput,
 } from '@sdkwork/mcp-pc-commons';
 import {
+  createMcpServerIconImageService,
   createOwnMcpServer,
-  uploadServerIcon,
+  updateOwnMcpServer,
   useMCPClients,
   type CreateOwnMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
+import {
+  DriveUploadImage,
+  useDriveUploadImageController,
+  useDriveUploadImageSnapshot,
+} from 'sdkwork-drive-pc-upload-image';
 import { useMcpConsoleT } from '../locale.tsx';
 import { mcpCategorySelectLabels } from '../i18n.ts';
 import { McpCategorySelect } from './McpCategorySelect.tsx';
@@ -27,7 +33,6 @@ const EMPTY_FORM = {
   transport: 'streamable-http' as TransportKind,
   categoryCode: '',
   tags: '',
-  iconRef: '',
   endpointUrl: '',
   commandRef: '',
 };
@@ -40,30 +45,19 @@ export interface RegisterMcpServerFormProps {
 export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServerFormProps) {
   const t = useMcpConsoleT();
   const clients = useMCPClients();
-  const iconInputRef = useRef<HTMLInputElement>(null);
   const { categories, loading: categoriesLoading, error: categoriesError } = useMcpCategories();
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  async function onUploadIcon() {
-    const file = iconInputRef.current?.files?.[0];
-    if (!file) {
-      setError(t('register.error.selectIcon'));
-      return;
-    }
-    setUploading(true);
-    setError(null);
-    try {
-      const iconRef = await uploadServerIcon(clients.drive, file);
-      setForm((current) => ({ ...current, iconRef }));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setUploading(false);
-    }
-  }
+  // Persist-first icon flow: the server record does not exist while the picker
+  // is open, so the controller holds the picked image in `pending` and the
+  // upload runs after `createOwnMcpServer` returns the entity id
+  // (DRIVE_SPEC.md section 18.3 — appResourceId must anchor an existing entity).
+  const iconService = useMemo(() => createMcpServerIconImageService(clients.drive), [clients]);
+  const iconController = useDriveUploadImageController({ service: iconService, accept: ['image/*'] });
+  const iconSnapshot = useDriveUploadImageSnapshot(iconController);
+  const iconRefText = iconSnapshot.values[iconSnapshot.values.length - 1]?.uri ?? '';
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -82,12 +76,17 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
         .split(',')
         .map((value) => trim(value))
         .filter((value) => value.length > 0),
-      ...(trim(form.iconRef) ? { icon_ref: trim(form.iconRef) } : {}),
     };
     setSubmitting(true);
     try {
       const record = await createOwnMcpServer(clients, command);
+      const uploaded = await iconController.uploadPending({ appResourceId: record.id });
+      const iconRef = uploaded[uploaded.length - 1]?.uri;
+      if (iconRef !== undefined) {
+        await updateOwnMcpServer(clients, record.server_key, { icon_ref: iconRef });
+      }
       setForm(EMPTY_FORM);
+      iconController.clear();
       onSuccess?.(record.server_key);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -173,27 +172,24 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
         />
       </Field>
       <Field label={t('register.field.icon')} hint={t('register.field.icon.hint')}>
-        {/* Deliberately NO flex wrapper: the host contract `.skills-console-field` is
-            `display: grid` and forces `width: 100%` on every nested `input`
-            (webserver `src/index.css:1853-1864`). Putting the file input in a flex row
-            makes that `width: 100%` resolve against the row and starve the button, which
-            then shrinks below `max-content` and wraps its label. The host grid already
-            stacks the two children into their own rows — comply with it, don't fight it. */}
-        <input
-          ref={iconInputRef}
-          type="file"
-          accept="image/*"
-          aria-label={t('register.field.icon')}
+        {/* `DriveUploadImage` renders one self-contained inline-flex slot; the
+            host `.skills-console-field` grid stacks it into its own row, so the
+            previous flex-row file-input/button layout concern no longer applies. */}
+        <DriveUploadImage
+          controller={iconController}
+          service={iconService}
+          shape="circle"
+          sizePx={64}
+          accept={['image/*']}
+          copy={{
+            pickImage: t('register.uploadIcon'),
+            removeImage: t('register.icon.remove'),
+            uploading: t('register.uploading'),
+            uploadFailed: t('register.error.uploadFailed'),
+          }}
         />
-        {/* Console button styling comes from `.skills-console-field button[type="button"]`
-            (token-driven: `width: max-content` + panel-muted background + text-primary).
-            A `Button variant="secondary"` would paint a hardcoded `bg-white` under an
-            inherited light text colour — white on white in dark mode. */}
-        <button type="button" onClick={onUploadIcon} disabled={uploading || submitting}>
-          {uploading ? t('register.uploading') : t('register.uploadIcon')}
-        </button>
-        {trim(form.iconRef) ? (
-          <small className="skills-console-field-hint">{form.iconRef}</small>
+        {iconRefText ? (
+          <small className="skills-console-field-hint">{iconRefText}</small>
         ) : null}
       </Field>
       <div className="sdkwork-surface-drawer-form-actions">
@@ -208,7 +204,7 @@ export function RegisterMcpServerForm({ onSuccess, onCancel }: RegisterMcpServer
           disabled={
             isBlank(trim(form.serverKey)) ||
             isBlank(trim(form.categoryCode)) ||
-            uploading ||
+            iconSnapshot.isUploading ||
             submitting
           }
         >
