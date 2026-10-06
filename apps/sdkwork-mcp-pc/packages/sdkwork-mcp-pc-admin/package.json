@@ -15,13 +15,13 @@
   "dependencies": {
     "@sdkwork/drive-app-sdk": "workspace:*",
     "@sdkwork/drive-upload-image-core": "workspace:*",
-    "sdkwork-drive-pc-upload-image": "workspace:*",
     "@sdkwork/mcp-pc-admin-core": "workspace:*",
     "@sdkwork/mcp-pc-commons": "workspace:*",
     "@sdkwork/mcp-pc-core": "workspace:*",
     "@sdkwork/utils": "workspace:*",
     "react": "^19.1.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.18.4",
+    "sdkwork-drive-pc-upload-image": "workspace:*"
   },
   "sdkwork": {
     "workspace": "sdkwork-mcp",
