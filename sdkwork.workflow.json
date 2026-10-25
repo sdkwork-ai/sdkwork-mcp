@@ -6,7 +6,7 @@
     "name": "SDKWork MCP",
     "repository": "sdkwork-ai/sdkwork-mcp",
     "sourcePath": ".",
-    "configPath": "sdkwork.app.config.json"
+    "configPath": "agent.app.config.json"
   },
   "release": {
     "artifactPrefix": "sdkwork-mcp",

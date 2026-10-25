@@ -165,7 +165,7 @@ test('h5 core reuses sdkPage helper for SdkWorkPageData', () => {
 
 test('client app configs must not describe H5 as scaffold', () => {
   const h5Config = JSON.parse(
-    fs.readFileSync(path.join(repoRoot, 'apps/sdkwork-mcp-h5/sdkwork.app.config.json'), 'utf8'),
+    fs.readFileSync(path.join(repoRoot, 'apps/sdkwork-mcp-h5/agent.app.config.json'), 'utf8'),
   );
   assert.doesNotMatch(String(h5Config.app?.description ?? ''), /scaffold/i);
   assert.doesNotMatch(String(h5Config.metadata?.managedBy ?? ''), /scaffold/i);

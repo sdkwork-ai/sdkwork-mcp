@@ -179,11 +179,11 @@ Read \`../sdkwork-specs/SOUL.md\` before executing tasks in this root.
 
 ## Application Identity
 
-Read \`sdkwork.app.config.json\` for MCP application behavior, runtime config, SDK wiring, release, and deployment.
+Read \`agent.app.config.json\` for MCP application behavior, runtime config, SDK wiring, release, and deployment.
 
 ## Local Dictionary
 
-- \`AGENTS.md\`, \`sdkwork.app.config.json\`, \`specs/\`, \`apis/\`, \`apps/\`, \`crates/\`, \`sdks/\`, \`database/\`, \`deployments/\`, \`configs/\`, \`scripts/\`, \`tools/\`, \`docs/\`, \`tests/\`, \`.sdkwork/\`
+- \`AGENTS.md\`, \`agent.app.config.json\`, \`specs/\`, \`apis/\`, \`apps/\`, \`crates/\`, \`sdks/\`, \`database/\`, \`deployments/\`, \`configs/\`, \`scripts/\`, \`tools/\`, \`docs/\`, \`tests/\`, \`.sdkwork/\`
 
 ## Required Specs
 
@@ -228,11 +228,11 @@ pnpm verify
 );
 
 writeIfMissing(
-  'sdkwork.app.config.json',
+  'agent.app.config.json',
   JSON.stringify(
     {
       schemaVersion: 3,
-      kind: 'sdkwork.app',
+      kind: 'agent.app',
       app: {
         key: 'sdkwork-mcp',
         name: 'SDKWork MCP',
@@ -287,7 +287,7 @@ writeIfMissing(
         domain: 'intelligence',
         capability: 'mcp',
         languages: ['rust', 'typescript', 'dart'],
-        manifests: ['sdkwork.app.config.json', 'package.json', 'Cargo.toml'],
+        manifests: ['agent.app.config.json', 'package.json', 'Cargo.toml'],
       },
       contracts: {
         runtimeEntrypoints: ['crates/sdkwork-api-mcp-standalone-gateway'],

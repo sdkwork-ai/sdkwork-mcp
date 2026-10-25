@@ -18,18 +18,18 @@ Read `../../../sdkwork-specs/SOUL.md` before executing tasks in this application
 
 ## Application Identity
 
-Read `sdkwork.app.config.json` when changing Flutter mobile behavior, runtime config, or SDK wiring. MCP registry APIs are owned by repository root `sdkwork-mcp`.
+Read `agent.app.config.json` when changing Flutter mobile behavior, runtime config, or SDK wiring. MCP registry APIs are owned by repository root `sdkwork-mcp`.
 
 ## Local Dictionary Structure
 
-- `AGENTS.md`, `sdkwork.app.config.json`, `specs/`, `lib/`, `pubspec.yaml`.
+- `AGENTS.md`, `agent.app.config.json`, `specs/`, `lib/`, `pubspec.yaml`.
 
 ## Spec Resolution Order
 
 Use dynamic progressive loading:
 
 1. Read this `AGENTS.md` and `../../../AGENTS.md`.
-2. Read `sdkwork.app.config.json` when app behavior is touched.
+2. Read `agent.app.config.json` when app behavior is touched.
 3. Read local `specs/` when relevant.
 4. Read `../../../sdkwork-specs/README.md`, then task-specific specs only.
 5. Inspect implementation files last.

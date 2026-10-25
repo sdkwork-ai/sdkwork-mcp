@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "kind": "sdkwork.app",
+  "kind": "agent.app",
   "app": {
     "key": "mcp-flutter-mobile",
     "name": "SDKWork MCP Mobile",

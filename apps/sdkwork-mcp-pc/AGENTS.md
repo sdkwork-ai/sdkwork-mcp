@@ -20,7 +20,7 @@ Canonical SDKWORK specs path from this app surface:
 
 ## Application Identity
 
-This is the PC browser app surface for the root MCP application. Read `../../sdkwork.app.config.json` only when the task touches app identity, runtime config, SDK wiring, release metadata, app-owned capabilities, packaging, or deployment.
+This is the PC browser app surface for the root MCP application. Read `../../agent.app.config.json` only when the task touches app identity, runtime config, SDK wiring, release metadata, app-owned capabilities, packaging, or deployment.
 
 ## Local Dictionary Structure
 
@@ -36,7 +36,7 @@ Use dynamic progressive loading:
 
 1. Read this `AGENTS.md` and any nearer component-level `AGENTS.md`.
 2. Read `../../AGENTS.md` only when repository-root rules or scripts are needed.
-3. Read `../../sdkwork.app.config.json` only when app behavior, runtime config, SDK wiring, release, packaging, or app-owned capabilities are touched.
+3. Read `../../agent.app.config.json` only when app behavior, runtime config, SDK wiring, release, packaging, or app-owned capabilities are touched.
 4. Read local package manifests only for the affected package/surface.
 5. Read `../../../sdkwork-specs/README.md`, then only the task-specific root specs.
 6. Inspect implementation files after the dictionary and relevant specs are clear.

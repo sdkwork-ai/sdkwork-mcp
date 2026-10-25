@@ -46,7 +46,7 @@ for (const dir of [
   assert(fs.existsSync(path.join(repoRoot, dir)), `${dir}/ must exist`);
 }
 
-assert(fs.existsSync(path.join(repoRoot, 'sdkwork.app.config.json')), 'sdkwork.app.config.json must exist');
+assert(fs.existsSync(path.join(repoRoot, 'agent.app.config.json')), 'agent.app.config.json must exist');
 assert(fs.existsSync(path.join(repoRoot, 'sdkwork.workflow.json')), 'sdkwork.workflow.json must exist');
 assert(fs.existsSync(path.join(repoRoot, 'apps/sdkwork-mcp-pc')), 'apps/sdkwork-mcp-pc must exist');
 assert(fs.existsSync(path.join(repoRoot, 'apps/sdkwork-mcp-h5')), 'apps/sdkwork-mcp-h5 must exist');
@@ -126,8 +126,8 @@ assert(
   'mcp contract must define server records',
 );
 
-const appConfig = readJson('sdkwork.app.config.json');
-assert(appConfig.app?.key === 'sdkwork-mcp', 'sdkwork.app.config.json key must be sdkwork-mcp');
+const appConfig = readJson('agent.app.config.json');
+assert(appConfig.app?.key === 'sdkwork-mcp', 'agent.app.config.json key must be sdkwork-mcp');
 
 const pcPackageJson = readJson('apps/sdkwork-mcp-pc/package.json');
 assert(pcPackageJson.dependencies?.['@sdkwork/utils'], 'PC app must depend on @sdkwork/utils');

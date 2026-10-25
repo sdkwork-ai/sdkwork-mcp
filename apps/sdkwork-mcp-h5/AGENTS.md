@@ -18,13 +18,13 @@ Read `../../../sdkwork-specs/SOUL.md` before executing tasks in this application
 
 ## Application Identity
 
-Read `sdkwork.app.config.json` only when changing H5 application behavior, runtime config, SDK wiring, or release metadata. MCP registry APIs are owned by repository root `sdkwork-mcp`.
+Read `agent.app.config.json` only when changing H5 application behavior, runtime config, SDK wiring, or release metadata. MCP registry APIs are owned by repository root `sdkwork-mcp`.
 
 ## Local Dictionary Structure
 
 - `AGENTS.md`: H5 application agent entrypoint.
 - `../../AGENTS.md`: repository root agent entrypoint.
-- `sdkwork.app.config.json`: H5 application identity.
+- `agent.app.config.json`: H5 application identity.
 - `specs/`, `packages/sdkwork-mcp-h5-*`, `src/`, `package.json`.
 
 ## Spec Resolution Order
@@ -32,7 +32,7 @@ Read `sdkwork.app.config.json` only when changing H5 application behavior, runti
 Use dynamic progressive loading:
 
 1. Read this `AGENTS.md` and `../../AGENTS.md`.
-2. Read `sdkwork.app.config.json` when app behavior or SDK wiring is touched.
+2. Read `agent.app.config.json` when app behavior or SDK wiring is touched.
 3. Read local `specs/` only when relevant.
 4. Read `../../../sdkwork-specs/README.md`, then task-specific root specs only.
 5. Inspect implementation files last.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "kind": "sdkwork.app",
+  "kind": "agent.app",
   "app": {
     "key": "mcp-h5",
     "name": "SDKWork MCP H5",

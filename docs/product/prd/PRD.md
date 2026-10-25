@@ -74,7 +74,7 @@ Prefix: `ai_mcp_` (registered in `database/contract/prefix-registry.json`).
 
 - Database contract: `database/contract/schema.yaml` v1.1.0
 - API authority: `apis/backend-api/mcp`, `apis/app-api/mcp`
-- Application identity: `sdkwork.app.config.json`
+- Application identity: `agent.app.config.json`
 - Admin IAM catalog: `specs/mcp-admin.permissions.json` (bind roles in platform IAM before production)
 
 ## 9. Open Questions
