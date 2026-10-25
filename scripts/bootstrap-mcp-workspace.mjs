@@ -552,11 +552,11 @@ jobs:
 );
 
 writeIfMissing(
-  'sdkwork.workflow.json',
+  'agent.workflow.json',
   JSON.stringify(
     {
       schemaVersion: 1,
-      kind: 'sdkwork.workflow',
+      kind: 'agent.workflow',
       applicationCode: 'mcp',
       repository: 'sdkwork-mcp',
       packageWorkflow: '.github/workflows/package.yml',

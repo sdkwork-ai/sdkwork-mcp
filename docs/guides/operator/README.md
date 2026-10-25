@@ -32,6 +32,6 @@ node ../sdkwork-specs/tools/check-api-response-envelope.mjs --workspace .
 ## Deployment assets
 
 - Docker: `deployments/docker/Dockerfile`
-- Workflow manifest: `sdkwork.workflow.json`
+- Workflow manifest: `agent.workflow.json`
 
 See [../../architecture/tech/TECH_ARCHITECTURE.md](../../architecture/tech/TECH_ARCHITECTURE.md) for topology profiles.
