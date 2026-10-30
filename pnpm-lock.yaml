@@ -1195,6 +1195,9 @@ importers:
       '@sdkwork/drive-upload-image-core':
         specifier: workspace:*
         version: link:../../../../../sdkwork-drive/apps/sdkwork-drive-common/packages/sdkwork-drive-upload-image-core
+      '@sdkwork/iam-credential-entry':
+        specifier: workspace:*
+        version: link:../../../../../sdkwork-iam/apps/sdkwork-iam-common/packages/sdkwork-iam-credential-entry
       '@sdkwork/mcp-app-sdk':
         specifier: workspace:*
         version: link:../../../../sdks/sdkwork-mcp-app-sdk/sdkwork-mcp-app-sdk-typescript

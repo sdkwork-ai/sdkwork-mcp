@@ -1,5 +1,6 @@
 import { isBlank, trim } from '@sdkwork/utils';
 import { createTokenManager, type AuthTokenManager } from '@sdkwork/sdk-common';
+import { readBootstrapAccessTokenFromProcessEnv } from '@sdkwork/iam-credential-entry';
 
 const AUTH_TOKEN_KEY = 'sdkwork-mcp-auth-token';
 const ACCESS_TOKEN_KEY = 'sdkwork-mcp-access-token';
@@ -43,16 +44,19 @@ export function clearStoredTokens(): void {
 }
 
 export function createMCPTokenManager(): AuthTokenManager {
-  // Deliberately credential-source-agnostic. The bootstrap Access-Token fallback
-  // (`IAM_CREDENTIAL_ENTRY_SPEC` section 4/5, `APP_SDK_INTEGRATION_SPEC` section 4)
-  // belongs to the *host* projection, not to this package-level default: the
-  // renderer host injects its own session-backed manager through
+  // The renderer host injects its own session-backed manager through
   // `MCPClientsProvider clients={...}` (`apps/sdkwork-mcp-pc/src/bootstrap/
-  // sessionTokenManager.ts`), and shared consumers of `getMCPClients()` are
-  // bundled by hosts outside this repository. Making this fallback read the
-  // credential explicitly would force every such host to carry the private
-  // credential-entry dependency for a path it never executes.
-  return createTokenManager();
+  // sessionTokenManager.ts`). This package-level default also seeds the private
+  // bootstrap Access-Token artifact so a consumer that uses it before login
+  // still satisfies `APP_SDK_INTEGRATION_SPEC` section 4 instead of failing
+  // every generated transport with `access-token-only request requires
+  // Access-Token before request dispatch`.
+  const tokenManager = createTokenManager();
+  const bootstrapAccessToken = readBootstrapAccessTokenFromProcessEnv();
+  if (bootstrapAccessToken) {
+    tokenManager.setTokens({ accessToken: bootstrapAccessToken });
+  }
+  return tokenManager;
 }
 
 export function hasStoredSession(): boolean {
