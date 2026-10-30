@@ -263,8 +263,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let owner_user_id = context
                 .as_ref()
                 .and_then(|value| value.0.operator_id)
@@ -386,8 +385,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let record = category_record(
                 write_ctx,
                 body.category_code,
@@ -460,8 +458,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let record = connector_record(
                 write_ctx,
                 server_id,
@@ -527,8 +524,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let record = tool_record(
                 write_ctx,
                 server_id,
@@ -563,8 +559,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let record = resource_record(
                 write_ctx,
                 server_id,
@@ -596,8 +591,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let record = prompt_record(
                 write_ctx,
                 server_id,
@@ -649,8 +643,7 @@ where
     finish_api_json(
         &ctx,
         async {
-            let write_ctx =
-                resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
+            let write_ctx = resolve_write_context(&ctx, context.as_ref(), state.default_tenant_id);
             let user_id = context
                 .as_ref()
                 .and_then(|value| value.0.operator_id)
