@@ -43,11 +43,7 @@ impl McpRepository for SqlxMcpRepository {
         postgres::get_server(&self.pool, tenant_id, server_key).await
     }
 
-    async fn get_server_by_id(
-        &self,
-        tenant_id: u64,
-        server_id: u64,
-    ) -> McpResult<McpServerRecord> {
+    async fn get_server_by_id(&self, tenant_id: u64, server_id: u64) -> McpResult<McpServerRecord> {
         postgres::get_server_by_id(&self.pool, tenant_id, server_id).await
     }
 

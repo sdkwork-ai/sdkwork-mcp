@@ -31,11 +31,7 @@ pub trait McpRepository: Send + Sync {
         owner_user_id: u64,
     ) -> McpResult<Vec<McpServerRecord>>;
     async fn get_server(&self, tenant_id: u64, server_key: &str) -> McpResult<McpServerRecord>;
-    async fn get_server_by_id(
-        &self,
-        tenant_id: u64,
-        server_id: u64,
-    ) -> McpResult<McpServerRecord>;
+    async fn get_server_by_id(&self, tenant_id: u64, server_id: u64) -> McpResult<McpServerRecord>;
     async fn upsert_server(&self, record: McpServerRecord) -> McpResult<McpServerRecord>;
     async fn delete_server(&self, tenant_id: u64, server_key: &str) -> McpResult<McpServerRecord>;
 

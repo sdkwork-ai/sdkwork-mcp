@@ -9,10 +9,7 @@ pub type SharedMcpService<R> = std::sync::Arc<sdkwork_intelligence_mcp_service::
 
 /// Resolve tenant for MCP handlers. Prefer the verified request context; never
 /// trust client identity projection headers.
-pub fn resolve_tenant_id_from_context(
-    ctx: &WebRequestContext,
-    default_tenant_id: u64,
-) -> u64 {
+pub fn resolve_tenant_id_from_context(ctx: &WebRequestContext, default_tenant_id: u64) -> u64 {
     ctx.tenant_id()
         .and_then(|value| value.parse().ok())
         .unwrap_or(default_tenant_id)

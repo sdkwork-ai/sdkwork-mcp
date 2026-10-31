@@ -397,9 +397,7 @@ where
             let actor_id = require_actor_id(context.as_ref())?;
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(
-                list_owned_servers(state.service.as_ref(), tenant_id, actor_id, &query).await?,
-            )
+            ok_json(list_owned_servers(state.service.as_ref(), tenant_id, actor_id, &query).await?)
         }
         .await,
     )
