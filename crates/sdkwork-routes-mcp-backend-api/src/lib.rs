@@ -16,8 +16,8 @@ use axum::{
 };
 use sdkwork_intelligence_mcp_service::McpService;
 use sdkwork_mcp_contract::{
-    McpAuthKind, McpInvocationKind, McpLifecycleStatus, McpPublishStatus, McpTransportKind,
-    McpVisibility,
+    normalize_allowed_role_codes, McpAuthKind, McpInvocationKind, McpLifecycleStatus,
+    McpPublishStatus, McpTransportKind, McpVisibility,
 };
 use sdkwork_routes_mcp_shared::record_builders::{
     category_record, connector_record, invocation_record, prompt_record, resource_record,
@@ -58,6 +58,8 @@ struct CreateServerRequest {
     category_id: Option<u64>,
     category_code: Option<String>,
     tags: Vec<String>,
+    #[serde(default)]
+    allowed_role_codes: Vec<String>,
     icon_ref: Option<String>,
 }
 
@@ -70,6 +72,8 @@ struct UpdateServerRequest {
     category_id: Option<u64>,
     category_code: Option<String>,
     tags: Option<Vec<String>>,
+    /// Full replacement list; omitted leaves the assignment unchanged.
+    allowed_role_codes: Option<Vec<String>>,
     icon_ref: Option<String>,
     lifecycle_status: Option<McpLifecycleStatus>,
 }
@@ -280,6 +284,7 @@ where
             record.category_id = body.category_id;
             record.category_code = body.category_code;
             record.tags = body.tags;
+            record.allowed_role_codes = normalize_allowed_role_codes(&body.allowed_role_codes);
             record.icon_ref = body.icon_ref;
             ok_json(upsert_server(state.service.as_ref(), record).await?)
         }
@@ -330,6 +335,9 @@ where
             }
             if let Some(value) = body.tags {
                 record.tags = value;
+            }
+            if let Some(value) = body.allowed_role_codes {
+                record.allowed_role_codes = normalize_allowed_role_codes(&value);
             }
             if let Some(value) = body.icon_ref {
                 record.icon_ref = Some(value);

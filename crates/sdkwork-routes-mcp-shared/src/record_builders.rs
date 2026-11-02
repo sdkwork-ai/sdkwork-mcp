@@ -49,6 +49,7 @@ pub fn server_record(
         last_error_masked: None,
         lifecycle_status: McpLifecycleStatus::Active,
         tags: vec![],
+        allowed_role_codes: vec![],
         icon_ref: None,
         published_at: None,
         deprecated_at: None,

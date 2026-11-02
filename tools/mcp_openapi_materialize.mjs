@@ -43,6 +43,7 @@ const domainSchemas = {
       "data_scope",
       "health_status",
       "lifecycle_status",
+      "allowed_role_codes",
     ],
     properties: {
       id: { type: "integer", format: "int64" },
@@ -58,6 +59,13 @@ const domainSchemas = {
       health_status: { type: "string" },
       lifecycle_status: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
+      allowed_role_codes: {
+        type: "array",
+        items: { type: "string", pattern: "^[a-z][a-z0-9_.-]{0,127}$" },
+        default: [],
+        description:
+          "IAM role codes allowed to see and use this server. An empty list means every role (the default).",
+      },
       icon_ref: {
         type: "string",
         nullable: true,
@@ -215,6 +223,13 @@ const domainSchemas = {
       category_id: { type: "integer", format: "int64" },
       category_code: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
+      allowed_role_codes: {
+        type: "array",
+        items: { type: "string", pattern: "^[a-z][a-z0-9_.-]{0,127}$" },
+        default: [],
+        description:
+          "IAM role codes allowed to see and use this server. An empty list means every role (the default).",
+      },
       icon_ref: { type: "string", pattern: "^drive://spaces/[^/]+/nodes/[^/]+$" },
     },
   },
@@ -229,6 +244,12 @@ const domainSchemas = {
       category_id: { type: "integer", format: "int64" },
       category_code: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
+      allowed_role_codes: {
+        type: "array",
+        items: { type: "string", pattern: "^[a-z][a-z0-9_.-]{0,127}$" },
+        description:
+          "Full replacement role-code list. Omitted leaves the assignment unchanged; an empty list means every role.",
+      },
       icon_ref: { type: "string", pattern: "^drive://spaces/[^/]+/nodes/[^/]+$" },
       lifecycle_status: { type: "string" },
     },

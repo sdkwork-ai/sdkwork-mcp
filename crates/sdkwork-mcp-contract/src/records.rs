@@ -48,6 +48,9 @@ pub struct McpServerRecord {
     pub last_error_masked: Option<String>,
     pub lifecycle_status: McpLifecycleStatus,
     pub tags: Vec<String>,
+    /// IAM role codes allowed to see and use this server. An empty list means
+    /// every role, which is the default.
+    pub allowed_role_codes: Vec<String>,
     pub icon_ref: Option<String>,
     pub published_at: Option<String>,
     pub deprecated_at: Option<String>,
@@ -191,4 +194,17 @@ impl McpServerRecord {
     pub fn is_enabled(&self) -> bool {
         self.lifecycle_status == McpLifecycleStatus::Active
     }
+}
+
+/// Canonical role-assignment list: trimmed, empty entries dropped,
+/// de-duplicated and sorted.
+pub fn normalize_allowed_role_codes(values: &[String]) -> Vec<String> {
+    let mut codes = values
+        .iter()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .collect::<Vec<_>>();
+    codes.sort();
+    codes.dedup();
+    codes
 }

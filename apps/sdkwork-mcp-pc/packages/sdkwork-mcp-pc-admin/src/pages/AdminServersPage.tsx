@@ -11,7 +11,9 @@ import {
   formatMcpTransport,
   healthTone,
   PageHeader,
+  RoleMultiSelect,
   TextInput,
+  describeAllowedRoleCodes,
 } from '@sdkwork/mcp-pc-commons';
 import { isDrivePackageRef } from '@sdkwork/mcp-pc-commons/driveUri';
 import {
@@ -48,6 +50,7 @@ const defaultForm: CreateMcpServerCommand = {
   visibility: 'tenant',
   category_code: 'general',
   tags: ['demo'],
+  allowed_role_codes: [],
   icon_ref: '',
 };
 
@@ -160,6 +163,7 @@ export function AdminServersPage() {
                 <th className="px-4 py-3">Transport</th>
                 <th className="px-4 py-3">Health</th>
                 <th className="px-4 py-3">Lifecycle</th>
+                <th className="px-4 py-3">Roles</th>
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -182,6 +186,7 @@ export function AdminServersPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3">{formatMcpLifecycle(server.lifecycle_status)}</td>
+                  <td className="px-4 py-3">{describeAllowedRoleCodes(server.allowed_role_codes)}</td>
                   <td className="px-4 py-3">
                     <Button variant="danger" onClick={() => setDeleteTarget(server)}>
                       Delete
@@ -243,6 +248,10 @@ export function AdminServersPage() {
               }
             />
           </Field>
+          <RoleMultiSelect
+            value={form.allowed_role_codes ?? []}
+            onChange={(allowed_role_codes) => setForm({ ...form, allowed_role_codes })}
+          />
           <Field label="Icon">
             <DriveUploadImage
               controller={iconController}

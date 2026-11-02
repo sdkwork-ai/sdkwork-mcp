@@ -9,6 +9,7 @@ use crate::{McpResult, McpServiceError};
 
 const SERVER_KEY_PATTERN: &str = r"^mcp\.[a-z0-9_-]+(\.[a-z0-9_-]+)*$";
 const ENTITY_KEY_PATTERN: &str = r"^[a-z0-9][a-z0-9_-]{1,127}$";
+const ROLE_CODE_PATTERN: &str = r"^[a-z][a-z0-9_.-]{0,127}$";
 
 pub fn validate_category_code(category_code: &str) -> McpResult<()> {
     validate_entity_key(category_code, "category_code")
@@ -81,6 +82,20 @@ pub fn validate_server_record(record: &McpServerRecord) -> McpResult<()> {
     }
     validate_transport_kind(record.transport)?;
     validate_visibility(record.visibility)?;
+    if record.allowed_role_codes.len() > 64 {
+        return Err(McpServiceError::InvalidArgument(
+            "allowed_role_codes cannot contain more than 64 entries".to_string(),
+        ));
+    }
+    let role_code_pattern = regex_lite::Regex::new(ROLE_CODE_PATTERN)
+        .map_err(|error| McpServiceError::Repository(error.to_string()))?;
+    for code in &record.allowed_role_codes {
+        if !role_code_pattern.is_match(&trim(code)) {
+            return Err(McpServiceError::InvalidArgument(format!(
+                "invalid allowed role code: {code}"
+            )));
+        }
+    }
     if let Some(icon_ref) = record.icon_ref.as_deref() {
         validate_icon_ref(icon_ref)?;
     }

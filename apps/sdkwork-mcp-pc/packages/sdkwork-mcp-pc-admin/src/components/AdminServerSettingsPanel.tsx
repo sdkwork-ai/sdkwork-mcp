@@ -9,9 +9,11 @@ import {
   MCP_LIFECYCLE_VALUES,
   MCP_TRANSPORT_VALUES,
   MCP_VISIBILITY_VALUES,
+  RoleMultiSelect,
   SelectInput,
   TextArea,
   TextInput,
+  normalizeAllowedRoleCodes,
 } from '@sdkwork/mcp-pc-commons';
 import { isDrivePackageRef } from '@sdkwork/mcp-pc-commons/driveUri';
 import {
@@ -37,6 +39,7 @@ function toFormState(server: McpServerRecord): UpdateMcpServerCommand {
     visibility: server.visibility,
     category_code: server.category_code ?? '',
     tags: server.tags ?? [],
+    allowed_role_codes: server.allowed_role_codes ?? [],
     icon_ref: server.icon_ref ?? '',
     lifecycle_status: server.lifecycle_status,
   };
@@ -76,6 +79,7 @@ export function AdminServerSettingsPanel({
       await updateAdminServer(clients, serverKey, {
         ...form,
         tags: form.tags?.filter((tag) => !isBlank(trim(tag))),
+        allowed_role_codes: normalizeAllowedRoleCodes(form.allowed_role_codes ?? []),
       });
       await onSaved();
     } catch (cause) {
@@ -156,6 +160,10 @@ export function AdminServerSettingsPanel({
             }
           />
         </Field>
+        <RoleMultiSelect
+          value={form.allowed_role_codes ?? []}
+          onChange={(allowed_role_codes) => setForm({ ...form, allowed_role_codes })}
+        />
         <Field label="Icon">
           <DriveUploadImage
             service={iconService}

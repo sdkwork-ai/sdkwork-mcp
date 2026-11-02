@@ -2211,7 +2211,8 @@
           "visibility",
           "data_scope",
           "health_status",
-          "lifecycle_status"
+          "lifecycle_status",
+          "allowed_role_codes"
         ],
         "properties": {
           "id": {
@@ -2268,6 +2269,15 @@
             "nullable": true,
             "description": "Canonical sdkwork-drive node reference.",
             "pattern": "^drive://spaces/[^/]+/nodes/[^/]+$"
+          },
+          "allowed_role_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+            },
+            "default": [],
+            "description": "IAM role codes allowed to see and use this server. An empty list means every role (the default)."
           }
         }
       },
@@ -2620,6 +2630,15 @@
           "icon_ref": {
             "type": "string",
             "pattern": "^drive://spaces/[^/]+/nodes/[^/]+$"
+          },
+          "allowed_role_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+            },
+            "default": [],
+            "description": "IAM role codes allowed to see and use this server. An empty list means every role (the default)."
           }
         }
       },
@@ -2659,6 +2678,15 @@
           },
           "lifecycle_status": {
             "type": "string"
+          },
+          "allowed_role_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.-]{0,127}$"
+            },
+            "default": [],
+            "description": "IAM role codes allowed to see and use this server. An empty list means every role (the default)."
           }
         }
       },

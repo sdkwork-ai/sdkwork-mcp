@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS ai_mcp_server (
     last_error_masked TEXT,
     lifecycle_status SMALLINT NOT NULL DEFAULT 1,
     tags_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    allowed_role_codes JSONB NOT NULL DEFAULT '[]'::jsonb,
     icon_ref VARCHAR(512),
     published_at TIMESTAMPTZ,
     deprecated_at TIMESTAMPTZ,
@@ -52,6 +53,7 @@ CREATE TABLE IF NOT EXISTS ai_mcp_server (
     created_by BIGINT NOT NULL DEFAULT 0,
     updated_by BIGINT NOT NULL DEFAULT 0,
     deleted_at TIMESTAMPTZ,
+    CONSTRAINT ck_ai_mcp_server_allowed_roles CHECK (jsonb_typeof(allowed_role_codes) = 'array'),
     UNIQUE (uuid),
     UNIQUE (tenant_id, server_key)
 );
@@ -201,6 +203,10 @@ CREATE INDEX IF NOT EXISTS idx_ai_mcp_server_tenant_lifecycle
 CREATE INDEX IF NOT EXISTS idx_ai_mcp_server_tenant_category
     ON ai_mcp_server (tenant_id, category_code)
     WHERE category_code IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_ai_mcp_server_allowed_roles
+    ON ai_mcp_server USING GIN (allowed_role_codes)
+    WHERE deleted_at IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_ai_mcp_connector_server
     ON ai_mcp_connector (tenant_id, server_id, publish_status);

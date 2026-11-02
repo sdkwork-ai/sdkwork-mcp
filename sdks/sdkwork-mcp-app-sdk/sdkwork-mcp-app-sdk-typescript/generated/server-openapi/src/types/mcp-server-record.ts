@@ -12,6 +12,8 @@ export interface McpServerRecord {
   health_status: string;
   lifecycle_status: string;
   tags?: string[];
+  /** IAM role codes allowed to see and use this server. An empty list means every role (the default). */
+  allowed_role_codes: string[];
   /** Canonical sdkwork-drive node reference. */
   icon_ref?: string | null;
 }

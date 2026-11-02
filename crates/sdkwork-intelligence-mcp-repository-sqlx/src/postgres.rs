@@ -24,8 +24,8 @@ const SERVER_SELECT: &str = r#"
     id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
     category_id, category_code, transport, visibility, data_scope, latest_connector_id,
     published_connector_id, health_status, last_checked_at, last_error_masked,
-    lifecycle_status, tags_json, icon_ref, published_at, deprecated_at, version,
-    created_at, updated_at, created_by, updated_by, deleted_at
+    lifecycle_status, tags_json, allowed_role_codes, icon_ref, published_at, deprecated_at,
+    version, created_at, updated_at, created_by, updated_by, deleted_at
 "#;
 
 const CONNECTOR_SELECT: &str = r#"
@@ -226,6 +226,10 @@ fn row_to_server(row: &sqlx::postgres::PgRow) -> McpResult<McpServerRecord> {
         last_error_masked: row.try_get("last_error_masked").map_err(map_sqlx)?,
         lifecycle_status: map_lifecycle(row.try_get("lifecycle_status").map_err(map_sqlx)?)?,
         tags: string_list_from_json(read_json_string(row, "tags_json")?.as_str(), "tags_json")?,
+        allowed_role_codes: string_list_from_json(
+            read_json_string(row, "allowed_role_codes")?.as_str(),
+            "allowed_role_codes",
+        )?,
         icon_ref: row.try_get("icon_ref").map_err(map_sqlx)?,
         published_at: row
             .try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("published_at")
@@ -614,16 +618,20 @@ pub async fn upsert_server(pool: &PgPool, record: McpServerRecord) -> McpResult<
     let id = resolve_entity_id(record.id);
     let uuid = resolve_entity_uuid(&record.uuid);
     let tags_json = bind_json_string(&string_list_to_json(&record.tags, "tags")?, "tags_json")?;
+    let allowed_role_codes = bind_json_string(
+        &string_list_to_json(&record.allowed_role_codes, "allowed_role_codes")?,
+        "allowed_role_codes",
+    )?;
     let query = format!(
         r#"
         INSERT INTO ai_mcp_server (
             id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
             category_id, category_code, transport, visibility, data_scope, latest_connector_id,
-            published_connector_id, health_status, lifecycle_status, tags_json, icon_ref, version,
-            created_by, updated_by
+            published_connector_id, health_status, lifecycle_status, tags_json,
+            allowed_role_codes, icon_ref, version, created_by, updated_by
         ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-            $19, $20, $21, $22
+            $19, $20, $21, $22, $23
         )
         ON CONFLICT (tenant_id, server_key) DO UPDATE SET
             organization_id = EXCLUDED.organization_id,
@@ -640,6 +648,7 @@ pub async fn upsert_server(pool: &PgPool, record: McpServerRecord) -> McpResult<
             health_status = EXCLUDED.health_status,
             lifecycle_status = EXCLUDED.lifecycle_status,
             tags_json = EXCLUDED.tags_json,
+            allowed_role_codes = EXCLUDED.allowed_role_codes,
             icon_ref = EXCLUDED.icon_ref,
             version = ai_mcp_server.version + 1,
             updated_by = EXCLUDED.updated_by,
@@ -667,6 +676,7 @@ pub async fn upsert_server(pool: &PgPool, record: McpServerRecord) -> McpResult<
         .bind(record.health_status.as_str())
         .bind(record.lifecycle_status.as_db_code())
         .bind(tags_json)
+        .bind(allowed_role_codes)
         .bind(&record.icon_ref)
         .bind(record.version as i64)
         .bind(record.created_by as i64)

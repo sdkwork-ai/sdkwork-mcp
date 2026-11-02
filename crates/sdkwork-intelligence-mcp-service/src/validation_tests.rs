@@ -40,6 +40,7 @@ fn accepts_valid_server_record() {
         last_error_masked: None,
         lifecycle_status: McpLifecycleStatus::Active,
         tags: vec![],
+        allowed_role_codes: vec![],
         icon_ref: Some("drive://spaces/mcp-space/nodes/icon-node-1".to_string()),
         published_at: None,
         deprecated_at: None,
@@ -51,6 +52,13 @@ fn accepts_valid_server_record() {
         deleted_at: None,
     };
     assert!(validate_server_record(&record).is_ok());
+
+    let mut assigned = record.clone();
+    assigned.allowed_role_codes = vec!["mcp_workspace_user".to_string()];
+    assert!(validate_server_record(&assigned).is_ok());
+
+    assigned.allowed_role_codes = vec!["MCP Workspace User".to_string()];
+    assert!(validate_server_record(&assigned).is_err());
 }
 
 #[test]

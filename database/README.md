@@ -27,6 +27,13 @@ SQLite baseline is intentionally omitted; MCP persistence is PostgreSQL-only.
 
 Planned (registry only): `ai_mcp_server_binding`, `ai_mcp_tool_approval`, `ai_mcp_capability_sync_job`.
 
+## Role assignment
+
+`ai_mcp_server.allowed_role_codes` is a JSONB array of IAM role codes allowed to
+see and use the server. An empty array is the default and means every role.
+Role codes follow `^[a-z][a-z0-9_.-]{0,127}$` and are stored normalized by the
+application; a GIN index serves role-membership filtering.
+
 ## Bootstrap
 
 ```bash
