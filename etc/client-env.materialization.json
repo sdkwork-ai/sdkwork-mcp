@@ -67,7 +67,18 @@
         "VITE_SDKWORK_DEPLOYMENT_PROFILE",
         "VITE_SDKWORK_PROFILE_ID",
         "VITE_SDKWORK_RUNTIME_TARGET"
-      ]
+      ],
+      "accessToken": {
+        "appId": "sdkwork-mcp",
+        "tenantId": "100001",
+        "organizationId": "0",
+        "permissionScope": [
+          "iam.users.read",
+          "iam.organizations.read",
+          "iam.roles.read",
+          "iam.permissions.read"
+        ]
+      }
     },
     {
       "id": "sdkwork-mcp-pc",
@@ -105,7 +116,15 @@
         "VITE_SDKWORK_DEPLOYMENT_PROFILE",
         "VITE_SDKWORK_PROFILE_ID",
         "VITE_SDKWORK_RUNTIME_TARGET"
-      ]
+      ],
+      "accessToken": {
+        "appId": "sdkwork-mcp-pc",
+        "tenantId": "100001",
+        "organizationId": "0",
+        "permissionScope": [
+          "iam:self"
+        ]
+      }
     }
   ]
 }
