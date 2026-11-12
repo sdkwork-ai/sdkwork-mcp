@@ -1,6 +1,6 @@
 -- SDKWork official agent catalog: zh-CN MCP catalog display.
 
--- Catalog revision: 1.2.1.
+-- Catalog revision: 1.3.0.
 
 BEGIN;
 
@@ -73,6 +73,12 @@ UPDATE ai_mcp_server_category SET
   description = 'Room inventory, rates, OTA channels, and guest experience.',
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND category_code = 'hospitality';
+
+UPDATE ai_mcp_server_category SET
+  name = '写作出版',
+  description = 'Style guides, source verification, editorial standards, and knowledgebase notes.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'writing';
 
 UPDATE ai_mcp_server SET
   name = '联网研究',
@@ -169,5 +175,17 @@ UPDATE ai_mcp_server SET
   description = '读取房态库存、价格、限制条件、OTA 渠道、住客评价与酒店设施信息。',
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.hotel-inventory';
+
+UPDATE ai_mcp_server SET
+  name = '写作资料与文风',
+  description = '查询编辑规范、文体惯例、术语、事实来源与引用规则，覆盖小说、图书、新闻与文章写作。',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.writing-sources';
+
+UPDATE ai_mcp_server SET
+  name = '知识库笔记',
+  description = '在空间范围内检索、读取、创建、追加与更新调用者的知识库笔记与草稿。',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.knowledgebase-notes';
 
 COMMIT;

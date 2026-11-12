@@ -1,6 +1,6 @@
 -- SDKWork official agent catalog: en-US MCP catalog display.
 
--- Catalog revision: 1.2.1.
+-- Catalog revision: 1.3.0.
 
 BEGIN;
 
@@ -73,6 +73,12 @@ UPDATE ai_mcp_server_category SET
   description = 'Room inventory, rates, OTA channels, and guest experience.',
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND category_code = 'hospitality';
+
+UPDATE ai_mcp_server_category SET
+  name = 'Writing and Publishing',
+  description = 'Style guides, source verification, editorial standards, and knowledgebase notes.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'writing';
 
 UPDATE ai_mcp_server SET
   name = 'Web Research',
@@ -169,5 +175,17 @@ UPDATE ai_mcp_server SET
   description = 'Read room inventory, rates, restrictions, OTA channel data, guest reviews, and property facilities.',
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.hotel-inventory';
+
+UPDATE ai_mcp_server SET
+  name = 'Writing Sources and Style',
+  description = 'Look up editorial style guides, genre conventions, terminology, factual sources, and citation rules for fiction, books, news, and articles.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.writing-sources';
+
+UPDATE ai_mcp_server SET
+  name = 'Knowledgebase Notes',
+  description = 'Search, read, create, append, and update the caller''s knowledgebase notes and drafts with space-aware scoping.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.knowledgebase-notes';
 
 COMMIT;

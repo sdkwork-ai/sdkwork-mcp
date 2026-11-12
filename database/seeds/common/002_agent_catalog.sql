@@ -1,6 +1,6 @@
 -- SDKWork official agent catalog: MCP server identities (neutral base).
 
--- Catalog revision: 1.2.1.
+-- Catalog revision: 1.3.0.
 
 -- Entries are catalog drafts. A tenant admin activates a connector with the
 
@@ -168,6 +168,21 @@ INSERT INTO ai_mcp_server_category (
 ) VALUES (
   539000000000000011, '2e96c9b4-5295-4873-8b68-4f5d3a53e26f', 100001, 0,
   'hospitality', 'hospitality', NULL, 0, 11, 1, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, category_code) DO UPDATE SET
+  name = EXCLUDED.name,
+  sort_order = EXCLUDED.sort_order,
+  lifecycle_status = EXCLUDED.lifecycle_status,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server_category (
+  id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+) VALUES (
+  539000000000000012, '5cfd8b30-de81-47d9-8c1a-44d12ab18633', 100001, 0,
+  'writing', 'writing', NULL, 0, 12, 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
@@ -529,6 +544,50 @@ ON CONFLICT (tenant_id, server_key) DO UPDATE SET
   updated_at = EXCLUDED.updated_at
 ;
 
+INSERT INTO ai_mcp_server (
+  id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
+  category_code, transport, visibility, data_scope, health_status, lifecycle_status,
+  tags_json, allowed_role_codes, created_at, updated_at, version, created_by, updated_by
+) VALUES (
+  535000000000000017, '95062616-fbda-4da6-8c35-f4ba0ca5f50a', 100001, 0, 1,
+  'mcp.sdkwork.writing-sources', 'mcp.sdkwork.writing-sources', NULL,
+  'writing', 'streamable-http', 'tenant', 3, 'unknown', 0,
+  '["style-guide","fact-check","citation","editorial"]'::jsonb, '[]'::jsonb, TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 0, 1, 1
+)
+ON CONFLICT (tenant_id, server_key) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  category_code = EXCLUDED.category_code,
+  transport = EXCLUDED.transport,
+  visibility = EXCLUDED.visibility,
+  data_scope = EXCLUDED.data_scope,
+  tags_json = EXCLUDED.tags_json,
+  allowed_role_codes = EXCLUDED.allowed_role_codes,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server (
+  id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
+  category_code, transport, visibility, data_scope, health_status, lifecycle_status,
+  tags_json, allowed_role_codes, created_at, updated_at, version, created_by, updated_by
+) VALUES (
+  535000000000000018, '47ee81d4-f75b-4111-8f41-335c8ecfcf50', 100001, 0, 1,
+  'mcp.sdkwork.knowledgebase-notes', 'mcp.sdkwork.knowledgebase-notes', NULL,
+  'writing', 'streamable-http', 'tenant', 3, 'unknown', 0,
+  '["notes","draft","knowledge","manuscript"]'::jsonb, '[]'::jsonb, TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 0, 1, 1
+)
+ON CONFLICT (tenant_id, server_key) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  category_code = EXCLUDED.category_code,
+  transport = EXCLUDED.transport,
+  visibility = EXCLUDED.visibility,
+  data_scope = EXCLUDED.data_scope,
+  tags_json = EXCLUDED.tags_json,
+  allowed_role_codes = EXCLUDED.allowed_role_codes,
+  updated_at = EXCLUDED.updated_at
+;
+
 INSERT INTO ai_mcp_connector (
   id, uuid, tenant_id, organization_id, server_id, connector_key, publish_status,
   transport, endpoint_url, command_ref, args_json, env_schema_json, auth_type,
@@ -864,5 +923,47 @@ UPDATE ai_mcp_server SET
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.hotel-inventory'
   AND (latest_connector_id IS NULL OR latest_connector_id = 538000000000000016);
+
+INSERT INTO ai_mcp_connector (
+  id, uuid, tenant_id, organization_id, server_id, connector_key, publish_status,
+  transport, endpoint_url, command_ref, args_json, env_schema_json, auth_type,
+  secret_ref, timeout_ms, retry_policy_json, config_hash, lifecycle_status, version,
+  created_at, updated_at, created_by, updated_by
+) VALUES (
+  538000000000000017, '5bacdd32-ee24-4246-85df-f69275dacd7c', 100001, 0,
+  535000000000000017, 'connector.writing-sources', 'draft', 'streamable-http', NULL, NULL,
+  '[]'::jsonb, '{}'::jsonb, 'none', NULL, 30000,
+  '{"maxAttempts":3,"backoff":"exponential"}'::jsonb, NULL, 0, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, server_id, connector_key) DO NOTHING
+;
+
+UPDATE ai_mcp_server SET
+  latest_connector_id = 538000000000000017,
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.writing-sources'
+  AND (latest_connector_id IS NULL OR latest_connector_id = 538000000000000017);
+
+INSERT INTO ai_mcp_connector (
+  id, uuid, tenant_id, organization_id, server_id, connector_key, publish_status,
+  transport, endpoint_url, command_ref, args_json, env_schema_json, auth_type,
+  secret_ref, timeout_ms, retry_policy_json, config_hash, lifecycle_status, version,
+  created_at, updated_at, created_by, updated_by
+) VALUES (
+  538000000000000018, 'fe521f27-0183-4111-8b78-d73e0e8ba26b', 100001, 0,
+  535000000000000018, 'connector.knowledgebase-notes', 'draft', 'streamable-http', NULL, NULL,
+  '[]'::jsonb, '{}'::jsonb, 'none', NULL, 30000,
+  '{"maxAttempts":3,"backoff":"exponential"}'::jsonb, NULL, 0, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, server_id, connector_key) DO NOTHING
+;
+
+UPDATE ai_mcp_server SET
+  latest_connector_id = 538000000000000018,
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND server_key = 'mcp.sdkwork.knowledgebase-notes'
+  AND (latest_connector_id IS NULL OR latest_connector_id = 538000000000000018);
 
 COMMIT;
