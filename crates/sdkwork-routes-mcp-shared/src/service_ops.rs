@@ -169,6 +169,51 @@ pub async fn get_tool<R: McpRepository>(
     Ok(item_data(record))
 }
 
+pub async fn get_category<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    category_code: &str,
+) -> ApiResult<SdkWorkResourceData<McpServerCategoryRecord>> {
+    let record = service.get_category(tenant_id, category_code).await?;
+    Ok(item_data(record))
+}
+
+pub async fn get_connector<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    connector_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpConnectorRecord>> {
+    let record = service
+        .get_connector(tenant_id, server_id, connector_key)
+        .await?;
+    Ok(item_data(record))
+}
+
+pub async fn get_resource<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    resource_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpResourceRecord>> {
+    let record = service
+        .get_resource(tenant_id, server_id, resource_key)
+        .await?;
+    Ok(item_data(record))
+}
+
+pub async fn get_prompt<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    prompt_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpPromptRecord>> {
+    let record = service
+        .get_prompt(tenant_id, server_id, prompt_key)
+        .await?;
+    Ok(item_data(record))
+}
+
 pub async fn list_resources<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
@@ -259,6 +304,49 @@ pub async fn delete_connector<R: McpRepository>(
 ) -> ApiResult<SdkWorkResourceData<McpConnectorRecord>> {
     let deleted = service
         .delete_connector(tenant_id, server_id, connector_key)
+        .await?;
+    Ok(item_data(deleted))
+}
+
+pub async fn delete_category<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    category_code: &str,
+) -> ApiResult<SdkWorkResourceData<McpServerCategoryRecord>> {
+    let deleted = service.delete_category(tenant_id, category_code).await?;
+    Ok(item_data(deleted))
+}
+
+pub async fn delete_tool<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    tool_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpToolRecord>> {
+    let deleted = service.delete_tool(tenant_id, server_id, tool_key).await?;
+    Ok(item_data(deleted))
+}
+
+pub async fn delete_resource<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    resource_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpResourceRecord>> {
+    let deleted = service
+        .delete_resource(tenant_id, server_id, resource_key)
+        .await?;
+    Ok(item_data(deleted))
+}
+
+pub async fn delete_prompt<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    prompt_key: &str,
+) -> ApiResult<SdkWorkResourceData<McpPromptRecord>> {
+    let deleted = service
+        .delete_prompt(tenant_id, server_id, prompt_key)
         .await?;
     Ok(item_data(deleted))
 }

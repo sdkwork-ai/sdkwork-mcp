@@ -525,6 +525,31 @@ pub async fn upsert_category(
     row_to_category(&row)
 }
 
+pub async fn delete_category(
+    pool: &PgPool,
+    tenant_id: u64,
+    category_code: &str,
+) -> McpResult<McpServerCategoryRecord> {
+    let query = format!(
+        r#"
+        UPDATE ai_mcp_server_category
+        SET lifecycle_status = 4, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE tenant_id = $1 AND category_code = $2 AND deleted_at IS NULL
+        RETURNING {CATEGORY_SELECT}
+        "#
+    );
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(category_code)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    row.as_ref()
+        .map(row_to_category)
+        .transpose()?
+        .ok_or_else(|| McpServiceError::NotFound(category_code.to_string()))
+}
+
 pub async fn list_servers(pool: &PgPool, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
     let query = format!(
         r#"
@@ -971,6 +996,33 @@ pub async fn upsert_tool(pool: &PgPool, record: McpToolRecord) -> McpResult<McpT
     row_to_tool(&row)
 }
 
+pub async fn delete_tool(
+    pool: &PgPool,
+    tenant_id: u64,
+    server_id: u64,
+    tool_key: &str,
+) -> McpResult<McpToolRecord> {
+    let query = format!(
+        r#"
+        UPDATE ai_mcp_tool
+        SET lifecycle_status = 4, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE tenant_id = $1 AND server_id = $2 AND tool_key = $3 AND deleted_at IS NULL
+        RETURNING {TOOL_SELECT}
+        "#
+    );
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(server_id as i64)
+        .bind(tool_key)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    row.as_ref()
+        .map(row_to_tool)
+        .transpose()?
+        .ok_or_else(|| McpServiceError::NotFound(tool_key.to_string()))
+}
+
 pub async fn list_resources(
     pool: &PgPool,
     tenant_id: u64,
@@ -1071,6 +1123,33 @@ pub async fn upsert_resource(
     row_to_resource(&row)
 }
 
+pub async fn delete_resource(
+    pool: &PgPool,
+    tenant_id: u64,
+    server_id: u64,
+    resource_key: &str,
+) -> McpResult<McpResourceRecord> {
+    let query = format!(
+        r#"
+        UPDATE ai_mcp_resource
+        SET lifecycle_status = 4, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE tenant_id = $1 AND server_id = $2 AND resource_key = $3 AND deleted_at IS NULL
+        RETURNING {RESOURCE_SELECT}
+        "#
+    );
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(server_id as i64)
+        .bind(resource_key)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    row.as_ref()
+        .map(row_to_resource)
+        .transpose()?
+        .ok_or_else(|| McpServiceError::NotFound(resource_key.to_string()))
+}
+
 pub async fn list_prompts(
     pool: &PgPool,
     tenant_id: u64,
@@ -1166,6 +1245,33 @@ pub async fn upsert_prompt(pool: &PgPool, record: McpPromptRecord) -> McpResult<
         .await
         .map_err(map_sqlx)?;
     row_to_prompt(&row)
+}
+
+pub async fn delete_prompt(
+    pool: &PgPool,
+    tenant_id: u64,
+    server_id: u64,
+    prompt_key: &str,
+) -> McpResult<McpPromptRecord> {
+    let query = format!(
+        r#"
+        UPDATE ai_mcp_prompt
+        SET lifecycle_status = 4, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE tenant_id = $1 AND server_id = $2 AND prompt_key = $3 AND deleted_at IS NULL
+        RETURNING {PROMPT_SELECT}
+        "#
+    );
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(server_id as i64)
+        .bind(prompt_key)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    row.as_ref()
+        .map(row_to_prompt)
+        .transpose()?
+        .ok_or_else(|| McpServiceError::NotFound(prompt_key.to_string()))
 }
 
 pub async fn count_invocations(

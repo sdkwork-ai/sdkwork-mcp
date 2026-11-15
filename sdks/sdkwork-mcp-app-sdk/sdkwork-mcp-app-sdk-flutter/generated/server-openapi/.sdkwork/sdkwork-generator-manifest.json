@@ -40,7 +40,7 @@
     },
     {
       "path": "lib/src/api/mcp.dart",
-      "sha256": "15d4247a90ba2f83a8a3dc47a1ad4a9749484a60bdd97e5ae49fe5d2fdba4406"
+      "sha256": "2b23f13d0db7bc37d27281efff7478d8cdbf3d8904591fc0f706218bb11f90a6"
     },
     {
       "path": "lib/src/api/paths.dart",
@@ -56,7 +56,7 @@
     },
     {
       "path": "lib/src/models.dart",
-      "sha256": "d838065baf2aa705ba4d2295a9c8c398293ecebda932799e6fe6bda3e1e6d9c6"
+      "sha256": "417a1edfcc0402d9296b948779a98257a388379490aac7307ab24f90a0976502"
     },
     {
       "path": "LICENSE",

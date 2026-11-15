@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "sdkwork.database.seed",
-  "i18nVersion": "1.3.0",
+  "i18nVersion": "1.5.0",
   "defaultLocale": "zh-CN",
   "fallbackLocale": "zh-CN",
   "supportedLocales": [
@@ -19,17 +19,17 @@
   ],
   "localeSets": {
     "zh-CN": {
-      "version": "1.3.0",
+      "version": "1.5.0",
       "required": true,
-      "checksum": "sha256:0ffc74eb77fa7759ecf470fae89d739d58b3ab4fa3a641c5662cc63959762e52",
+      "checksum": "sha256:28d40abea41b119a6d3ce8faede24810863da5af57d2555cd9d84238cacc86a8",
       "files": [
         "locales/zh-CN/001_agent_catalog_display.sql"
       ]
     },
     "en-US": {
-      "version": "1.3.0",
+      "version": "1.5.0",
       "required": true,
-      "checksum": "sha256:e4290acaddc7cb7f1a7003886dd48270a4cd014c5702e3c64b9de15fa7373c17",
+      "checksum": "sha256:522b8b0eadfb6387ff3592f7df29bdf5f371c63219b5a518815d037207e4a90c",
       "files": [
         "locales/en-US/001_agent_catalog_display.sql"
       ]

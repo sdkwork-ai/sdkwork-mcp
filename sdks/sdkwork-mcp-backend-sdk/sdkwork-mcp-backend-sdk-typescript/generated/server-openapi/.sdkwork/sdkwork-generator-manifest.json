@@ -44,7 +44,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "cd488dba4be341a57c6494d01a0e5460e5029b2a4ab345c67952690bfa3ae9d8"
+      "sha256": "3e248594b8e80cb95c661560071e858f8b7c3754ac41809d04db4fc54c14b5b4"
     },
     {
       "path": "sdkwork-sdk.json",
@@ -60,7 +60,7 @@
     },
     {
       "path": "src/api/mcp.ts",
-      "sha256": "c95e7ac017314be6390030cf0082ef23462add459e342662ddfcddd41679ad90"
+      "sha256": "29374ab569660ea009145fd4733c445c9055b6168e69b4bc57bbee9e0163f774"
     },
     {
       "path": "src/api/paths.ts",
@@ -72,7 +72,7 @@
     },
     {
       "path": "src/http/client.ts",
-      "sha256": "bab0f740731f04f1f6e3c591cba91b1577f0ca521054d187755f437925d3dc6d"
+      "sha256": "f1ea217a297c06829738cc98bb177cd4427b0e5c647dab6accf2047134ce9765"
     },
     {
       "path": "src/http/index.ts",
@@ -96,7 +96,7 @@
     },
     {
       "path": "src/types/create-mcp-server-command.ts",
-      "sha256": "5114146dea9a9216e126983cd3c1ddb98c2a1b7d4ab12fb91a6750dfc4b1340f"
+      "sha256": "a7f996abfa485457d132105a2de3754ae0cdf64f65ab7ce64e8b94815c075a84"
     },
     {
       "path": "src/types/create-own-mcp-server-command.ts",
@@ -108,7 +108,7 @@
     },
     {
       "path": "src/types/index.ts",
-      "sha256": "21a188f9aee02f8451f34a8a73df5cca6c7592ba5774dab1acb52acb1a61002b"
+      "sha256": "81919f4cb74548960b8ba9beb3a23c28edf9a1cbc308bd0fbaefd28bce0d7d26"
     },
     {
       "path": "src/types/mcp-admin-append-invocation-response.ts",
@@ -119,12 +119,48 @@
       "sha256": "4f9cc4656b881d7f0f8063a4156933b05ac066a9818980959a0a5d1f5c0e1238"
     },
     {
+      "path": "src/types/mcp-admin-delete-category-response.ts",
+      "sha256": "077a2efd2be7de351451ddd443e4ace1c3cbbe5c6c8ac2e51814abc13c05777f"
+    },
+    {
       "path": "src/types/mcp-admin-delete-connector-response.ts",
-      "sha256": "565ff37028ca1c06cf869c90c2d9c0921fa5d8d04fb0ae6ac41f0b980e6679a5"
+      "sha256": "8d41f49ed4e008e017323e83c1669a6df2901a50bd4813487909e2ad824ed12c"
+    },
+    {
+      "path": "src/types/mcp-admin-delete-prompt-response.ts",
+      "sha256": "36df8ef9055f3906d0cc86baff63d21ddcb9ba9952235c4136abaa678e09179a"
+    },
+    {
+      "path": "src/types/mcp-admin-delete-resource-response.ts",
+      "sha256": "380e6905296a46113f6c075e076cb4f14cda13e21e332b7b19bceaa110740660"
     },
     {
       "path": "src/types/mcp-admin-delete-server-response.ts",
       "sha256": "8a97b3c7c0fe0d3ba0d743a0fe12d49b7abebe799f36191291fc6739e2911cc4"
+    },
+    {
+      "path": "src/types/mcp-admin-delete-tool-response.ts",
+      "sha256": "fb739fe630913446f94ae6f345ac38cff2f851ad8672a0353c149ea9c1f75d2d"
+    },
+    {
+      "path": "src/types/mcp-admin-get-category-response.ts",
+      "sha256": "5bbca65b90c4e680b8454f8d859764122686c0bfb7d9590a1777214e32718ddf"
+    },
+    {
+      "path": "src/types/mcp-admin-get-connector-response.ts",
+      "sha256": "e0cca2d8ab2707a79be1b505be4edf7c4698a7b2b05ff10681d924f061a47b61"
+    },
+    {
+      "path": "src/types/mcp-admin-get-prompt-response.ts",
+      "sha256": "c502c69f001e26d022b8c1a4ba6e8e0c50176887e611571c37138792af233a0a"
+    },
+    {
+      "path": "src/types/mcp-admin-get-resource-response.ts",
+      "sha256": "c1e33f1123fa3bfd1301886794326fd435c113bde09cb6a40059d9dce65bbd53"
+    },
+    {
+      "path": "src/types/mcp-admin-get-tool-response.ts",
+      "sha256": "0aaf58f82b11755daf081aab52269a872c2171eea5cc51b8a5e7421faf95bcca"
     },
     {
       "path": "src/types/mcp-admin-list-categories-response.ts",
@@ -152,19 +188,19 @@
     },
     {
       "path": "src/types/mcp-admin-upsert-connector-response.ts",
-      "sha256": "8785a066e9a5b8c86649bca5c1494660f9cbfebb56d3a469f60313d631f47496"
+      "sha256": "ba34c9c5849585e5e86c0d808e1c41cbf53ab5c97f8589356df98cd6e066aac5"
     },
     {
       "path": "src/types/mcp-admin-upsert-prompt-response.ts",
-      "sha256": "369d3790341507fbc8295d541f07713937aa9aa7679ee532f2866b175194ad08"
+      "sha256": "8553d98b2b27df69de842e51d19c69b5914f8a47a1c9686174a1d8378d3933b9"
     },
     {
       "path": "src/types/mcp-admin-upsert-resource-response.ts",
-      "sha256": "353d7cdce7450fa5a538816c50aca9a4c84836d0f52e35bbfddd8ee2d54c0c97"
+      "sha256": "8bd2e2acfdb15fc54f4ead1d4e820ab145938f043235833587140c7d7e68eeb2"
     },
     {
       "path": "src/types/mcp-admin-upsert-tool-response.ts",
-      "sha256": "5b7873b54eab2fd14e31d140e8726b0e1754be85a09b8f60fd185e0610ae5b50"
+      "sha256": "8e504b6325583a1ed6ffd34ddae6c4fb73e021021d39d1657cef5fca03a87007"
     },
     {
       "path": "src/types/mcp-connector-record.ts",
@@ -188,7 +224,7 @@
     },
     {
       "path": "src/types/mcp-server-record.ts",
-      "sha256": "be41d1e003218f16a95b6addcf074ae91414db80d58792409f6975c5a6b5cd66"
+      "sha256": "9a3b39814da467fda433ca1e45435e250c788ccc7211cbd5c02be1ad89ff435c"
     },
     {
       "path": "src/types/mcp-tool-record.ts",
@@ -236,7 +272,7 @@
     },
     {
       "path": "src/types/update-mcp-server-command.ts",
-      "sha256": "59f17ec97f7c2d12b4003439095deb039e8cae86480bd563494a8533efb2d17c"
+      "sha256": "6d0e8ead9e52919f61b93b1405fbb3377f4453020a4b826f68fd573f33c6f1e2"
     },
     {
       "path": "src/types/update-own-mcp-server-command.ts",

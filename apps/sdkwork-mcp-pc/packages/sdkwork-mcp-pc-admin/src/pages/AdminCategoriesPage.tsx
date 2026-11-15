@@ -10,6 +10,7 @@ import {
   TextInput,
 } from '@sdkwork/mcp-pc-commons';
 import {
+  deleteAdminCategory,
   listAdminCategories,
   upsertAdminCategory,
   useAsyncResource,
@@ -56,9 +57,9 @@ function createCategoryForm(copy: McpAdminCopy): UpsertMcpServerCategoryCommand 
  * operator types already exists.
  *
  * ## What the backend does and does not allow
- * - **No delete endpoint.** Retirement is not modelled at all on this contract,
- *   so the page states the constraint rather than offering a button that would
- *   fail. Operators rename or repurpose a code instead.
+ * - **Delete soft-retires a code.** The category row keeps its history with
+ *   `lifecycle_status=deleted` and a `deleted_at` marker, and the list no longer
+ *   returns it. Upserting the same code later restores the row.
  * - `lifecycle_status` is on the record but **absent from the write command**,
  *   i.e. it is server-managed. It is shown read-only so an operator can see a
  *   category's state without believing they can set it.
@@ -143,6 +144,19 @@ export function AdminCategoriesPage() {
     }
   }
 
+  async function onDelete(category: NonNullable<typeof categories>[number]) {
+    if (!window.confirm(copy.categories.confirmDelete(category.category_code))) {
+      return;
+    }
+    setError(null);
+    try {
+      await deleteAdminCategory(clients, category.category_code);
+      await reload();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  }
+
   return (
     <div className="embedded-fill-page">
       <PageHeader
@@ -200,9 +214,18 @@ export function AdminCategoriesPage() {
                       <Badge>{mcpAdminLabel(copy, 'lifecycle', category.lifecycle_status)}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <Button type="button" variant="secondary" onClick={() => openEdit(category)}>
-                        {copy.categories.table.edit}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="secondary" onClick={() => openEdit(category)}>
+                          {copy.categories.table.edit}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => void onDelete(category)}
+                        >
+                          {copy.categories.table.delete}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

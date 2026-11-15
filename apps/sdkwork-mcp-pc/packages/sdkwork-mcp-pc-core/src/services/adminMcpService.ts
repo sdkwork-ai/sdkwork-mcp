@@ -3,11 +3,8 @@ import type {
   CreateMcpServerCommand,
   McpConnectorRecord,
   McpInvocationRecord,
-  McpPromptRecord,
-  McpResourceRecord,
   McpServerCategoryRecord,
   McpServerRecord,
-  McpToolRecord,
   UpdateMcpServerCommand,
   UpsertMcpConnectorCommand,
   UpsertMcpPromptCommand,
@@ -64,8 +61,7 @@ export async function upsertAdminConnector(
   serverId: string,
   command: UpsertMcpConnectorCommand,
 ) {
-  const response = await clients.backend.mcp.mcpAdmin.upsertConnector(serverId, command);
-  return unwrapSdkWorkPage<McpConnectorRecord>(response).items;
+  return clients.backend.mcp.mcpAdmin.upsertConnector(serverId, command);
 }
 
 export async function deleteAdminConnector(
@@ -73,8 +69,7 @@ export async function deleteAdminConnector(
   serverId: string,
   connectorKey: string,
 ) {
-  const response = await clients.backend.mcp.mcpAdmin.deleteConnector(serverId, connectorKey);
-  return unwrapSdkWorkPage<McpConnectorRecord>(response).items;
+  return clients.backend.mcp.mcpAdmin.deleteConnector(serverId, connectorKey);
 }
 
 export async function upsertAdminTool(
@@ -82,8 +77,15 @@ export async function upsertAdminTool(
   serverId: string,
   command: UpsertMcpToolCommand,
 ) {
-  const response = await clients.backend.mcp.mcpAdmin.upsertTool(serverId, command);
-  return unwrapSdkWorkPage<McpToolRecord>(response).items;
+  return clients.backend.mcp.mcpAdmin.upsertTool(serverId, command);
+}
+
+export async function deleteAdminTool(
+  clients: MCPClients,
+  serverId: string,
+  toolKey: string,
+) {
+  return clients.backend.mcp.mcpAdmin.deleteTool(serverId, toolKey);
 }
 
 export async function upsertAdminResource(
@@ -91,8 +93,15 @@ export async function upsertAdminResource(
   serverId: string,
   command: UpsertMcpResourceCommand,
 ) {
-  const response = await clients.backend.mcp.mcpAdmin.upsertResource(serverId, command);
-  return unwrapSdkWorkPage<McpResourceRecord>(response).items;
+  return clients.backend.mcp.mcpAdmin.upsertResource(serverId, command);
+}
+
+export async function deleteAdminResource(
+  clients: MCPClients,
+  serverId: string,
+  resourceKey: string,
+) {
+  return clients.backend.mcp.mcpAdmin.deleteResource(serverId, resourceKey);
 }
 
 export async function upsertAdminPrompt(
@@ -100,8 +109,19 @@ export async function upsertAdminPrompt(
   serverId: string,
   command: UpsertMcpPromptCommand,
 ) {
-  const response = await clients.backend.mcp.mcpAdmin.upsertPrompt(serverId, command);
-  return unwrapSdkWorkPage<McpPromptRecord>(response).items;
+  return clients.backend.mcp.mcpAdmin.upsertPrompt(serverId, command);
+}
+
+export async function deleteAdminPrompt(
+  clients: MCPClients,
+  serverId: string,
+  promptKey: string,
+) {
+  return clients.backend.mcp.mcpAdmin.deletePrompt(serverId, promptKey);
+}
+
+export async function deleteAdminCategory(clients: MCPClients, categoryCode: string) {
+  return clients.backend.mcp.mcpAdmin.deleteCategory(categoryCode);
 }
 
 export async function listAdminInvocations(clients: MCPClients) {

@@ -1,9 +1,8 @@
 import type { McpToolRecord } from './mcp-tool-record';
-import type { PageInfo } from './page-info';
 
 export interface McpAdminUpsertToolResponse {
   code: 0;
-  data: unknown & { items: McpToolRecord[]; pageInfo: PageInfo; };
+  data: unknown & { item: McpToolRecord; };
   /** Server-owned request correlation id. */
   traceId: string;
 }

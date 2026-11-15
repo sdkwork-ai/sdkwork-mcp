@@ -1,9 +1,8 @@
 import type { McpServerCategoryRecord } from './mcp-server-category-record';
-import type { PageInfo } from './page-info';
 
-export interface ListResponse {
+export interface McpAdminGetCategoryResponse {
   code: 0;
-  data: unknown & { items: McpServerCategoryRecord[]; pageInfo: PageInfo; };
+  data: unknown & { item: McpServerCategoryRecord; };
   /** Server-owned request correlation id. */
   traceId: string;
 }

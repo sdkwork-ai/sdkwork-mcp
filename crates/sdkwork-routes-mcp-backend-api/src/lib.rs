@@ -28,10 +28,12 @@ use serde::Deserialize;
 use sqlx::PgPool;
 
 pub use handlers::{
-    append_invocation, default_server_record, delete_connector, delete_server, finish_api_json,
-    get_server, list_categories, list_connectors, list_invocations, list_servers, ok_json,
-    resolve_tenant_id, upsert_category, upsert_connector, upsert_prompt, upsert_resource,
-    upsert_server, upsert_tool, McpInvocationListQuery, SdkWorkListQuery, SharedMcpService,
+    append_invocation, default_server_record, delete_category, delete_connector, delete_prompt,
+    delete_resource, delete_server, delete_tool, finish_api_json, get_category, get_connector,
+    get_prompt, get_resource, get_server, get_tool, list_categories, list_connectors,
+    list_invocations, list_servers, ok_json, resolve_tenant_id, upsert_category, upsert_connector,
+    upsert_prompt, upsert_resource, upsert_server, upsert_tool, McpInvocationListQuery,
+    SdkWorkListQuery, SharedMcpService,
 };
 pub use health::DbReadinessCheck;
 pub use http_route_manifest::backend_route_manifest;
@@ -162,6 +164,8 @@ where
     Router::new()
         .route(paths::ADMIN_CATEGORIES_LIST, get(list_categories_handler))
         .route(paths::ADMIN_CATEGORY_UPSERT, post(upsert_category_handler))
+        .route(paths::ADMIN_CATEGORY_GET, get(get_category_handler))
+        .route(paths::ADMIN_CATEGORY_DELETE, delete(delete_category_handler))
         .route(paths::ADMIN_SERVERS_LIST, get(list_servers_handler))
         .route(paths::ADMIN_SERVER_CREATE, post(create_server_handler))
         .route(paths::ADMIN_SERVER_UPDATE, put(update_server_handler))
@@ -171,13 +175,20 @@ where
             paths::ADMIN_CONNECTOR_UPSERT,
             post(upsert_connector_handler),
         )
+        .route(paths::ADMIN_CONNECTOR_GET, get(get_connector_handler))
         .route(
             paths::ADMIN_CONNECTOR_DELETE,
             delete(delete_connector_handler),
         )
         .route(paths::ADMIN_TOOL_UPSERT, post(upsert_tool_handler))
+        .route(paths::ADMIN_TOOL_GET, get(get_tool_handler))
+        .route(paths::ADMIN_TOOL_DELETE, delete(delete_tool_handler))
         .route(paths::ADMIN_RESOURCE_UPSERT, post(upsert_resource_handler))
+        .route(paths::ADMIN_RESOURCE_GET, get(get_resource_handler))
+        .route(paths::ADMIN_RESOURCE_DELETE, delete(delete_resource_handler))
         .route(paths::ADMIN_PROMPT_UPSERT, post(upsert_prompt_handler))
+        .route(paths::ADMIN_PROMPT_GET, get(get_prompt_handler))
+        .route(paths::ADMIN_PROMPT_DELETE, delete(delete_prompt_handler))
         .route(paths::ADMIN_INVOCATIONS_LIST, get(list_invocations_handler))
         .route(
             paths::ADMIN_INVOCATIONS_APPEND,
@@ -430,6 +441,52 @@ where
     )
 }
 
+async fn get_category_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path(category_code): Path<String>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_category(state.service.as_ref(), tenant_id, category_code.as_str()).await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn delete_category_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path(category_code): Path<String>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                delete_category(state.service.as_ref(), tenant_id, category_code.as_str()).await?,
+            )
+        }
+        .await,
+    )
+}
+
 async fn list_connectors_handler<R>(
     ctx: WebRequestContext,
     State(state): State<BackendState<R>>,
@@ -510,6 +567,209 @@ where
                     tenant_id,
                     server_id,
                     connector_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn get_connector_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, connector_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_connector(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    connector_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn get_tool_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, tool_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_tool(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    tool_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn delete_tool_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, tool_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                delete_tool(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    tool_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn get_resource_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, resource_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_resource(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    resource_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn delete_resource_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, resource_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                delete_resource(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    resource_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn get_prompt_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, prompt_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_prompt(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    prompt_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn delete_prompt_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<BackendState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, prompt_key)): Path<(u64, String)>,
+    context: Option<Extension<McpBackendRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                delete_prompt(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    prompt_key.as_str(),
                 )
                 .await?,
             )

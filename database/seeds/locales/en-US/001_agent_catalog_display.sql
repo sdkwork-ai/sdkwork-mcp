@@ -1,6 +1,6 @@
 -- SDKWork official agent catalog: en-US MCP catalog display.
 
--- Catalog revision: 1.3.0.
+-- Catalog revision: 1.5.0.
 
 BEGIN;
 
@@ -79,6 +79,30 @@ UPDATE ai_mcp_server_category SET
   description = 'Style guides, source verification, editorial standards, and knowledgebase notes.',
   updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
 WHERE tenant_id = 100001 AND category_code = 'writing';
+
+UPDATE ai_mcp_server_category SET
+  name = 'Research and Retrieval',
+  description = 'Web research, documentation search, source verification, and citation.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'research';
+
+UPDATE ai_mcp_server_category SET
+  name = 'Data and Analysis',
+  description = 'Deterministic calculation, modeling, and scenario analysis.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'analysis';
+
+UPDATE ai_mcp_server_category SET
+  name = 'Productivity and Office',
+  description = 'Documents, tables, files, and day-to-day office work.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'productivity';
+
+UPDATE ai_mcp_server_category SET
+  name = 'Language and Translation',
+  description = 'Terminology-controlled translation and localization.',
+  updated_at = TIMESTAMPTZ '2026-11-03T00:00:00+08:00'
+WHERE tenant_id = 100001 AND category_code = 'language';
 
 UPDATE ai_mcp_server SET
   name = 'Web Research',

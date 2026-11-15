@@ -66,8 +66,12 @@ export {
   upsertAdminConnector,
   deleteAdminConnector,
   upsertAdminTool,
+  deleteAdminTool,
   upsertAdminResource,
+  deleteAdminResource,
   upsertAdminPrompt,
+  deleteAdminPrompt,
+  deleteAdminCategory,
   listAdminInvocations,
   appendAdminInvocation,
 } from './services/adminMcpService';

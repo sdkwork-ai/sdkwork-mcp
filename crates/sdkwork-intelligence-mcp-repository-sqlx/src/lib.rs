@@ -74,6 +74,14 @@ impl McpRepository for SqlxMcpRepository {
         postgres::upsert_category(&self.pool, record).await
     }
 
+    async fn delete_category(
+        &self,
+        tenant_id: u64,
+        category_code: &str,
+    ) -> McpResult<McpServerCategoryRecord> {
+        postgres::delete_category(&self.pool, tenant_id, category_code).await
+    }
+
     async fn list_connectors(
         &self,
         tenant_id: u64,
@@ -121,6 +129,15 @@ impl McpRepository for SqlxMcpRepository {
         postgres::upsert_tool(&self.pool, record).await
     }
 
+    async fn delete_tool(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        tool_key: &str,
+    ) -> McpResult<McpToolRecord> {
+        postgres::delete_tool(&self.pool, tenant_id, server_id, tool_key).await
+    }
+
     async fn list_resources(
         &self,
         tenant_id: u64,
@@ -142,6 +159,15 @@ impl McpRepository for SqlxMcpRepository {
         postgres::upsert_resource(&self.pool, record).await
     }
 
+    async fn delete_resource(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        resource_key: &str,
+    ) -> McpResult<McpResourceRecord> {
+        postgres::delete_resource(&self.pool, tenant_id, server_id, resource_key).await
+    }
+
     async fn list_prompts(
         &self,
         tenant_id: u64,
@@ -161,6 +187,15 @@ impl McpRepository for SqlxMcpRepository {
 
     async fn upsert_prompt(&self, record: McpPromptRecord) -> McpResult<McpPromptRecord> {
         postgres::upsert_prompt(&self.pool, record).await
+    }
+
+    async fn delete_prompt(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        prompt_key: &str,
+    ) -> McpResult<McpPromptRecord> {
+        postgres::delete_prompt(&self.pool, tenant_id, server_id, prompt_key).await
     }
 
     async fn count_invocations(

@@ -1,9 +1,8 @@
 import type { McpResourceRecord } from './mcp-resource-record';
-import type { PageInfo } from './page-info';
 
 export interface McpAdminUpsertResourceResponse {
   code: 0;
-  data: unknown & { items: McpResourceRecord[]; pageInfo: PageInfo; };
+  data: unknown & { item: McpResourceRecord; };
   /** Server-owned request correlation id. */
   traceId: string;
 }

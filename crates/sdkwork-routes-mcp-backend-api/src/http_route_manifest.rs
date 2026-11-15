@@ -40,6 +40,18 @@ const HTTP_ROUTES: &[HttpRoute] = &[
     ),
     admin_route(
         HttpMethod::Get,
+        "/backend/v3/api/mcp/categories/{categoryCode}",
+        "mcpAdmin.getCategory",
+        PERM_ADMIN_MARKETPLACE_READ,
+    ),
+    abuse_sensitive_admin_route(
+        HttpMethod::Delete,
+        "/backend/v3/api/mcp/categories/{categoryCode}",
+        "mcpAdmin.deleteCategory",
+        PERM_ADMIN_CATEGORY_MANAGE,
+    ),
+    admin_route(
+        HttpMethod::Get,
         "/backend/v3/api/mcp/servers",
         "mcpAdmin.listServers",
         PERM_ADMIN_MARKETPLACE_READ,
@@ -74,6 +86,12 @@ const HTTP_ROUTES: &[HttpRoute] = &[
         "mcpAdmin.upsertConnector",
         PERM_ADMIN_SERVER_MANAGE,
     ),
+    admin_route(
+        HttpMethod::Get,
+        "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}",
+        "mcpAdmin.getConnector",
+        PERM_ADMIN_MARKETPLACE_READ,
+    ),
     abuse_sensitive_admin_route(
         HttpMethod::Delete,
         "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}",
@@ -87,15 +105,51 @@ const HTTP_ROUTES: &[HttpRoute] = &[
         PERM_ADMIN_SERVER_MANAGE,
     ),
     admin_route(
+        HttpMethod::Get,
+        "/backend/v3/api/mcp/servers/{serverId}/tools/{toolKey}",
+        "mcpAdmin.getTool",
+        PERM_ADMIN_MARKETPLACE_READ,
+    ),
+    abuse_sensitive_admin_route(
+        HttpMethod::Delete,
+        "/backend/v3/api/mcp/servers/{serverId}/tools/{toolKey}",
+        "mcpAdmin.deleteTool",
+        PERM_ADMIN_SERVER_MANAGE,
+    ),
+    admin_route(
         HttpMethod::Post,
         "/backend/v3/api/mcp/servers/{serverId}/resources",
         "mcpAdmin.upsertResource",
         PERM_ADMIN_SERVER_MANAGE,
     ),
     admin_route(
+        HttpMethod::Get,
+        "/backend/v3/api/mcp/servers/{serverId}/resources/{resourceKey}",
+        "mcpAdmin.getResource",
+        PERM_ADMIN_MARKETPLACE_READ,
+    ),
+    abuse_sensitive_admin_route(
+        HttpMethod::Delete,
+        "/backend/v3/api/mcp/servers/{serverId}/resources/{resourceKey}",
+        "mcpAdmin.deleteResource",
+        PERM_ADMIN_SERVER_MANAGE,
+    ),
+    admin_route(
         HttpMethod::Post,
         "/backend/v3/api/mcp/servers/{serverId}/prompts",
         "mcpAdmin.upsertPrompt",
+        PERM_ADMIN_SERVER_MANAGE,
+    ),
+    admin_route(
+        HttpMethod::Get,
+        "/backend/v3/api/mcp/servers/{serverId}/prompts/{promptKey}",
+        "mcpAdmin.getPrompt",
+        PERM_ADMIN_MARKETPLACE_READ,
+    ),
+    abuse_sensitive_admin_route(
+        HttpMethod::Delete,
+        "/backend/v3/api/mcp/servers/{serverId}/prompts/{promptKey}",
+        "mcpAdmin.deletePrompt",
         PERM_ADMIN_SERVER_MANAGE,
     ),
     admin_route(

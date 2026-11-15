@@ -226,9 +226,10 @@ const en = {
   categories: {
     title: 'Categories',
     description:
-      'Curate marketplace navigation groups. A category is identified by its code; saving an existing code updates it, and the backend exposes no delete.',
+      'Curate marketplace navigation groups. A category is identified by its code; saving an existing code updates it, and deleting retires the code without removing history.',
     create: 'Create category',
     loading: 'Loading categories…',
+    confirmDelete: (code: string) => `Delete category "${code}"? It will be soft-deleted.`,
     empty: {
       title: 'No categories',
       description:
@@ -243,6 +244,7 @@ const en = {
       lifecycle: 'Lifecycle',
       actions: 'Actions',
       edit: 'Edit',
+      delete: 'Delete',
     },
     drawer: {
       createTitle: 'Create category',
@@ -293,6 +295,8 @@ const en = {
     },
     add: (kind: string) => `Add ${kind}`,
     save: (kind: string) => `Save ${kind}`,
+    delete: (kind: string) => `Delete ${kind}`,
+    confirmDelete: (name: string) => `Delete capability "${name}"? It will be soft-deleted.`,
     empty: (kind: string) => `No ${kind}s yet`,
     emptyHint: 'Add a capability from the header action.',
     enabled: 'Enabled',
@@ -436,9 +440,10 @@ const zh: McpAdminCopy = {
   categories: {
     title: '分类',
     description:
-      '维护市场导航分组。分类以编码作为唯一标识；保存已有编码即更新该分类，后端不提供删除能力。',
+      '维护市场导航分组。分类以编码作为唯一标识；保存已有编码即更新该分类，删除会软删除编码但保留历史。',
     create: '创建分类',
     loading: '正在加载分类…',
+    confirmDelete: (code) => `确定删除分类“${code}”吗？该操作会软删除该分类。`,
     empty: {
       title: '还没有分类',
       description: '使用页头操作创建一个分类。没有分类时无法注册 MCP 服务。',
@@ -452,6 +457,7 @@ const zh: McpAdminCopy = {
       lifecycle: '生命周期',
       actions: '操作',
       edit: '编辑',
+      delete: '删除',
     },
     drawer: {
       createTitle: '创建分类',
@@ -500,6 +506,8 @@ const zh: McpAdminCopy = {
     },
     add: (kind) => `新增${kind}`,
     save: (kind) => `保存${kind}`,
+    delete: (kind) => `删除${kind}`,
+    confirmDelete: (name) => `确定删除能力“${name}”吗？该操作会软删除该项。`,
     empty: (kind) => `还没有${kind}`,
     emptyHint: '使用页头操作添加能力。',
     enabled: '已启用',

@@ -45,6 +45,11 @@ pub trait McpRepository: Send + Sync {
         &self,
         record: McpServerCategoryRecord,
     ) -> McpResult<McpServerCategoryRecord>;
+    async fn delete_category(
+        &self,
+        tenant_id: u64,
+        category_code: &str,
+    ) -> McpResult<McpServerCategoryRecord>;
 
     async fn list_connectors(
         &self,
@@ -73,6 +78,12 @@ pub trait McpRepository: Send + Sync {
         tool_key: &str,
     ) -> McpResult<McpToolRecord>;
     async fn upsert_tool(&self, record: McpToolRecord) -> McpResult<McpToolRecord>;
+    async fn delete_tool(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        tool_key: &str,
+    ) -> McpResult<McpToolRecord>;
 
     async fn list_resources(
         &self,
@@ -86,6 +97,12 @@ pub trait McpRepository: Send + Sync {
         resource_key: &str,
     ) -> McpResult<McpResourceRecord>;
     async fn upsert_resource(&self, record: McpResourceRecord) -> McpResult<McpResourceRecord>;
+    async fn delete_resource(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        resource_key: &str,
+    ) -> McpResult<McpResourceRecord>;
 
     async fn list_prompts(&self, tenant_id: u64, server_id: u64)
         -> McpResult<Vec<McpPromptRecord>>;
@@ -96,6 +113,12 @@ pub trait McpRepository: Send + Sync {
         prompt_key: &str,
     ) -> McpResult<McpPromptRecord>;
     async fn upsert_prompt(&self, record: McpPromptRecord) -> McpResult<McpPromptRecord>;
+    async fn delete_prompt(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        prompt_key: &str,
+    ) -> McpResult<McpPromptRecord>;
 
     async fn count_invocations(
         &self,
@@ -188,6 +211,17 @@ impl<R: McpRepository> McpService<R> {
         self.repository.upsert_category(record).await
     }
 
+    pub async fn delete_category(
+        &self,
+        tenant_id: u64,
+        category_code: &str,
+    ) -> McpResult<McpServerCategoryRecord> {
+        validation::validate_category_code(category_code)?;
+        self.repository
+            .delete_category(tenant_id, category_code)
+            .await
+    }
+
     pub async fn list_connectors(
         &self,
         tenant_id: u64,
@@ -253,6 +287,18 @@ impl<R: McpRepository> McpService<R> {
         self.repository.upsert_tool(record).await
     }
 
+    pub async fn delete_tool(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        tool_key: &str,
+    ) -> McpResult<McpToolRecord> {
+        validation::validate_entity_key(tool_key, "tool_key")?;
+        self.repository
+            .delete_tool(tenant_id, server_id, tool_key)
+            .await
+    }
+
     pub async fn list_resources(
         &self,
         tenant_id: u64,
@@ -278,6 +324,18 @@ impl<R: McpRepository> McpService<R> {
         self.repository.upsert_resource(record).await
     }
 
+    pub async fn delete_resource(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        resource_key: &str,
+    ) -> McpResult<McpResourceRecord> {
+        validation::validate_entity_key(resource_key, "resource_key")?;
+        self.repository
+            .delete_resource(tenant_id, server_id, resource_key)
+            .await
+    }
+
     pub async fn list_prompts(
         &self,
         tenant_id: u64,
@@ -301,6 +359,18 @@ impl<R: McpRepository> McpService<R> {
     pub async fn upsert_prompt(&self, record: McpPromptRecord) -> McpResult<McpPromptRecord> {
         validation::validate_prompt_record(&record)?;
         self.repository.upsert_prompt(record).await
+    }
+
+    pub async fn delete_prompt(
+        &self,
+        tenant_id: u64,
+        server_id: u64,
+        prompt_key: &str,
+    ) -> McpResult<McpPromptRecord> {
+        validation::validate_entity_key(prompt_key, "prompt_key")?;
+        self.repository
+            .delete_prompt(tenant_id, server_id, prompt_key)
+            .await
     }
 
     pub async fn count_invocations(

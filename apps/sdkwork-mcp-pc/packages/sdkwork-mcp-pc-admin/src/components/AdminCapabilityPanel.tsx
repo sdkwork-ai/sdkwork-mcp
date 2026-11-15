@@ -9,6 +9,9 @@ import {
   TextInput,
 } from '@sdkwork/mcp-pc-commons';
 import {
+  deleteAdminPrompt,
+  deleteAdminResource,
+  deleteAdminTool,
   upsertAdminPrompt,
   upsertAdminResource,
   upsertAdminTool,
@@ -140,6 +143,25 @@ export function AdminCapabilityPanel({
     }
   }
 
+  async function onDelete(item: McpToolRecord | McpResourceRecord | McpPromptRecord) {
+    if (!window.confirm(copy.capabilities.confirmDelete(item.name))) {
+      return;
+    }
+    setError(null);
+    try {
+      if ('tool_key' in item) {
+        await deleteAdminTool(clients, serverId, item.tool_key);
+      } else if ('resource_key' in item) {
+        await deleteAdminResource(clients, serverId, item.resource_key);
+      } else {
+        await deleteAdminPrompt(clients, serverId, item.prompt_key);
+      }
+      await onSaved();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -175,11 +197,16 @@ export function AdminCapabilityPanel({
               <div className="p-4">
                 <div className="flex items-center justify-between gap-3">
                   <h4 className="font-medium text-slate-900 dark:text-zinc-100">{item.name}</h4>
-                  {'enabled' in item ? (
-                    <Badge tone={item.enabled ? 'success' : 'neutral'}>
-                      {item.enabled ? copy.capabilities.enabled : copy.capabilities.disabled}
-                    </Badge>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    {'enabled' in item ? (
+                      <Badge tone={item.enabled ? 'success' : 'neutral'}>
+                        {item.enabled ? copy.capabilities.enabled : copy.capabilities.disabled}
+                      </Badge>
+                    ) : null}
+                    <Button type="button" variant="secondary" onClick={() => void onDelete(item)}>
+                      {copy.capabilities.delete(kindLabel)}
+                    </Button>
+                  </div>
                 </div>
                 {'tool_key' in item ? (
                   <p className="mt-1 font-mono text-xs text-slate-500 dark:text-zinc-400">{item.tool_key}</p>

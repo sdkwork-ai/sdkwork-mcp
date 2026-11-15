@@ -1,6 +1,6 @@
 -- SDKWork official agent catalog: MCP server identities (neutral base).
 
--- Catalog revision: 1.3.0.
+-- Catalog revision: 1.5.0.
 
 -- Entries are catalog drafts. A tenant admin activates a connector with the
 
@@ -14,180 +14,256 @@ SELECT set_config('app.current_organization_id', '0', true);
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000001, '2c2910b0-8d7c-4553-82ca-865f18ccc10e', 100001, 0,
-  'engineering', 'engineering', NULL, 0, 1, 1, 0,
+  'engineering', 'engineering', NULL, 0, 1, 'Code2', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000002, '42979a76-2a2b-4e73-8f94-6281896feed9', 100001, 0,
-  'education', 'education', NULL, 0, 2, 1, 0,
+  'education', 'education', NULL, 0, 2, 'GraduationCap', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000003, '827d2cea-22da-45b1-82f6-2434b5f48812', 100001, 0,
-  'healthcare', 'healthcare', NULL, 0, 3, 1, 0,
+  'healthcare', 'healthcare', NULL, 0, 3, 'Stethoscope', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000004, '849a3d3c-b68d-4e32-8e1b-66d9cf83f6ff', 100001, 0,
-  'legal', 'legal', NULL, 0, 4, 1, 0,
+  'legal', 'legal', NULL, 0, 4, 'Scale', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000005, '5adbfcdf-5c5d-430c-8994-4c497668d7aa', 100001, 0,
-  'travel', 'travel', NULL, 0, 5, 1, 0,
+  'travel', 'travel', NULL, 0, 5, 'Plane', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000006, '798f0264-b631-4f76-8076-f9f1fab5722f', 100001, 0,
-  'ecommerce', 'ecommerce', NULL, 0, 6, 1, 0,
+  'ecommerce', 'ecommerce', NULL, 0, 6, 'ShoppingCart', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000007, '8dac0e39-f6b3-4256-8317-31f9d734cda2', 100001, 0,
-  'realestate', 'realestate', NULL, 0, 7, 1, 0,
+  'realestate', 'realestate', NULL, 0, 7, 'House', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000008, 'edfcd4cd-6a5f-4ccc-8fb9-ae4acbdb8ec2', 100001, 0,
-  'restaurant', 'restaurant', NULL, 0, 8, 1, 0,
+  'restaurant', 'restaurant', NULL, 0, 8, 'UtensilsCrossed', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000009, '4aac2da7-d4ee-4b18-8e89-921067f9dff4', 100001, 0,
-  'enterprise', 'enterprise', NULL, 0, 9, 1, 0,
+  'enterprise', 'enterprise', NULL, 0, 9, 'Building2', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000010, '1bab4e74-afa3-47f0-8227-2118b3c350b9', 100001, 0,
-  'government', 'government', NULL, 0, 10, 1, 0,
+  'government', 'government', NULL, 0, 10, 'Landmark', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000011, '2e96c9b4-5295-4873-8b68-4f5d3a53e26f', 100001, 0,
-  'hospitality', 'hospitality', NULL, 0, 11, 1, 0,
+  'hospitality', 'hospitality', NULL, 0, 11, 'BedDouble', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;
 
 INSERT INTO ai_mcp_server_category (
   id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
-  sort_order, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
 ) VALUES (
   539000000000000012, '5cfd8b30-de81-47d9-8c1a-44d12ab18633', 100001, 0,
-  'writing', 'writing', NULL, 0, 12, 1, 0,
+  'writing', 'writing', NULL, 0, 12, 'PenLine', 1, 0,
   TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
 )
 ON CONFLICT (tenant_id, category_code) DO UPDATE SET
   name = EXCLUDED.name,
   sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
+  lifecycle_status = EXCLUDED.lifecycle_status,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server_category (
+  id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+) VALUES (
+  539000000000000013, '739f0610-d98b-4868-8b03-03c5383809d6', 100001, 0,
+  'research', 'research', NULL, 0, 13, 'Search', 1, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, category_code) DO UPDATE SET
+  name = EXCLUDED.name,
+  sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
+  lifecycle_status = EXCLUDED.lifecycle_status,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server_category (
+  id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+) VALUES (
+  539000000000000014, '56c17993-5ca5-4b7d-8187-9b58c12dd3a1', 100001, 0,
+  'analysis', 'analysis', NULL, 0, 14, 'ChartNoAxesCombined', 1, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, category_code) DO UPDATE SET
+  name = EXCLUDED.name,
+  sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
+  lifecycle_status = EXCLUDED.lifecycle_status,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server_category (
+  id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+) VALUES (
+  539000000000000015, '76ba2fe5-e1f8-4451-886a-5c58fdd895bb', 100001, 0,
+  'productivity', 'productivity', NULL, 0, 15, 'ClipboardList', 1, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, category_code) DO UPDATE SET
+  name = EXCLUDED.name,
+  sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
+  lifecycle_status = EXCLUDED.lifecycle_status,
+  updated_at = EXCLUDED.updated_at
+;
+
+INSERT INTO ai_mcp_server_category (
+  id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+  sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by, updated_by
+) VALUES (
+  539000000000000016, 'f40b8929-61ff-4270-819c-90454541d25d', 100001, 0,
+  'language', 'language', NULL, 0, 16, 'Languages', 1, 0,
+  TIMESTAMPTZ '2026-11-03T00:00:00+08:00', TIMESTAMPTZ '2026-11-03T00:00:00+08:00', 1, 1
+)
+ON CONFLICT (tenant_id, category_code) DO UPDATE SET
+  name = EXCLUDED.name,
+  sort_order = EXCLUDED.sort_order,
+  icon_ref = EXCLUDED.icon_ref,
   lifecycle_status = EXCLUDED.lifecycle_status,
   updated_at = EXCLUDED.updated_at
 ;

@@ -31,9 +31,9 @@ use serde::Deserialize;
 use sqlx::PgPool;
 
 pub use handlers::{
-    finish_api_json, get_server, get_tool, list_categories, list_invocations, list_prompts,
-    list_resources, list_servers, list_tools, ok_json, resolve_tenant_id, McpInvocationListQuery,
-    SdkWorkListQuery, SharedMcpService,
+    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_categories,
+    list_invocations, list_prompts, list_resources, list_servers, list_tools, ok_json,
+    resolve_tenant_id, McpInvocationListQuery, SdkWorkListQuery, SharedMcpService,
 };
 pub use health::DbReadinessCheck;
 pub use http_route_manifest::app_route_manifest;
@@ -113,7 +113,9 @@ where
         .route(paths::SERVER_TOOLS_LIST, get(list_tools_handler))
         .route(paths::SERVER_TOOL_GET, get(get_tool_handler))
         .route(paths::SERVER_RESOURCES_LIST, get(list_resources_handler))
+        .route(paths::SERVER_RESOURCE_GET, get(get_resource_handler))
         .route(paths::SERVER_PROMPTS_LIST, get(list_prompts_handler))
+        .route(paths::SERVER_PROMPT_GET, get(get_prompt_handler))
         .route(
             paths::SERVER_CONNECTORS_UPSERT,
             post(upsert_own_connector_handler),
@@ -326,6 +328,64 @@ where
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
             ok_json(list_prompts(state.service.as_ref(), tenant_id, server_id, &query).await?)
+        }
+        .await,
+    )
+}
+
+async fn get_resource_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<AppState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, resource_key)): Path<(u64, String)>,
+    context: Option<Extension<McpAppRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_resource(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    resource_key.as_str(),
+                )
+                .await?,
+            )
+        }
+        .await,
+    )
+}
+
+async fn get_prompt_handler<R>(
+    ctx: WebRequestContext,
+    State(state): State<AppState<R>>,
+    _headers: HeaderMap,
+    Path((server_id, prompt_key)): Path<(u64, String)>,
+    context: Option<Extension<McpAppRequestContext>>,
+) -> Response
+where
+    R: sdkwork_intelligence_mcp_service::McpRepository + Send + Sync,
+{
+    finish_api_json(
+        &ctx,
+        async {
+            let tenant_id =
+                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                get_prompt(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    prompt_key.as_str(),
+                )
+                .await?,
+            )
         }
         .await,
     )

@@ -20,7 +20,7 @@
   "baseUrl": "http://127.0.0.1:18101",
   "standardProfile": "sdkwork-v3",
   "fixedSdkVersion": "0.1.0",
-  "ownerOnlyOperationCount": 14,
+  "ownerOnlyOperationCount": 23,
   "operations": [
     {
       "method": "POST",
@@ -34,13 +34,58 @@
     },
     {
       "method": "DELETE",
+      "operationId": "mcpAdmin.deleteCategory",
+      "path": "/backend/v3/api/mcp/categories/{categoryCode}"
+    },
+    {
+      "method": "DELETE",
       "operationId": "mcpAdmin.deleteConnector",
       "path": "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
     },
     {
       "method": "DELETE",
+      "operationId": "mcpAdmin.deletePrompt",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/prompts/{promptKey}"
+    },
+    {
+      "method": "DELETE",
+      "operationId": "mcpAdmin.deleteResource",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/resources/{resourceKey}"
+    },
+    {
+      "method": "DELETE",
       "operationId": "mcpAdmin.deleteServer",
       "path": "/backend/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "DELETE",
+      "operationId": "mcpAdmin.deleteTool",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.getCategory",
+      "path": "/backend/v3/api/mcp/categories/{categoryCode}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.getConnector",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.getPrompt",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/prompts/{promptKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.getResource",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/resources/{resourceKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcpAdmin.getTool",
+      "path": "/backend/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
     },
     {
       "method": "GET",

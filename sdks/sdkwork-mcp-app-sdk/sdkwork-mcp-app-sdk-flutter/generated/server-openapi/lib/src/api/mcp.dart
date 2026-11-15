@@ -133,6 +133,15 @@ class McpApi {
     })();
   }
 
+  /// MCP mcp.getResource
+  Future<McpGetResourceResponse?> getResource(int serverId, String resourceKey) async {
+    final response = await _client.get(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/resources/${serializePathParameter(resourceKey, const PathParameterSpec('resourceKey', 'simple', false))}'));
+    return (() {
+      final map = sdkworkResponseAsMap(response);
+      return map == null ? null : McpGetResourceResponse.fromJson(map);
+    })();
+  }
+
   /// MCP mcp.listPrompts
   Future<McpListPromptsResponse?> listPrompts(int serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
     final query = buildQueryString([
@@ -145,6 +154,15 @@ class McpApi {
     return (() {
       final map = sdkworkResponseAsMap(response);
       return map == null ? null : McpListPromptsResponse.fromJson(map);
+    })();
+  }
+
+  /// MCP mcp.getPrompt
+  Future<McpGetPromptResponse?> getPrompt(int serverId, String promptKey) async {
+    final response = await _client.get(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/prompts/${serializePathParameter(promptKey, const PathParameterSpec('promptKey', 'simple', false))}'));
+    return (() {
+      final map = sdkworkResponseAsMap(response);
+      return map == null ? null : McpGetPromptResponse.fromJson(map);
     })();
   }
 

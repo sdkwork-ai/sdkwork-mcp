@@ -576,6 +576,7 @@ class McpServerRecord {
   final String healthStatus;
   final String lifecycleStatus;
   final List<String>? tags;
+  final List<String> allowedRoleCodes;
   final String? iconRef;
 
   McpServerRecord({
@@ -592,6 +593,7 @@ class McpServerRecord {
     required this.healthStatus,
     required this.lifecycleStatus,
     this.tags,
+    required this.allowedRoleCodes,
     this.iconRef
   });
 
@@ -673,6 +675,16 @@ class McpServerRecord {
             .whereType<String>()
             .toList();
       })(),
+      allowedRoleCodes: (() {
+        final list = _sdkworkAsList(json['allowed_role_codes']);
+        if (list == null) {
+          throw FormatException('McpServerRecord.allowed_role_codes is required');
+        }
+        return list
+            .map((item) => item?.toString())
+            .whereType<String>()
+            .toList();
+      })(),
       iconRef: json['icon_ref']?.toString()
     );
   }
@@ -692,6 +704,7 @@ class McpServerRecord {
       'health_status': healthStatus,
       'lifecycle_status': lifecycleStatus,
       'tags': tags?.map((item) => item).toList(),
+      'allowed_role_codes': allowedRoleCodes.map((item) => item).toList(),
       'icon_ref': iconRef,
     };
   }
@@ -1286,6 +1299,7 @@ class CreateMcpServerCommand {
   final int? categoryId;
   final String? categoryCode;
   final List<String>? tags;
+  final List<String>? allowedRoleCodes;
   final String? iconRef;
 
   CreateMcpServerCommand({
@@ -1297,6 +1311,7 @@ class CreateMcpServerCommand {
     this.categoryId,
     this.categoryCode,
     this.tags,
+    this.allowedRoleCodes,
     this.iconRef
   });
 
@@ -1337,6 +1352,16 @@ class CreateMcpServerCommand {
             .whereType<String>()
             .toList();
       })(),
+      allowedRoleCodes: (() {
+        final list = _sdkworkAsList(json['allowed_role_codes']);
+        if (list == null) {
+          return null;
+        }
+        return list
+            .map((item) => item?.toString())
+            .whereType<String>()
+            .toList();
+      })(),
       iconRef: json['icon_ref']?.toString()
     );
   }
@@ -1351,6 +1376,7 @@ class CreateMcpServerCommand {
       'category_id': categoryId,
       'category_code': categoryCode,
       'tags': tags?.map((item) => item).toList(),
+      'allowed_role_codes': allowedRoleCodes?.map((item) => item).toList(),
       'icon_ref': iconRef,
     };
   }
@@ -1364,6 +1390,7 @@ class UpdateMcpServerCommand {
   final int? categoryId;
   final String? categoryCode;
   final List<String>? tags;
+  final List<String>? allowedRoleCodes;
   final String? iconRef;
   final String? lifecycleStatus;
 
@@ -1375,6 +1402,7 @@ class UpdateMcpServerCommand {
     this.categoryId,
     this.categoryCode,
     this.tags,
+    this.allowedRoleCodes,
     this.iconRef,
     this.lifecycleStatus
   });
@@ -1397,6 +1425,16 @@ class UpdateMcpServerCommand {
             .whereType<String>()
             .toList();
       })(),
+      allowedRoleCodes: (() {
+        final list = _sdkworkAsList(json['allowed_role_codes']);
+        if (list == null) {
+          return null;
+        }
+        return list
+            .map((item) => item?.toString())
+            .whereType<String>()
+            .toList();
+      })(),
       iconRef: json['icon_ref']?.toString(),
       lifecycleStatus: json['lifecycle_status']?.toString()
     );
@@ -1411,6 +1449,7 @@ class UpdateMcpServerCommand {
       'category_id': categoryId,
       'category_code': categoryCode,
       'tags': tags?.map((item) => item).toList(),
+      'allowed_role_codes': allowedRoleCodes?.map((item) => item).toList(),
       'icon_ref': iconRef,
       'lifecycle_status': lifecycleStatus,
     };
@@ -2401,6 +2440,52 @@ class McpListResourcesResponse {
   }
 }
 
+class McpGetResourceResponse {
+  final int code;
+  final dynamic data;
+  final String traceId;
+
+  McpGetResourceResponse({
+    required this.code,
+    required this.data,
+    required this.traceId
+  });
+
+  factory McpGetResourceResponse.fromJson(Map<String, dynamic> json) {
+    return McpGetResourceResponse(
+      code: (() {
+        final value = json['code'];
+        if (value is! int) {
+          throw FormatException('McpGetResourceResponse.code is required');
+        }
+        return value;
+      })(),
+      data: (() {
+        final map = _sdkworkAsMap(json['data']);
+        if (map == null) {
+          throw FormatException('McpGetResourceResponse.data is required');
+        }
+        return map;
+      })(),
+      traceId: (() {
+        final value = json['traceId']?.toString();
+        if (value == null) {
+          throw FormatException('McpGetResourceResponse.traceId is required');
+        }
+        return value;
+      })()
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'code': code,
+      'data': data,
+      'traceId': traceId,
+    };
+  }
+}
+
 class McpListPromptsResponse {
   final int code;
   final dynamic data;
@@ -2432,6 +2517,52 @@ class McpListPromptsResponse {
         final value = json['traceId']?.toString();
         if (value == null) {
           throw FormatException('McpListPromptsResponse.traceId is required');
+        }
+        return value;
+      })()
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'code': code,
+      'data': data,
+      'traceId': traceId,
+    };
+  }
+}
+
+class McpGetPromptResponse {
+  final int code;
+  final dynamic data;
+  final String traceId;
+
+  McpGetPromptResponse({
+    required this.code,
+    required this.data,
+    required this.traceId
+  });
+
+  factory McpGetPromptResponse.fromJson(Map<String, dynamic> json) {
+    return McpGetPromptResponse(
+      code: (() {
+        final value = json['code'];
+        if (value is! int) {
+          throw FormatException('McpGetPromptResponse.code is required');
+        }
+        return value;
+      })(),
+      data: (() {
+        final map = _sdkworkAsMap(json['data']);
+        if (map == null) {
+          throw FormatException('McpGetPromptResponse.data is required');
+        }
+        return map;
+      })(),
+      traceId: (() {
+        final value = json['traceId']?.toString();
+        if (value == null) {
+          throw FormatException('McpGetPromptResponse.traceId is required');
         }
         return value;
       })()

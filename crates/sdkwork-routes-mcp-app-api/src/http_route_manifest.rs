@@ -76,8 +76,20 @@ const HTTP_ROUTES: &[HttpRoute] = &[
     ),
     mcp_route(
         HttpMethod::Get,
+        "/app/v3/api/mcp/servers/{serverId}/resources/{resourceKey}",
+        "mcp.getResource",
+        PERM_MARKETPLACE_READ,
+    ),
+    mcp_route(
+        HttpMethod::Get,
         "/app/v3/api/mcp/servers/{serverId}/prompts",
         "mcp.listPrompts",
+        PERM_MARKETPLACE_READ,
+    ),
+    mcp_route(
+        HttpMethod::Get,
+        "/app/v3/api/mcp/servers/{serverId}/prompts/{promptKey}",
+        "mcp.getPrompt",
         PERM_MARKETPLACE_READ,
     ),
     mcp_route(

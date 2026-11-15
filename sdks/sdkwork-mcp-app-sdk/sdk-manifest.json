@@ -13,6 +13,11 @@
       "language": "typescript",
       "packageName": "sdkwork-mcp-app-sdk-generated-typescript",
       "generatedOutput": "sdkwork-mcp-app-sdk-typescript/generated/server-openapi"
+    },
+    "flutter": {
+      "language": "flutter",
+      "packageName": "sdkwork-mcp-app-sdk-generated-flutter",
+      "generatedOutput": "sdkwork-mcp-app-sdk-flutter/generated/server-openapi"
     }
   },
   "generatorName": "@sdkwork/sdk-generator",
@@ -20,77 +25,87 @@
   "baseUrl": "http://127.0.0.1:18100",
   "standardProfile": "sdkwork-v3",
   "fixedSdkVersion": "0.1.0",
-  "ownerOnlyOperationCount": 14,
+  "ownerOnlyOperationCount": 16,
   "operations": [
     {
       "method": "POST",
-      "operationId": "create",
+      "operationId": "mcp.createOwnServer",
       "path": "/app/v3/api/mcp/servers"
     },
     {
-      "method": "POST",
-      "operationId": "create",
-      "path": "/app/v3/api/mcp/servers/{serverId}/connectors"
-    },
-    {
       "method": "DELETE",
-      "operationId": "delete",
-      "path": "/app/v3/api/mcp/servers/{serverKey}"
-    },
-    {
-      "method": "DELETE",
-      "operationId": "delete",
+      "operationId": "mcp.deleteOwnConnector",
       "path": "/app/v3/api/mcp/servers/{serverId}/connectors/{connectorKey}"
     },
     {
+      "method": "DELETE",
+      "operationId": "mcp.deleteOwnServer",
+      "path": "/app/v3/api/mcp/servers/{serverKey}"
+    },
+    {
       "method": "GET",
-      "operationId": "list",
+      "operationId": "mcp.getPrompt",
+      "path": "/app/v3/api/mcp/servers/{serverId}/prompts/{promptKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.getResource",
+      "path": "/app/v3/api/mcp/servers/{serverId}/resources/{resourceKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.getServer",
+      "path": "/app/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.getTool",
+      "path": "/app/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.listCategories",
       "path": "/app/v3/api/mcp/categories"
     },
     {
       "method": "GET",
-      "operationId": "list",
-      "path": "/app/v3/api/mcp/servers"
-    },
-    {
-      "method": "GET",
-      "operationId": "list",
-      "path": "/app/v3/api/mcp/servers/owned"
-    },
-    {
-      "method": "GET",
-      "operationId": "list",
-      "path": "/app/v3/api/mcp/servers/{serverId}/tools"
-    },
-    {
-      "method": "GET",
-      "operationId": "list",
-      "path": "/app/v3/api/mcp/servers/{serverId}/resources"
-    },
-    {
-      "method": "GET",
-      "operationId": "list",
-      "path": "/app/v3/api/mcp/servers/{serverId}/prompts"
-    },
-    {
-      "method": "GET",
-      "operationId": "list",
+      "operationId": "mcp.listInvocations",
       "path": "/app/v3/api/mcp/invocations"
     },
     {
       "method": "GET",
-      "operationId": "retrieve",
-      "path": "/app/v3/api/mcp/servers/{serverKey}"
+      "operationId": "mcp.listOwnedServers",
+      "path": "/app/v3/api/mcp/servers/owned"
     },
     {
       "method": "GET",
-      "operationId": "retrieve",
-      "path": "/app/v3/api/mcp/servers/{serverId}/tools/{toolKey}"
+      "operationId": "mcp.listPrompts",
+      "path": "/app/v3/api/mcp/servers/{serverId}/prompts"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.listResources",
+      "path": "/app/v3/api/mcp/servers/{serverId}/resources"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.listServers",
+      "path": "/app/v3/api/mcp/servers"
+    },
+    {
+      "method": "GET",
+      "operationId": "mcp.listTools",
+      "path": "/app/v3/api/mcp/servers/{serverId}/tools"
     },
     {
       "method": "PATCH",
-      "operationId": "update",
+      "operationId": "mcp.updateOwnServer",
       "path": "/app/v3/api/mcp/servers/{serverKey}"
+    },
+    {
+      "method": "POST",
+      "operationId": "mcp.upsertOwnConnector",
+      "path": "/app/v3/api/mcp/servers/{serverId}/connectors"
     }
   ],
   "managedBy": "tools/mcp_sdk_generator_runner.mjs",
