@@ -217,6 +217,25 @@ impl<R: McpRepository> McpService<R> {
         category_code: &str,
     ) -> McpResult<McpServerCategoryRecord> {
         validation::validate_category_code(category_code)?;
+        let category = self
+            .repository
+            .get_category(tenant_id, category_code)
+            .await?;
+        let servers = self.repository.list_servers(tenant_id).await?;
+        let categories = self.repository.list_categories(tenant_id).await?;
+        let server_refs = servers
+            .iter()
+            .filter(|server| server.category_code.as_deref() == Some(category_code))
+            .count();
+        let child_refs = categories
+            .iter()
+            .filter(|child| child.parent_id == category.id)
+            .count();
+        if server_refs > 0 || child_refs > 0 {
+            return Err(McpServiceError::InvalidArgument(format!(
+                "category {category_code} is still referenced by {server_refs} server(s) and {child_refs} child categor(ies)"
+            )));
+        }
         self.repository
             .delete_category(tenant_id, category_code)
             .await
