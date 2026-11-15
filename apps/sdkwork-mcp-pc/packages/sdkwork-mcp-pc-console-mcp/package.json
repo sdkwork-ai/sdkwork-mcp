@@ -22,8 +22,10 @@
     "sdkwork-drive-pc-upload-image": "workspace:*"
   },
   "sdkwork": {
+    "workspace": "sdkwork-mcp",
     "applicationCode": "mcp",
     "architecture": "pc-react",
+    "domain": "intelligence",
     "capability": "mcp",
     "surface": "app-console",
     "managedBy": "manual"

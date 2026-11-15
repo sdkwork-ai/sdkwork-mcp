@@ -55,8 +55,10 @@ McpServerRecord? _readResourceItem(dynamic data) {
 
 const _catalogPageSize = 200;
 
-Future<MarketplaceCatalog> fetchMarketplaceCatalog(SdkworkAppClient client) async {
-  final categoriesResponse = await client.mcp.listCategories(null, _catalogPageSize);
+Future<MarketplaceCatalog> fetchMarketplaceCatalog(
+    SdkworkAppClient client) async {
+  final categoriesResponse =
+      await client.mcp.listCategories(null, _catalogPageSize);
   final serversResponse = await client.mcp.listServers(null, _catalogPageSize);
   return MarketplaceCatalog(
     categories: _readPageItems(
@@ -80,15 +82,20 @@ Future<ServerDetailBundle> fetchServerDetail(
     throw StateError('MCP server not found: $serverKey');
   }
   final serverId = server.id;
-  final results = await Future.wait([
-    client.mcp.listTools(serverId, null, _catalogPageSize),
-    client.mcp.listResources(serverId, null, _catalogPageSize),
-    client.mcp.listPrompts(serverId, null, _catalogPageSize),
-  ]);
+  // Keep one typed call per capability: the generated SDK returns
+  // capability-specific response wrappers, which cannot be unified through
+  // `Future.wait` without erasing the `data` accessor.
+  final toolsResponse =
+      await client.mcp.listTools(serverId, null, _catalogPageSize);
+  final resourcesResponse =
+      await client.mcp.listResources(serverId, null, _catalogPageSize);
+  final promptsResponse =
+      await client.mcp.listPrompts(serverId, null, _catalogPageSize);
   return ServerDetailBundle(
     server: server,
-    tools: _readPageItems(results[0]?.data, McpToolRecord.fromJson),
-    resources: _readPageItems(results[1]?.data, McpResourceRecord.fromJson),
-    prompts: _readPageItems(results[2]?.data, McpPromptRecord.fromJson),
+    tools: _readPageItems(toolsResponse?.data, McpToolRecord.fromJson),
+    resources:
+        _readPageItems(resourcesResponse?.data, McpResourceRecord.fromJson),
+    prompts: _readPageItems(promptsResponse?.data, McpPromptRecord.fromJson),
   );
 }

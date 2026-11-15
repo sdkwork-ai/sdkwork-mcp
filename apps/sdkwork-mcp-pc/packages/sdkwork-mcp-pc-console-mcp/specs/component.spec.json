@@ -6,7 +6,7 @@
     "displayName": "MCP PC Console MCP",
     "version": "0.1.0",
     "type": "react-package",
-    "root": ".",
+    "root": "apps/sdkwork-mcp-pc/packages/sdkwork-mcp-pc-console-mcp",
     "domain": "intelligence",
     "capability": "mcp",
     "surface": "app-console",

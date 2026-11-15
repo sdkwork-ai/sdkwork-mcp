@@ -13,6 +13,7 @@ const expectedPcPackageDirs = [
   'sdkwork-mcp-pc-admin-core',
   'sdkwork-mcp-pc-commons',
   'sdkwork-mcp-pc-console',
+  'sdkwork-mcp-pc-console-mcp',
   'sdkwork-mcp-pc-core',
   'sdkwork-mcp-pc-hub',
   'sdkwork-mcp-pc-shell',

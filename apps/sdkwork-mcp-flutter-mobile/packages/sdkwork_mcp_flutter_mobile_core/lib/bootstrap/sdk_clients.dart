@@ -1,5 +1,3 @@
-import 'package:sdkwork_mcp_app_sdk_generated_flutter/app_client.dart';
-
 import '../src/mcp_app_client.dart';
 import '../src/session/mcp_app_session.dart';
 
