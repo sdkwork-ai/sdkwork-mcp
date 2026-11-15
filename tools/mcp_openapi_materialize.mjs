@@ -512,7 +512,17 @@ function pathParam(name) {
 }
 
 function pathParamInt(name) {
-  return { name, in: "path", required: true, schema: { type: "integer", format: "int64" } };
+  return {
+    name,
+    in: "path",
+    required: true,
+    schema: {
+      type: "string",
+      format: "int64",
+      pattern: "^-?[0-9]+$",
+      "x-sdkwork-int64-string": true,
+    },
+  };
 }
 
 function problemResponse() {

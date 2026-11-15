@@ -9,17 +9,10 @@
     "protocol": "http",
     "packageName": "sdkwork-mcp-backend-sdk-generated-typescript"
   },
-  "changeFingerprint": "b587148b762fc631545719ffc19d88395f6cdf14f93eff1d914bd257b74133e4",
+  "changeFingerprint": "247a70574811e11a371ee3d3a7ce2a72e7516318902ffce364ddceaf4f5afcd4",
   "changes": {
     "createdGeneratedFiles": [],
-    "updatedGeneratedFiles": [
-      "src/api/mcp.ts",
-      "src/types/mcp-admin-delete-connector-response.ts",
-      "src/types/mcp-admin-upsert-connector-response.ts",
-      "src/types/mcp-admin-upsert-prompt-response.ts",
-      "src/types/mcp-admin-upsert-resource-response.ts",
-      "src/types/mcp-admin-upsert-tool-response.ts"
-    ],
+    "updatedGeneratedFiles": [],
     "unchangedGeneratedFiles": [
       "bin/publish-core.mjs",
       "bin/publish.ps1",
@@ -33,6 +26,7 @@
       "sdkwork-sdk.json",
       "src/api/base.ts",
       "src/api/index.ts",
+      "src/api/mcp.ts",
       "src/api/paths.ts",
       "src/auth/index.ts",
       "src/http/client.ts",
@@ -48,6 +42,7 @@
       "src/types/mcp-admin-append-invocation-response.ts",
       "src/types/mcp-admin-create-server-response.ts",
       "src/types/mcp-admin-delete-category-response.ts",
+      "src/types/mcp-admin-delete-connector-response.ts",
       "src/types/mcp-admin-delete-prompt-response.ts",
       "src/types/mcp-admin-delete-resource-response.ts",
       "src/types/mcp-admin-delete-server-response.ts",
@@ -63,6 +58,10 @@
       "src/types/mcp-admin-list-servers-response.ts",
       "src/types/mcp-admin-update-server-response.ts",
       "src/types/mcp-admin-upsert-category-response.ts",
+      "src/types/mcp-admin-upsert-connector-response.ts",
+      "src/types/mcp-admin-upsert-prompt-response.ts",
+      "src/types/mcp-admin-upsert-resource-response.ts",
+      "src/types/mcp-admin-upsert-tool-response.ts",
       "src/types/mcp-connector-record.ts",
       "src/types/mcp-invocation-record.ts",
       "src/types/mcp-prompt-record.ts",
@@ -100,83 +99,26 @@
   },
   "impact": {
     "schemaVersion": 1,
-    "areas": [
-      "api-surface",
-      "models"
-    ],
-    "details": [
-      {
-        "area": "api-surface",
-        "paths": [
-          "src/api/mcp.ts"
-        ]
-      },
-      {
-        "area": "models",
-        "paths": [
-          "src/types/mcp-admin-delete-connector-response.ts",
-          "src/types/mcp-admin-upsert-connector-response.ts",
-          "src/types/mcp-admin-upsert-prompt-response.ts",
-          "src/types/mcp-admin-upsert-resource-response.ts",
-          "src/types/mcp-admin-upsert-tool-response.ts"
-        ]
-      }
-    ],
-    "requiresVerification": true,
-    "summary": "Detected impact areas: api-surface, models. Verification is required."
+    "areas": [],
+    "details": [],
+    "requiresVerification": false,
+    "summary": "No generated, scaffold, or backup changes detected. Verification can be skipped."
   },
   "verificationPlan": {
-    "shouldRun": true,
-    "runPhase": "now",
-    "summary": "Detected impact areas: api-surface, models. Verification is required. Run the required verification commands now against the generated SDK output.",
-    "steps": [
-      {
-        "id": "check",
-        "title": "Unified package check",
-        "required": true,
-        "rationale": "Validate the generated package with the unified publish helper. Triggered by: api-surface, models.",
-        "workingDirectory": "D:\\sdkwork-space\\sdkwork-mcp\\sdks\\sdkwork-mcp-backend-sdk\\sdkwork-mcp-backend-sdk-typescript\\generated\\server-openapi",
-        "command": "node",
-        "args": [
-          "./bin/publish-core.mjs",
-          "--language",
-          "typescript",
-          "--project-dir",
-          ".",
-          "--action",
-          "check"
-        ],
-        "displayCommand": "node ./bin/publish-core.mjs --language typescript --project-dir . --action check"
-      },
-      {
-        "id": "build",
-        "title": "Unified package build",
-        "required": true,
-        "rationale": "Run the full package build because this language uses a lighter check path than the final build. Triggered by: api-surface, models.",
-        "workingDirectory": "D:\\sdkwork-space\\sdkwork-mcp\\sdks\\sdkwork-mcp-backend-sdk\\sdkwork-mcp-backend-sdk-typescript\\generated\\server-openapi",
-        "command": "node",
-        "args": [
-          "./bin/publish-core.mjs",
-          "--language",
-          "typescript",
-          "--project-dir",
-          ".",
-          "--action",
-          "build"
-        ],
-        "displayCommand": "node ./bin/publish-core.mjs --language typescript --project-dir . --action build"
-      }
-    ]
+    "shouldRun": false,
+    "runPhase": "skip",
+    "summary": "No generated, scaffold, or backup changes detected. Verification can be skipped.",
+    "steps": []
   },
   "executionDecision": {
     "schemaVersion": 1,
-    "riskLevel": "medium",
-    "nextAction": "verify",
+    "riskLevel": "low",
+    "nextAction": "skip",
     "requiresManualReview": false,
     "applyRequiresExpectedFingerprint": false,
-    "summary": "Changes have been applied. Run the required verification plan now.",
+    "summary": "No actionable changes were detected. No apply or verification step is required.",
     "reasons": [
-      "verification-required"
+      "no-actionable-changes"
     ]
   },
   "preservedLegacyFiles": false

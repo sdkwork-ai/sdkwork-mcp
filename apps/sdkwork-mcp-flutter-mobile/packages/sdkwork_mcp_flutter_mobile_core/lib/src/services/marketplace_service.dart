@@ -86,11 +86,11 @@ Future<ServerDetailBundle> fetchServerDetail(
   // capability-specific response wrappers, which cannot be unified through
   // `Future.wait` without erasing the `data` accessor.
   final toolsResponse =
-      await client.mcp.listTools(serverId, null, _catalogPageSize);
-  final resourcesResponse =
-      await client.mcp.listResources(serverId, null, _catalogPageSize);
+      await client.mcp.listTools(serverId.toString(), null, _catalogPageSize);
+  final resourcesResponse = await client.mcp
+      .listResources(serverId.toString(), null, _catalogPageSize);
   final promptsResponse =
-      await client.mcp.listPrompts(serverId, null, _catalogPageSize);
+      await client.mcp.listPrompts(serverId.toString(), null, _catalogPageSize);
   return ServerDetailBundle(
     server: server,
     tools: _readPageItems(toolsResponse?.data, McpToolRecord.fromJson),

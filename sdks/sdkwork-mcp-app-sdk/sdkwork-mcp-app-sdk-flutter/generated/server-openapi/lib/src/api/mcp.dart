@@ -95,7 +95,7 @@ class McpApi {
   }
 
   /// MCP mcp.listTools
-  Future<McpListToolsResponse?> listTools(int serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
+  Future<McpListToolsResponse?> listTools(String serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
     final query = buildQueryString([
       QueryParameterSpec('page', page, 'form', true, false, null),
       QueryParameterSpec('page_size', pageSize, 'form', true, false, null),
@@ -110,7 +110,7 @@ class McpApi {
   }
 
   /// MCP mcp.getTool
-  Future<McpGetToolResponse?> getTool(int serverId, String toolKey) async {
+  Future<McpGetToolResponse?> getTool(String serverId, String toolKey) async {
     final response = await _client.get(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/tools/${serializePathParameter(toolKey, const PathParameterSpec('toolKey', 'simple', false))}'));
     return (() {
       final map = sdkworkResponseAsMap(response);
@@ -119,7 +119,7 @@ class McpApi {
   }
 
   /// MCP mcp.listResources
-  Future<McpListResourcesResponse?> listResources(int serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
+  Future<McpListResourcesResponse?> listResources(String serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
     final query = buildQueryString([
       QueryParameterSpec('page', page, 'form', true, false, null),
       QueryParameterSpec('page_size', pageSize, 'form', true, false, null),
@@ -134,7 +134,7 @@ class McpApi {
   }
 
   /// MCP mcp.getResource
-  Future<McpGetResourceResponse?> getResource(int serverId, String resourceKey) async {
+  Future<McpGetResourceResponse?> getResource(String serverId, String resourceKey) async {
     final response = await _client.get(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/resources/${serializePathParameter(resourceKey, const PathParameterSpec('resourceKey', 'simple', false))}'));
     return (() {
       final map = sdkworkResponseAsMap(response);
@@ -143,7 +143,7 @@ class McpApi {
   }
 
   /// MCP mcp.listPrompts
-  Future<McpListPromptsResponse?> listPrompts(int serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
+  Future<McpListPromptsResponse?> listPrompts(String serverId, [int? page, int? pageSize, String? cursor, String? q]) async {
     final query = buildQueryString([
       QueryParameterSpec('page', page, 'form', true, false, null),
       QueryParameterSpec('page_size', pageSize, 'form', true, false, null),
@@ -158,7 +158,7 @@ class McpApi {
   }
 
   /// MCP mcp.getPrompt
-  Future<McpGetPromptResponse?> getPrompt(int serverId, String promptKey) async {
+  Future<McpGetPromptResponse?> getPrompt(String serverId, String promptKey) async {
     final response = await _client.get(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/prompts/${serializePathParameter(promptKey, const PathParameterSpec('promptKey', 'simple', false))}'));
     return (() {
       final map = sdkworkResponseAsMap(response);
@@ -167,7 +167,7 @@ class McpApi {
   }
 
   /// MCP mcp.upsertOwnConnector
-  Future<McpUpsertOwnConnectorResponse?> upsertOwnConnector(int serverId, UpsertOwnMcpConnectorCommand body) async {
+  Future<McpUpsertOwnConnectorResponse?> upsertOwnConnector(String serverId, UpsertOwnMcpConnectorCommand body) async {
     final payload = body.toJson();
     final response = await _client.post(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/connectors'), body: payload, contentType: 'application/json');
     return (() {
@@ -177,7 +177,7 @@ class McpApi {
   }
 
   /// MCP mcp.deleteOwnConnector
-  Future<McpDeleteOwnConnectorResponse?> deleteOwnConnector(int serverId, String connectorKey) async {
+  Future<McpDeleteOwnConnectorResponse?> deleteOwnConnector(String serverId, String connectorKey) async {
     final response = await _client.delete(ApiPaths.appPath('/mcp/servers/${serializePathParameter(serverId, const PathParameterSpec('serverId', 'simple', false))}/connectors/${serializePathParameter(connectorKey, const PathParameterSpec('connectorKey', 'simple', false))}'));
     return (() {
       final map = sdkworkResponseAsMap(response);
