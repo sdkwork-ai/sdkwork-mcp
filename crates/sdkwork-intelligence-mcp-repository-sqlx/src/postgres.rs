@@ -14,6 +14,11 @@ use crate::json_util::{
 
 const ACTIVE_ENTITY_FILTER: &str = "deleted_at IS NULL AND lifecycle_status <> 4";
 
+/// Catalog visibility for application users. Only published (`active`) rows
+/// that have not been soft-deleted are part of the catalog; drafts, disabled
+/// and archived rows stay admin-only through [`ACTIVE_ENTITY_FILTER`].
+const CATALOG_VISIBLE_FILTER: &str = "deleted_at IS NULL AND lifecycle_status = 1";
+
 const CATEGORY_SELECT: &str = r#"
     id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
     sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by,
@@ -556,6 +561,26 @@ pub async fn list_servers(pool: &PgPool, tenant_id: u64) -> McpResult<Vec<McpSer
         SELECT {SERVER_SELECT}
         FROM ai_mcp_server
         WHERE tenant_id = $1 AND {ACTIVE_ENTITY_FILTER}
+        ORDER BY updated_at DESC, server_key ASC
+        "#
+    );
+    let rows = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    rows.iter().map(row_to_server).collect()
+}
+
+pub async fn list_catalog_servers(
+    pool: &PgPool,
+    tenant_id: u64,
+) -> McpResult<Vec<McpServerRecord>> {
+    let query = format!(
+        r#"
+        SELECT {SERVER_SELECT}
+        FROM ai_mcp_server
+        WHERE tenant_id = $1 AND {CATALOG_VISIBLE_FILTER}
         ORDER BY updated_at DESC, server_key ASC
         "#
     );
@@ -1499,4 +1524,21 @@ pub async fn append_invocation(
         .await
         .map_err(map_sqlx)?;
     row_to_invocation(&row)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The catalog filter is a literal SQL clause, so it is pinned to the
+    /// contract's active lifecycle code to keep the two in step.
+    #[test]
+    fn catalog_visibility_selects_active_rows_only() {
+        let expected = format!(
+            "deleted_at IS NULL AND lifecycle_status = {}",
+            McpLifecycleStatus::Active.as_db_code()
+        );
+        assert_eq!(CATALOG_VISIBLE_FILTER, expected);
+        assert_ne!(ACTIVE_ENTITY_FILTER, CATALOG_VISIBLE_FILTER);
+    }
 }

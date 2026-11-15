@@ -60,7 +60,7 @@
     },
     {
       "path": "src/api/mcp.ts",
-      "sha256": "29374ab569660ea009145fd4733c445c9055b6168e69b4bc57bbee9e0163f774"
+      "sha256": "ac0430356081cab4f8cf4264c828d4c9b648f26f92ccae50007182abe5057e80"
     },
     {
       "path": "src/api/paths.ts",

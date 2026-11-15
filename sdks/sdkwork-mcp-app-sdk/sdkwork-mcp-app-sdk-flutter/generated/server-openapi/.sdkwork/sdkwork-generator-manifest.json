@@ -40,7 +40,7 @@
     },
     {
       "path": "lib/src/api/mcp.dart",
-      "sha256": "abb38b40c43738264433c225d4824d33e9439498b5077340d42bd13358026c17"
+      "sha256": "1bbc281f8f902e6595ffbc0a599f227c44c2a72d02b36953b476a51933e3e377"
     },
     {
       "path": "lib/src/api/paths.dart",

@@ -27,12 +27,14 @@ class McpApi {
   }
 
   /// MCP mcp.listServers
-  Future<McpListServersResponse?> listServers([int? page, int? pageSize, String? cursor, String? q]) async {
+  Future<McpListServersResponse?> listServers([int? page, int? pageSize, String? cursor, String? q, String? categoryCode, String? roleCodes]) async {
     final query = buildQueryString([
       QueryParameterSpec('page', page, 'form', true, false, null),
       QueryParameterSpec('page_size', pageSize, 'form', true, false, null),
       QueryParameterSpec('cursor', cursor, 'form', true, false, null),
-      QueryParameterSpec('q', q, 'form', true, false, null)
+      QueryParameterSpec('q', q, 'form', true, false, null),
+      QueryParameterSpec('category_code', categoryCode, 'form', true, false, null),
+      QueryParameterSpec('role_codes', roleCodes, 'form', true, false, null)
     ]);
     final response = await _client.get(ApiPaths.appendQueryString(ApiPaths.appPath('/mcp/servers'), query));
     return (() {

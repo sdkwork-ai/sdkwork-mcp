@@ -25,6 +25,11 @@ pub type McpResult<T> = Result<T, McpServiceError>;
 #[async_trait]
 pub trait McpRepository: Send + Sync {
     async fn list_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>>;
+    /// Catalog-visible servers only: `lifecycle_status = active` and not
+    /// soft-deleted. Draft and disabled rows stay visible to the admin surface
+    /// through [`McpRepository::list_servers`] but never reach application
+    /// users.
+    async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>>;
     async fn list_owned_servers(
         &self,
         tenant_id: u64,
@@ -151,6 +156,12 @@ impl<R: McpRepository> McpService<R> {
 
     pub async fn list_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
         self.repository.list_servers(tenant_id).await
+    }
+
+    /// Catalog listing for application users; drafts and disabled rows are
+    /// excluded by the repository query.
+    pub async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
+        self.repository.list_catalog_servers(tenant_id).await
     }
 
     pub async fn list_owned_servers(

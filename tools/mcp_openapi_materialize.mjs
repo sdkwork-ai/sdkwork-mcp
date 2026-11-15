@@ -446,6 +446,28 @@ function listQueryParameters() {
   ];
 }
 
+function catalogListParameters() {
+  return [
+    ...listQueryParameters(),
+    {
+      name: "category_code",
+      in: "query",
+      required: false,
+      description:
+        "One MCP server category code from the category registry. Omit it, or send `all`, to keep every category.",
+      schema: { type: "string", maxLength: 128 },
+    },
+    {
+      name: "role_codes",
+      in: "query",
+      required: false,
+      description:
+        "Comma-separated IAM role codes of the signed-in caller, used as the catalog's role scope. An empty value keeps the all-data view; a value keeps servers naming one of these roles plus the servers open to every role.",
+      schema: { type: "string", maxLength: 1024 },
+    },
+  ];
+}
+
 function invocationListParameters() {
   return [
     ...listQueryParameters(),
@@ -460,7 +482,7 @@ function invocationListParameters() {
 
 const appRoutes = [
   route("get", "/app/v3/api/mcp/categories", "mcp.listCategories", listResponse("#/components/schemas/McpServerCategoryRecord"), listQueryParameters(), null, "mcp.marketplace.read"),
-  route("get", "/app/v3/api/mcp/servers", "mcp.listServers", listResponse("#/components/schemas/McpServerRecord"), listQueryParameters(), null, "mcp.marketplace.read"),
+  route("get", "/app/v3/api/mcp/servers", "mcp.listServers", listResponse("#/components/schemas/McpServerRecord"), catalogListParameters(), null, "mcp.marketplace.read"),
   route("post", "/app/v3/api/mcp/servers", "mcp.createOwnServer", resourceResponse("#/components/schemas/McpServerRecord"), [], "CreateOwnMcpServerCommand", "mcp.servers.create"),
   route("get", "/app/v3/api/mcp/servers/owned", "mcp.listOwnedServers", listResponse("#/components/schemas/McpServerRecord"), listQueryParameters(), null, "mcp.marketplace.read"),
   route("get", "/app/v3/api/mcp/servers/{serverKey}", "mcp.getServer", resourceResponse("#/components/schemas/McpServerRecord"), [pathParam("serverKey")], null, "mcp.marketplace.read"),
@@ -482,7 +504,7 @@ const backendRoutes = [
   route("post", "/backend/v3/api/mcp/categories", "mcpAdmin.upsertCategory", resourceResponse("#/components/schemas/McpServerCategoryRecord"), [], "UpsertMcpServerCategoryCommand", "mcp.admin.category.manage"),
   route("get", "/backend/v3/api/mcp/categories/{categoryCode}", "mcpAdmin.getCategory", resourceResponse("#/components/schemas/McpServerCategoryRecord"), [pathParam("categoryCode")], null, "mcp.admin.marketplace.read"),
   route("delete", "/backend/v3/api/mcp/categories/{categoryCode}", "mcpAdmin.deleteCategory", resourceResponse("#/components/schemas/McpServerCategoryRecord"), [pathParam("categoryCode")], null, "mcp.admin.category.manage"),
-  route("get", "/backend/v3/api/mcp/servers", "mcpAdmin.listServers", listResponse("#/components/schemas/McpServerRecord"), listQueryParameters(), null, "mcp.admin.marketplace.read"),
+  route("get", "/backend/v3/api/mcp/servers", "mcpAdmin.listServers", listResponse("#/components/schemas/McpServerRecord"), catalogListParameters(), null, "mcp.admin.marketplace.read"),
   route("post", "/backend/v3/api/mcp/servers", "mcpAdmin.createServer", resourceResponse("#/components/schemas/McpServerRecord"), [], "CreateMcpServerCommand", "mcp.admin.server.manage"),
   route("put", "/backend/v3/api/mcp/servers/{serverKey}", "mcpAdmin.updateServer", resourceResponse("#/components/schemas/McpServerRecord"), [pathParam("serverKey")], "UpdateMcpServerCommand", "mcp.admin.server.manage"),
   route("delete", "/backend/v3/api/mcp/servers/{serverKey}", "mcpAdmin.deleteServer", resourceResponse("#/components/schemas/McpServerRecord"), [pathParam("serverKey")], null, "mcp.admin.server.manage"),

@@ -31,8 +31,8 @@ use serde::Deserialize;
 use sqlx::PgPool;
 
 pub use handlers::{
-    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_categories,
-    list_invocations, list_prompts, list_resources, list_servers, list_tools, ok_json,
+    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_catalog_servers,
+    list_categories, list_invocations, list_prompts, list_resources, list_tools, ok_json,
     resolve_tenant_id, McpInvocationListQuery, SdkWorkListQuery, SharedMcpService,
 };
 pub use health::DbReadinessCheck;
@@ -211,7 +211,7 @@ where
         async {
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_servers(state.service.as_ref(), tenant_id, &query).await?)
+            ok_json(list_catalog_servers(state.service.as_ref(), tenant_id, &query).await?)
         }
         .await,
     )

@@ -16,6 +16,8 @@ export interface McpMcpAdminListServersParams {
   pageSize?: number;
   cursor?: string;
   q?: string;
+  categoryCode?: string;
+  roleCodes?: string;
 }
 
 export interface McpMcpAdminListConnectorsParams {
@@ -74,6 +76,8 @@ export class McpMcpAdminApi {
       { name: 'page_size', value: params?.pageSize, style: 'form', explode: true, allowReserved: false },
       { name: 'cursor', value: params?.cursor, style: 'form', explode: true, allowReserved: false },
       { name: 'q', value: params?.q, style: 'form', explode: true, allowReserved: false },
+      { name: 'category_code', value: params?.categoryCode, style: 'form', explode: true, allowReserved: false },
+      { name: 'role_codes', value: params?.roleCodes, style: 'form', explode: true, allowReserved: false },
     ]);
     return this.client.request<{ items: McpServerRecord[]; pageInfo: PageInfo; }>(appendQueryString(backendApiPath(`/mcp/servers`), query), { ...(requestOptions?.signal !== undefined ? { signal: requestOptions.signal } : {}), ...(requestOptions?.timeout !== undefined ? { timeout: requestOptions.timeout } : {}), method: 'GET' as any, sdkworkUnwrapKind: 'page' });
   }

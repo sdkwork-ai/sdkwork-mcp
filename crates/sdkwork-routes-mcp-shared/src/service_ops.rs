@@ -1,7 +1,7 @@
 use sdkwork_intelligence_mcp_service::{McpRepository, McpService, McpServiceError};
 use sdkwork_mcp_contract::{
-    McpConnectorRecord, McpInvocationRecord, McpPromptRecord, McpResourceRecord,
-    McpServerCategoryRecord, McpServerRecord, McpToolRecord,
+    category_matches, role_scope_allows, McpConnectorRecord, McpInvocationRecord, McpPromptRecord,
+    McpResourceRecord, McpServerCategoryRecord, McpServerRecord, McpToolRecord,
 };
 use sdkwork_utils_rust::{SdkWorkPageData, SdkWorkResourceData};
 
@@ -65,6 +65,28 @@ fn filter_servers(items: Vec<McpServerRecord>, query: &SdkWorkListQuery) -> Vec<
     })
 }
 
+/// Applies the two catalog view filters (`category_code`, `role_codes`) and
+/// then the free-text keyword to a server listing.
+///
+/// Both catalog filters only remove rows from the tenant-scoped set the
+/// repository already returned; they never widen visibility.
+fn filter_catalog_servers(
+    items: Vec<McpServerRecord>,
+    query: &SdkWorkListQuery,
+) -> Vec<McpServerRecord> {
+    let category = query.category_filter();
+    let role_scope = query.role_scope();
+    let items = items
+        .into_iter()
+        .filter(|item| match category.as_deref() {
+            Some(code) => category_matches(item.category_code.as_deref(), code),
+            None => true,
+        })
+        .filter(|item| role_scope_allows(&item.allowed_role_codes, &role_scope))
+        .collect();
+    filter_servers(items, query)
+}
+
 fn filter_connectors(
     items: Vec<McpConnectorRecord>,
     query: &SdkWorkListQuery,
@@ -107,6 +129,8 @@ pub async fn list_categories<R: McpRepository>(
     Ok(paginate_items(filter_categories(items, query), query))
 }
 
+/// Admin inventory listing: every non-deleted server, including drafts and
+/// disabled rows, narrowed by the catalog view filters and the keyword.
 pub async fn list_servers<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
@@ -114,7 +138,20 @@ pub async fn list_servers<R: McpRepository>(
 ) -> ApiResult<SdkWorkPageData<McpServerRecord>> {
     query.validate()?;
     let items = service.list_servers(tenant_id).await?;
-    Ok(paginate_items(filter_servers(items, query), query))
+    Ok(paginate_items(filter_catalog_servers(items, query), query))
+}
+
+/// Application catalog listing: only catalog-visible servers
+/// (`lifecycle_status = active`, not soft-deleted), narrowed by the catalog
+/// view filters and the keyword.
+pub async fn list_catalog_servers<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    query: &SdkWorkListQuery,
+) -> ApiResult<SdkWorkPageData<McpServerRecord>> {
+    query.validate()?;
+    let items = service.list_catalog_servers(tenant_id).await?;
+    Ok(paginate_items(filter_catalog_servers(items, query), query))
 }
 
 pub async fn list_owned_servers<R: McpRepository>(
@@ -208,9 +245,7 @@ pub async fn get_prompt<R: McpRepository>(
     server_id: u64,
     prompt_key: &str,
 ) -> ApiResult<SdkWorkResourceData<McpPromptRecord>> {
-    let record = service
-        .get_prompt(tenant_id, server_id, prompt_key)
-        .await?;
+    let record = service.get_prompt(tenant_id, server_id, prompt_key).await?;
     Ok(item_data(record))
 }
 
@@ -373,4 +408,92 @@ pub async fn upsert_prompt<R: McpRepository>(
 ) -> ApiResult<SdkWorkResourceData<McpPromptRecord>> {
     let saved = service.upsert_prompt(record).await?;
     Ok(item_data(saved))
+}
+
+#[cfg(test)]
+mod tests {
+    use sdkwork_mcp_contract::{McpTransportKind, McpVisibility};
+
+    use crate::record_builders::{server_record, EntityWriteContext};
+
+    use super::*;
+
+    fn server(key: &str, category: Option<&str>, roles: &[&str]) -> McpServerRecord {
+        let mut record = server_record(
+            EntityWriteContext {
+                tenant_id: 1,
+                operator_id: 7,
+            },
+            7,
+            key.to_string(),
+            key.to_string(),
+            McpTransportKind::Http,
+            McpVisibility::Tenant,
+        );
+        record.category_code = category.map(str::to_string);
+        record.allowed_role_codes = roles.iter().map(|role| role.to_string()).collect();
+        record
+    }
+
+    fn keys(items: &[McpServerRecord]) -> Vec<&str> {
+        items.iter().map(|item| item.server_key.as_str()).collect()
+    }
+
+    fn query(category_code: Option<&str>, role_codes: Option<&str>) -> SdkWorkListQuery {
+        SdkWorkListQuery {
+            category_code: category_code.map(str::to_string),
+            role_codes: role_codes.map(str::to_string),
+            ..Default::default()
+        }
+    }
+
+    fn catalog() -> Vec<McpServerRecord> {
+        vec![
+            server("search", Some("data-retrieval"), &[]),
+            server("ocr", Some("image-processing"), &[]),
+            server("audit", Some("document-processing"), &["org_auditor"]),
+        ]
+    }
+
+    #[test]
+    fn all_view_keeps_every_category_and_role() {
+        let filtered = filter_catalog_servers(catalog(), &query(None, None));
+        assert_eq!(keys(&filtered), vec!["search", "ocr", "audit"]);
+    }
+
+    #[test]
+    fn category_filter_keeps_only_the_selected_category() {
+        let filtered = filter_catalog_servers(catalog(), &query(Some("image-processing"), None));
+        assert_eq!(keys(&filtered), vec!["ocr"]);
+
+        let all_selector = filter_catalog_servers(catalog(), &query(Some("all"), None));
+        assert_eq!(keys(&all_selector), vec!["search", "ocr", "audit"]);
+    }
+
+    #[test]
+    fn role_scope_keeps_open_servers_and_the_named_role() {
+        let operator = filter_catalog_servers(catalog(), &query(None, Some("org_auditor")));
+        assert_eq!(keys(&operator), vec!["search", "ocr", "audit"]);
+
+        let other_role = filter_catalog_servers(catalog(), &query(None, Some("org_operations")));
+        assert_eq!(keys(&other_role), vec!["search", "ocr"]);
+    }
+
+    #[test]
+    fn category_and_role_filters_compose_with_the_keyword() {
+        let filtered = filter_catalog_servers(
+            catalog(),
+            &query(Some("document-processing"), Some("org_admin")),
+        );
+        assert!(filtered.is_empty());
+
+        let keyworded = SdkWorkListQuery {
+            q: Some(" ocr ".to_string()),
+            ..query(Some("image-processing"), None)
+        };
+        assert_eq!(
+            keys(&filter_catalog_servers(catalog(), &keyworded)),
+            vec!["ocr"]
+        );
+    }
 }

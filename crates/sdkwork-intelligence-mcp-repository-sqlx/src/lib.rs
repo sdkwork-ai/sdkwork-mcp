@@ -31,6 +31,10 @@ impl McpRepository for SqlxMcpRepository {
         postgres::list_servers(&self.pool, tenant_id).await
     }
 
+    async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
+        postgres::list_catalog_servers(&self.pool, tenant_id).await
+    }
+
     async fn list_owned_servers(
         &self,
         tenant_id: u64,
