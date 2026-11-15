@@ -1,4 +1,5 @@
 import { MCP_ASSIGNABLE_ROLES, type McpAssignableRole } from '../roleAssignment';
+import { useRoleMultiSelectCopy } from './roleMultiSelectCopy';
 
 /**
  * Multi-select for the IAM roles an MCP server is assigned to.
@@ -16,13 +17,14 @@ export function RoleMultiSelect({
   onChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
+  const copy = useRoleMultiSelectCopy();
   const selected = new Set(value);
   const allRoles = value.length === 0;
   const known = new Set(MCP_ASSIGNABLE_ROLES.map((role) => role.code));
   const extras: McpAssignableRole[] = [...selected]
     .filter((code) => !known.has(code))
     .sort()
-    .map((code) => ({ code, label: 'Custom role' }));
+    .map((code) => ({ code, label: copy.customRole }));
   const roles = [...MCP_ASSIGNABLE_ROLES, ...extras];
 
   return (
@@ -31,11 +33,11 @@ export function RoleMultiSelect({
       className="grid gap-2 rounded-lg border border-slate-200 p-3 text-sm dark:border-zinc-700"
     >
       <legend className="px-1 font-medium text-slate-900 dark:text-zinc-100">
-        Visible to roles
+        {copy.legend}
       </legend>
       <label className="flex items-center gap-2 font-medium">
         <input type="checkbox" checked={allRoles} onChange={() => onChange([])} />
-        <span>All roles (default)</span>
+        <span>{copy.allRoles}</span>
       </label>
       {roles.map((role) => (
         <label key={role.code} className="flex items-center gap-2">
@@ -53,7 +55,8 @@ export function RoleMultiSelect({
             }}
           />
           <span>
-            {role.label} (<code className="font-mono text-xs">{role.code}</code>)
+            {copy.roleLabels[role.code] ?? role.label} (
+            <code className="font-mono text-xs">{role.code}</code>)
           </span>
         </label>
       ))}

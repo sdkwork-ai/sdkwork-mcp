@@ -6,6 +6,8 @@ import {
 } from '@sdkwork/mcp-pc-commons';
 import { listAdminInvocations, useAsyncResource, useMCPClients } from '@sdkwork/mcp-pc-core';
 
+import { useMcpAdminCopy } from '../copy/mcpAdminCopy';
+
 // Table chrome paired light/dark (`THEME_DARKMODE_SPEC.md` §4 pairing rule / §8 F5).
 // The zinc ramp matches the host's `--sdk-color-surface-panel*` tokens
 // (#18181b / #27272a) so the table sits flush against host chrome, while still
@@ -13,13 +15,14 @@ import { listAdminInvocations, useAsyncResource, useMCPClients } from '@sdkwork/
 // no `--sdk-color-*` tokens).
 export function AdminInvocationsPage() {
   const clients = useMCPClients();
+  const copy = useMcpAdminCopy();
   const { data: invocations, error, loading } = useAsyncResource(
     () => listAdminInvocations(clients),
     [clients],
   );
 
   if (loading) {
-    return <LoadingState label="Loading invocation audit log…" />;
+    return <LoadingState label={copy.invocations.loading} />;
   }
 
   if (error) {
@@ -29,25 +32,25 @@ export function AdminInvocationsPage() {
   return (
     <div className="embedded-fill-page">
       <PageHeader
-        title="Invocation Audit"
-        description="Append-only audit trail with trace correlation and idempotency keys."
+        title={copy.invocations.title}
+        description={copy.invocations.description}
       />
       <div className="data-surface">
         <div className="table-frame">
           {!invocations || invocations.length === 0 ? (
             <div className="empty-state">
-              <h3>No invocations recorded</h3>
-              <p>Runtime workers append audit rows via admin API.</p>
+              <h3>{copy.invocations.empty.title}</h3>
+              <p>{copy.invocations.empty.description}</p>
             </div>
           ) : (
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-3">Target</th>
-                <th className="px-4 py-3">Kind</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Trace</th>
-                <th className="px-4 py-3">Invoked</th>
+                <th className="px-4 py-3">{copy.invocations.table.target}</th>
+                <th className="px-4 py-3">{copy.invocations.table.kind}</th>
+                <th className="px-4 py-3">{copy.invocations.table.status}</th>
+                <th className="px-4 py-3">{copy.invocations.table.trace}</th>
+                <th className="px-4 py-3">{copy.invocations.table.invoked}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -55,7 +58,9 @@ export function AdminInvocationsPage() {
                 <tr key={item.id}>
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-900 dark:text-zinc-100">{item.target_key}</p>
-                    <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">server {item.server_id}</p>
+                    <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">
+                      {copy.invocations.server(item.server_id)}
+                    </p>
                   </td>
                   <td className="px-4 py-3">
                     <Badge tone="brand">{item.invocation_kind}</Badge>
@@ -73,7 +78,7 @@ export function AdminInvocationsPage() {
         </div>
       </div>
       <p className="text-xs text-slate-500 dark:text-zinc-400">
-        Showing {invocations?.length ?? 0} recent rows. Sensitive payload fields remain governed by redaction policy.
+        {copy.invocations.footer(invocations?.length ?? 0)}
       </p>
     </div>
   );

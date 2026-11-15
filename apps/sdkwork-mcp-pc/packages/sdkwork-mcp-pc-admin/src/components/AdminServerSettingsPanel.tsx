@@ -24,12 +24,7 @@ import {
   type UpdateMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
 
-const ICON_COPY = {
-  pickImage: 'Upload icon',
-  removeImage: 'Remove icon',
-  uploading: 'Uploading…',
-  uploadFailed: 'Upload failed',
-} as const;
+import { mcpAdminLabel, useMcpAdminCopy } from '../copy/mcpAdminCopy';
 
 function toFormState(server: McpServerRecord): UpdateMcpServerCommand {
   return {
@@ -55,6 +50,7 @@ export function AdminServerSettingsPanel({
   onSaved: () => Promise<void>;
 }) {
   const clients = useMCPClients();
+  const copy = useMcpAdminCopy();
   const [form, setForm] = useState<UpdateMcpServerCommand>(() => toFormState(server));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -74,7 +70,7 @@ export function AdminServerSettingsPanel({
     setError(null);
     try {
       if (form.icon_ref && !isDrivePackageRef(form.icon_ref)) {
-        throw new Error('icon_ref must be a sdkwork-drive URI.');
+        throw new Error(copy.common.iconRefInvalid);
       }
       await updateAdminServer(clients, serverKey, {
         ...form,
@@ -92,64 +88,66 @@ export function AdminServerSettingsPanel({
   return (
     <DataPanel>
       <form onSubmit={onSubmit} className="grid max-w-2xl gap-4 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">Server settings</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+          {copy.settings.heading}
+        </h3>
         {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-        <Field label="Name">
+        <Field label={copy.settings.fields.name}>
           <TextInput
             value={form.name ?? ''}
             onChange={(event) => setForm({ ...form, name: event.target.value })}
             required
           />
         </Field>
-        <Field label="Description">
+        <Field label={copy.settings.fields.description}>
           <TextArea
             value={form.description ?? ''}
             onChange={(event) => setForm({ ...form, description: event.target.value })}
           />
         </Field>
-        <Field label="Transport">
+        <Field label={copy.settings.fields.transport}>
           <SelectInput
             value={form.transport ?? 'stdio'}
             onChange={(event) => setForm({ ...form, transport: event.target.value })}
           >
             {MCP_TRANSPORT_VALUES.map((value) => (
               <option key={value} value={value}>
-                {value}
+                {mcpAdminLabel(copy, 'transport', value)}
               </option>
             ))}
           </SelectInput>
         </Field>
-        <Field label="Visibility">
+        <Field label={copy.settings.fields.visibility}>
           <SelectInput
             value={form.visibility ?? 'tenant'}
             onChange={(event) => setForm({ ...form, visibility: event.target.value })}
           >
             {MCP_VISIBILITY_VALUES.map((value) => (
               <option key={value} value={value}>
-                {value}
+                {mcpAdminLabel(copy, 'visibility', value)}
               </option>
             ))}
           </SelectInput>
         </Field>
-        <Field label="Lifecycle status">
+        <Field label={copy.settings.fields.lifecycleStatus}>
           <SelectInput
             value={form.lifecycle_status ?? 'draft'}
             onChange={(event) => setForm({ ...form, lifecycle_status: event.target.value })}
           >
             {MCP_LIFECYCLE_VALUES.map((value) => (
               <option key={value} value={value}>
-                {value}
+                {mcpAdminLabel(copy, 'lifecycle', value)}
               </option>
             ))}
           </SelectInput>
         </Field>
-        <Field label="Category code">
+        <Field label={copy.settings.fields.categoryCode}>
           <TextInput
             value={form.category_code ?? ''}
             onChange={(event) => setForm({ ...form, category_code: event.target.value })}
           />
         </Field>
-        <Field label="Tags" hint="Comma-separated">
+        <Field label={copy.settings.fields.tags} hint={copy.settings.fields.tagsHint}>
           <TextInput
             value={(form.tags ?? []).join(', ')}
             onChange={(event) =>
@@ -164,7 +162,7 @@ export function AdminServerSettingsPanel({
           value={form.allowed_role_codes ?? []}
           onChange={(allowed_role_codes) => setForm({ ...form, allowed_role_codes })}
         />
-        <Field label="Icon">
+        <Field label={copy.settings.fields.icon}>
           <DriveUploadImage
             service={iconService}
             appResourceId={server.id}
@@ -175,7 +173,7 @@ export function AdminServerSettingsPanel({
             shape="circle"
             sizePx={64}
             accept={['image/*']}
-            copy={ICON_COPY}
+            copy={copy.icon}
           />
           {form.icon_ref ? (
             <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
@@ -184,7 +182,7 @@ export function AdminServerSettingsPanel({
           ) : null}
         </Field>
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save settings'}
+          {submitting ? copy.settings.saving : copy.settings.save}
         </Button>
       </form>
     </DataPanel>

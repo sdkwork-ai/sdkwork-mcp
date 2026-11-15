@@ -18,20 +18,25 @@ import {
 } from '@sdkwork/mcp-pc-core';
 
 import { SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
+import { mcpAdminLabel, useMcpAdminCopy, type McpAdminCopy } from '../copy/mcpAdminCopy';
 
 /**
  * Suggested seed for a new category. `integrations` is the taxonomy's
  * conventional first bucket (third-party servers that are not first-party
- * tooling), and the code doubles as the identity the upsert keys on.
+ * tooling), and the code doubles as the identity the upsert keys on. Only the
+ * code is identity; the name and description are copy so a Chinese console does
+ * not prefill English.
  */
-const defaultForm: UpsertMcpServerCategoryCommand = {
-  category_code: 'integrations',
-  name: 'Integrations',
-  description: 'Third-party and integration MCP servers.',
-  sort_order: 10,
-  parent_id: '',
-  icon_ref: '',
-};
+function createCategoryForm(copy: McpAdminCopy): UpsertMcpServerCategoryCommand {
+  return {
+    category_code: 'integrations',
+    name: copy.categories.seed.name,
+    description: copy.categories.seed.description,
+    sort_order: 10,
+    parent_id: '',
+    icon_ref: '',
+  };
+}
 
 /**
  * Admin curation surface for the MCP server category taxonomy.
@@ -62,7 +67,8 @@ const defaultForm: UpsertMcpServerCategoryCommand = {
  */
 export function AdminCategoriesPage() {
   const clients = useMCPClients();
-  const [form, setForm] = useState<UpsertMcpServerCategoryCommand>(defaultForm);
+  const copy = useMcpAdminCopy();
+  const [form, setForm] = useState<UpsertMcpServerCategoryCommand>(() => createCategoryForm(copy));
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: categories, error: loadError, loading, reload } = useAsyncResource(
@@ -100,7 +106,7 @@ export function AdminCategoriesPage() {
   );
 
   function openCreate() {
-    setForm(defaultForm);
+    setForm(createCategoryForm(copy));
     setDrawerOpen(true);
   }
 
@@ -140,11 +146,11 @@ export function AdminCategoriesPage() {
   return (
     <div className="embedded-fill-page">
       <PageHeader
-        title="Categories"
-        description="Curate marketplace navigation groups. A category is identified by its code; saving an existing code updates it, and the backend exposes no delete."
+        title={copy.categories.title}
+        description={copy.categories.description}
         actions={(
           <Button type="button" onClick={openCreate}>
-            Create category
+            {copy.categories.create}
           </Button>
         )}
       />
@@ -156,28 +162,25 @@ export function AdminCategoriesPage() {
       <div className="data-surface">
         <div className="table-frame">
           {loading ? (
-            <LoadingState label="Loading categories…" />
+            <LoadingState label={copy.categories.loading} />
           ) : sorted.length === 0 ? (
             <div className="empty-state">
-              <h3>No categories</h3>
-              <p>
-                Create one from the header action. MCP servers cannot be registered without a
-                category.
-              </p>
+              <h3>{copy.categories.empty.title}</h3>
+              <p>{copy.categories.empty.description}</p>
               <button type="button" className="skills-console-primary" onClick={openCreate}>
-                Create category
+                {copy.categories.empty.action}
               </button>
             </div>
           ) : (
             <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
                 <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Code</th>
-                  <th className="px-4 py-3">Parent</th>
-                  <th className="px-4 py-3">Sort</th>
-                  <th className="px-4 py-3">Lifecycle</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th className="px-4 py-3">{copy.categories.table.name}</th>
+                  <th className="px-4 py-3">{copy.categories.table.code}</th>
+                  <th className="px-4 py-3">{copy.categories.table.parent}</th>
+                  <th className="px-4 py-3">{copy.categories.table.sort}</th>
+                  <th className="px-4 py-3">{copy.categories.table.lifecycle}</th>
+                  <th className="px-4 py-3">{copy.categories.table.actions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -194,11 +197,11 @@ export function AdminCategoriesPage() {
                     </td>
                     <td className="px-4 py-3">{category.sort_order}</td>
                     <td className="px-4 py-3">
-                      <Badge>{category.lifecycle_status}</Badge>
+                      <Badge>{mcpAdminLabel(copy, 'lifecycle', category.lifecycle_status)}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       <Button type="button" variant="secondary" onClick={() => openEdit(category)}>
-                        Edit
+                        {copy.categories.table.edit}
                       </Button>
                     </td>
                   </tr>
@@ -211,13 +214,17 @@ export function AdminCategoriesPage() {
 
       <SurfaceDrawer
         open={drawerOpen}
-        title={isOverwrite ? `Save ${form.category_code}` : 'Create category'}
+        title={
+          isOverwrite
+            ? copy.categories.drawer.saveTitle(form.category_code)
+            : copy.categories.drawer.createTitle
+        }
         onClose={() => setDrawerOpen(false)}
       >
         {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
             standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
         <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
-          <Field label="Category code">
+          <Field label={copy.categories.fields.categoryCode}>
             <TextInput
               value={form.category_code}
               onChange={(event) => setForm({ ...form, category_code: event.target.value })}
@@ -226,28 +233,28 @@ export function AdminCategoriesPage() {
           </Field>
           <p className="skills-console-field-hint">
             {isOverwrite
-              ? 'This code already exists — saving overwrites that category.'
-              : 'New code — saving creates a category.'}
+              ? copy.categories.drawer.codeExists
+              : copy.categories.drawer.codeNew}
           </p>
-          <Field label="Name">
+          <Field label={copy.categories.fields.name}>
             <TextInput
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
               required
             />
           </Field>
-          <Field label="Description">
+          <Field label={copy.categories.fields.description}>
             <TextInput
               value={form.description ?? ''}
               onChange={(event) => setForm({ ...form, description: event.target.value })}
             />
           </Field>
-          <Field label="Parent category">
+          <Field label={copy.categories.fields.parent}>
             <SelectInput
               value={form.parent_id ?? ''}
               onChange={(event) => setForm({ ...form, parent_id: event.target.value })}
             >
-              <option value="">None (top level)</option>
+              <option value="">{copy.categories.fields.noneTopLevel}</option>
               {parentOptions.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
@@ -255,7 +262,7 @@ export function AdminCategoriesPage() {
               ))}
             </SelectInput>
           </Field>
-          <Field label="Sort order">
+          <Field label={copy.categories.fields.sortOrder}>
             <TextInput
               type="number"
               value={String(form.sort_order ?? 0)}
@@ -264,7 +271,7 @@ export function AdminCategoriesPage() {
               }
             />
           </Field>
-          <Field label="Icon reference">
+          <Field label={copy.categories.fields.iconRef}>
             <TextInput
               value={form.icon_ref ?? ''}
               onChange={(event) => setForm({ ...form, icon_ref: event.target.value })}
@@ -272,9 +279,11 @@ export function AdminCategoriesPage() {
           </Field>
           <div className="sdkwork-surface-drawer-form-actions">
             <Button type="button" variant="secondary" onClick={() => setDrawerOpen(false)}>
-              Cancel
+              {copy.common.cancel}
             </Button>
-            <Button type="submit">{isOverwrite ? 'Save category' : 'Create category'}</Button>
+            <Button type="submit">
+              {isOverwrite ? copy.categories.drawer.save : copy.categories.drawer.create}
+            </Button>
           </div>
         </form>
       </SurfaceDrawer>

@@ -23,14 +23,20 @@ import {
 } from '@sdkwork/mcp-pc-core';
 
 import { SurfaceDrawer } from './SurfaceOverlay.tsx';
+import { mcpAdminLabel, useMcpAdminCopy, type McpAdminCopy } from '../copy/mcpAdminCopy';
 
 type CapabilityKind = 'tool' | 'resource' | 'prompt';
 
-const defaultTool = (connectorId: string): UpsertMcpToolCommand => ({
+/**
+ * Seeds for a new capability. Keys, the sample URI and the JSON payloads are
+ * identifiers; the display name and description are copy so a Chinese console
+ * does not create English sample rows.
+ */
+const defaultTool = (connectorId: string, copy: McpAdminCopy): UpsertMcpToolCommand => ({
   connector_id: connectorId,
   tool_key: 'sample_tool',
-  name: 'Sample Tool',
-  description: 'Example MCP tool capability',
+  name: copy.capabilities.seed.toolName,
+  description: copy.capabilities.seed.toolDescription,
   input_schema_json: '{}',
   output_schema_json: '{}',
   risk_level: 'low',
@@ -39,20 +45,26 @@ const defaultTool = (connectorId: string): UpsertMcpToolCommand => ({
   sort_weight: 0,
 });
 
-const defaultResource = (connectorId: string): UpsertMcpResourceCommand => ({
+const defaultResource = (
+  connectorId: string,
+  copy: McpAdminCopy,
+): UpsertMcpResourceCommand => ({
   connector_id: connectorId,
   resource_key: 'sample_resource',
   uri: 'file:///workspace/sample',
-  name: 'Sample Resource',
-  description: 'Example MCP resource capability',
+  name: copy.capabilities.seed.resourceName,
+  description: copy.capabilities.seed.resourceDescription,
   enabled: true,
 });
 
-const defaultPrompt = (connectorId: string): UpsertMcpPromptCommand => ({
+const defaultPrompt = (
+  connectorId: string,
+  copy: McpAdminCopy,
+): UpsertMcpPromptCommand => ({
   connector_id: connectorId,
   prompt_key: 'sample_prompt',
-  name: 'Sample Prompt',
-  description: 'Example MCP prompt capability',
+  name: copy.capabilities.seed.promptName,
+  description: copy.capabilities.seed.promptDescription,
   arguments_schema_json: '[]',
   enabled: true,
 });
@@ -73,15 +85,18 @@ export function AdminCapabilityPanel({
   onSaved: () => Promise<void>;
 }) {
   const clients = useMCPClients();
+  const copy = useMcpAdminCopy();
   const [kind, setKind] = useState<CapabilityKind>('tool');
   const [error, setError] = useState<string | null>(null);
   const defaultConnectorId = connectors[0]?.id ?? '';
-  const [toolForm, setToolForm] = useState<UpsertMcpToolCommand>(() => defaultTool(defaultConnectorId));
+  const [toolForm, setToolForm] = useState<UpsertMcpToolCommand>(() =>
+    defaultTool(defaultConnectorId, copy),
+  );
   const [resourceForm, setResourceForm] = useState<UpsertMcpResourceCommand>(() =>
-    defaultResource(defaultConnectorId),
+    defaultResource(defaultConnectorId, copy),
   );
   const [promptForm, setPromptForm] = useState<UpsertMcpPromptCommand>(() =>
-    defaultPrompt(defaultConnectorId),
+    defaultPrompt(defaultConnectorId, copy),
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -95,11 +110,14 @@ export function AdminCapabilityPanel({
     return prompts;
   }, [kind, tools, resources, prompts]);
 
+  /** Localized label of the active capability kind, used by actions and headings. */
+  const kindLabel = mcpAdminLabel(copy, 'capabilityKind', kind);
+
   if (connectors.length === 0) {
     return (
       <div className="empty-state">
-        <h3>Add a connector first</h3>
-        <p>Tools, resources, and prompts are scoped to a connector.</p>
+        <h3>{copy.capabilities.requiresConnector.title}</h3>
+        <p>{copy.capabilities.requiresConnector.description}</p>
       </div>
     );
   }
@@ -133,21 +151,21 @@ export function AdminCapabilityPanel({
               className={`rounded-full px-3 py-1 text-xs font-medium ${kind === value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'}`}
               onClick={() => setKind(value)}
             >
-              {value}
+              {mcpAdminLabel(copy, 'capabilityKind', value)}
             </button>
           ))}
         </div>
         <Button type="button" onClick={() => setDrawerOpen(true)}>
-          Add {kind}
+          {copy.capabilities.add(kindLabel)}
         </Button>
       </div>
       {error ? <p className="mb-4 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
       {catalog.length === 0 ? (
         <div className="empty-state">
-          <h3>{`No ${kind}s yet`}</h3>
-          <p>Add a capability from the header action.</p>
+          <h3>{copy.capabilities.empty(kindLabel)}</h3>
+          <p>{copy.capabilities.emptyHint}</p>
           <button type="button" className="skills-console-primary" onClick={() => setDrawerOpen(true)}>
-            Add {kind}
+            {copy.capabilities.add(kindLabel)}
           </button>
         </div>
       ) : (
@@ -159,7 +177,7 @@ export function AdminCapabilityPanel({
                   <h4 className="font-medium text-slate-900 dark:text-zinc-100">{item.name}</h4>
                   {'enabled' in item ? (
                     <Badge tone={item.enabled ? 'success' : 'neutral'}>
-                      {item.enabled ? 'Enabled' : 'Disabled'}
+                      {item.enabled ? copy.capabilities.enabled : copy.capabilities.disabled}
                     </Badge>
                   ) : null}
                 </div>
@@ -179,13 +197,13 @@ export function AdminCapabilityPanel({
       )}
       <SurfaceDrawer
         open={drawerOpen}
-        title={`Save ${kind}`}
+        title={copy.capabilities.save(kindLabel)}
         onClose={() => setDrawerOpen(false)}
       >
         {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
             standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
         <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
-          <Field label="Connector">
+          <Field label={copy.capabilities.fields.connector}>
             <SelectInput
               value={
                 kind === 'tool'
@@ -215,31 +233,31 @@ export function AdminCapabilityPanel({
           </Field>
           {kind === 'tool' ? (
             <>
-              <Field label="Tool key">
+              <Field label={copy.capabilities.fields.toolKey}>
                 <TextInput
                   value={toolForm.tool_key}
                   onChange={(event) => setToolForm({ ...toolForm, tool_key: event.target.value })}
                   required
                 />
               </Field>
-              <Field label="Name">
+              <Field label={copy.capabilities.fields.name}>
                 <TextInput
                   value={toolForm.name}
                   onChange={(event) => setToolForm({ ...toolForm, name: event.target.value })}
                   required
                 />
               </Field>
-              <Field label="Risk level">
+              <Field label={copy.capabilities.fields.riskLevel}>
                 <SelectInput
                   value={toolForm.risk_level ?? 'low'}
                   onChange={(event) => setToolForm({ ...toolForm, risk_level: event.target.value })}
                 >
-                  <option value="low">low</option>
-                  <option value="medium">medium</option>
-                  <option value="high">high</option>
+                  <option value="low">{mcpAdminLabel(copy, 'riskLevel', 'low')}</option>
+                  <option value="medium">{mcpAdminLabel(copy, 'riskLevel', 'medium')}</option>
+                  <option value="high">{mcpAdminLabel(copy, 'riskLevel', 'high')}</option>
                 </SelectInput>
               </Field>
-              <Field label="Input schema JSON">
+              <Field label={copy.capabilities.fields.inputSchema}>
                 <TextArea
                   value={toolForm.input_schema_json ?? '{}'}
                   onChange={(event) =>
@@ -251,7 +269,7 @@ export function AdminCapabilityPanel({
           ) : null}
           {kind === 'resource' ? (
             <>
-              <Field label="Resource key">
+              <Field label={copy.capabilities.fields.resourceKey}>
                 <TextInput
                   value={resourceForm.resource_key}
                   onChange={(event) =>
@@ -260,14 +278,14 @@ export function AdminCapabilityPanel({
                   required
                 />
               </Field>
-              <Field label="URI">
+              <Field label={copy.capabilities.fields.uri}>
                 <TextInput
                   value={resourceForm.uri}
                   onChange={(event) => setResourceForm({ ...resourceForm, uri: event.target.value })}
                   required
                 />
               </Field>
-              <Field label="Name">
+              <Field label={copy.capabilities.fields.name}>
                 <TextInput
                   value={resourceForm.name}
                   onChange={(event) => setResourceForm({ ...resourceForm, name: event.target.value })}
@@ -278,7 +296,7 @@ export function AdminCapabilityPanel({
           ) : null}
           {kind === 'prompt' ? (
             <>
-              <Field label="Prompt key">
+              <Field label={copy.capabilities.fields.promptKey}>
                 <TextInput
                   value={promptForm.prompt_key}
                   onChange={(event) =>
@@ -287,14 +305,14 @@ export function AdminCapabilityPanel({
                   required
                 />
               </Field>
-              <Field label="Name">
+              <Field label={copy.capabilities.fields.name}>
                 <TextInput
                   value={promptForm.name}
                   onChange={(event) => setPromptForm({ ...promptForm, name: event.target.value })}
                   required
                 />
               </Field>
-              <Field label="Arguments schema JSON">
+              <Field label={copy.capabilities.fields.argumentsSchema}>
                 <TextArea
                   value={promptForm.arguments_schema_json ?? '[]'}
                   onChange={(event) =>
@@ -306,9 +324,9 @@ export function AdminCapabilityPanel({
           ) : null}
           <div className="sdkwork-surface-drawer-form-actions">
             <Button type="button" variant="secondary" onClick={() => setDrawerOpen(false)}>
-              Cancel
+              {copy.common.cancel}
             </Button>
-            <Button type="submit">Save {kind}</Button>
+            <Button type="submit">{copy.capabilities.save(kindLabel)}</Button>
           </div>
         </form>
       </SurfaceDrawer>

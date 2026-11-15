@@ -6,14 +6,11 @@ import {
   Button,
   ErrorAlert,
   Field,
-  formatMcpHealth,
-  formatMcpLifecycle,
-  formatMcpTransport,
   healthTone,
+  normalizeAllowedRoleCodes,
   PageHeader,
   RoleMultiSelect,
   TextInput,
-  describeAllowedRoleCodes,
 } from '@sdkwork/mcp-pc-commons';
 import { isDrivePackageRef } from '@sdkwork/mcp-pc-commons/driveUri';
 import {
@@ -33,33 +30,41 @@ import {
 } from 'sdkwork-drive-pc-upload-image';
 
 import { ConfirmModal, SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
+import { mcpAdminLabel, useMcpAdminCopy, type McpAdminCopy } from '../copy/mcpAdminCopy';
 import { useMcpAdminServersBasePath } from '../routeContext';
 
-const ICON_COPY = {
-  pickImage: 'Upload icon',
-  removeImage: 'Remove icon',
-  uploading: 'Uploading…',
-  uploadFailed: 'Upload failed',
-} as const;
+/**
+ * Seed for a new server. Display name and description are copy so a Chinese
+ * console does not prefill English; the key, category code, tag and transport
+ * are identifiers and stay untranslated.
+ */
+function createServerForm(copy: McpAdminCopy): CreateMcpServerCommand {
+  return {
+    server_key: 'mcp.demo.sample',
+    name: copy.servers.seed.name,
+    description: copy.servers.seed.description,
+    transport: 'stdio',
+    visibility: 'tenant',
+    category_code: 'general',
+    tags: ['demo'],
+    allowed_role_codes: [],
+    icon_ref: '',
+  };
+}
 
-const defaultForm: CreateMcpServerCommand = {
-  server_key: 'mcp.demo.sample',
-  name: 'Demo MCP Server',
-  description: 'Sample MCP server registered through admin console.',
-  transport: 'stdio',
-  visibility: 'tenant',
-  category_code: 'general',
-  tags: ['demo'],
-  allowed_role_codes: [],
-  icon_ref: '',
-};
+/** Role column summary: an empty assignment means every role. */
+function roleSummary(copy: McpAdminCopy, codes: readonly string[] | null | undefined): string {
+  const allowed = normalizeAllowedRoleCodes(codes ?? []);
+  return allowed.length === 0 ? copy.servers.table.allRoles : allowed.join(', ');
+}
 
 type OwnedServer = Awaited<ReturnType<typeof listAdminServers>>[number];
 
 export function AdminServersPage() {
   const clients = useMCPClients();
+  const copy = useMcpAdminCopy();
   const serversBasePath = useMcpAdminServersBasePath();
-  const [form, setForm] = useState<CreateMcpServerCommand>(defaultForm);
+  const [form, setForm] = useState<CreateMcpServerCommand>(() => createServerForm(copy));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -96,12 +101,12 @@ export function AdminServersPage() {
       const uploaded = await iconController.uploadPending({ appResourceId: record.id });
       const iconRef = uploaded[uploaded.length - 1]?.uri;
       if (iconRef !== undefined && !isDrivePackageRef(iconRef)) {
-        throw new Error('icon_ref must be a sdkwork-drive URI.');
+        throw new Error(copy.common.iconRefInvalid);
       }
       if (iconRef !== undefined) {
         await updateAdminServer(clients, record.server_key, { icon_ref: iconRef });
       }
-      setForm(defaultForm);
+      setForm(createServerForm(copy));
       iconController.clear();
       setCreateOpen(false);
       await reload();
@@ -130,17 +135,17 @@ export function AdminServersPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500 dark:text-zinc-400">Loading servers…</p>;
+    return <p className="text-sm text-slate-500 dark:text-zinc-400">{copy.servers.loading}</p>;
   }
 
   return (
     <div className="embedded-fill-page">
       <PageHeader
-        title="MCP Servers"
-        description="Register MCP servers, transport metadata, visibility, and drive-backed icons."
+        title={copy.servers.title}
+        description={copy.servers.description}
         actions={(
           <Button type="button" onClick={() => setCreateOpen(true)}>
-            Create server
+            {copy.servers.create}
           </Button>
         )}
       />
@@ -149,22 +154,22 @@ export function AdminServersPage() {
         <div className="table-frame">
           {!servers || servers.length === 0 ? (
             <div className="empty-state">
-              <h3>No MCP servers yet</h3>
-              <p>Create the first server from the header action.</p>
+              <h3>{copy.servers.empty.title}</h3>
+              <p>{copy.servers.empty.description}</p>
               <button type="button" className="skills-console-primary" onClick={() => setCreateOpen(true)}>
-                Create server
+                {copy.servers.empty.action}
               </button>
             </div>
           ) : (
         <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-3">Server</th>
-                <th className="px-4 py-3">Transport</th>
-                <th className="px-4 py-3">Health</th>
-                <th className="px-4 py-3">Lifecycle</th>
-                <th className="px-4 py-3">Roles</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3">{copy.servers.table.server}</th>
+                <th className="px-4 py-3">{copy.servers.table.transport}</th>
+                <th className="px-4 py-3">{copy.servers.table.health}</th>
+                <th className="px-4 py-3">{copy.servers.table.lifecycle}</th>
+                <th className="px-4 py-3">{copy.servers.table.roles}</th>
+                <th className="px-4 py-3">{copy.servers.table.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -179,17 +184,17 @@ export function AdminServersPage() {
                     </Link>
                     <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">{server.server_key}</p>
                   </td>
-                  <td className="px-4 py-3">{formatMcpTransport(server.transport)}</td>
+                  <td className="px-4 py-3">{mcpAdminLabel(copy, 'transport', server.transport)}</td>
                   <td className="px-4 py-3">
                     <Badge tone={healthTone(server.health_status)}>
-                      {formatMcpHealth(server.health_status)}
+                      {mcpAdminLabel(copy, 'health', server.health_status)}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">{formatMcpLifecycle(server.lifecycle_status)}</td>
-                  <td className="px-4 py-3">{describeAllowedRoleCodes(server.allowed_role_codes)}</td>
+                  <td className="px-4 py-3">{mcpAdminLabel(copy, 'lifecycle', server.lifecycle_status)}</td>
+                  <td className="px-4 py-3">{roleSummary(copy, server.allowed_role_codes)}</td>
                   <td className="px-4 py-3">
                     <Button variant="danger" onClick={() => setDeleteTarget(server)}>
-                      Delete
+                      {copy.common.delete}
                     </Button>
                   </td>
                 </tr>
@@ -202,42 +207,42 @@ export function AdminServersPage() {
 
       <SurfaceDrawer
         open={createOpen}
-        title="Create server"
-        description="Register transport metadata, visibility, and a drive-backed icon."
+        title={copy.servers.drawer.title}
+        description={copy.servers.drawer.description}
         onClose={closeCreateDrawer}
       >
         {/* `skills-console-form` is the host console contract (`display:grid; gap:14px;
             max-width:40rem`); `grid gap-4` covers the standalone `sdkwork-mcp-pc` app,
             whose Tailwind entry defines no console contract at all. */}
         <form onSubmit={onSubmit} className="skills-console-form grid gap-4">
-          <Field label="Server key">
+          <Field label={copy.servers.fields.serverKey}>
             <TextInput
               value={form.server_key}
               onChange={(event) => setForm({ ...form, server_key: event.target.value })}
               required
             />
           </Field>
-          <Field label="Name">
+          <Field label={copy.servers.fields.name}>
             <TextInput
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
               required
             />
           </Field>
-          <Field label="Transport">
+          <Field label={copy.servers.fields.transport}>
             <TextInput
               value={form.transport}
               onChange={(event) => setForm({ ...form, transport: event.target.value })}
               required
             />
           </Field>
-          <Field label="Category code">
+          <Field label={copy.servers.fields.categoryCode}>
             <TextInput
               value={form.category_code ?? ''}
               onChange={(event) => setForm({ ...form, category_code: event.target.value })}
             />
           </Field>
-          <Field label="Tags" hint="Comma-separated">
+          <Field label={copy.servers.fields.tags} hint={copy.servers.fields.tagsHint}>
             <TextInput
               value={(form.tags ?? []).join(', ')}
               onChange={(event) =>
@@ -252,14 +257,14 @@ export function AdminServersPage() {
             value={form.allowed_role_codes ?? []}
             onChange={(allowed_role_codes) => setForm({ ...form, allowed_role_codes })}
           />
-          <Field label="Icon">
+          <Field label={copy.servers.fields.icon}>
             <DriveUploadImage
               controller={iconController}
               service={iconService}
               shape="circle"
               sizePx={64}
               accept={['image/*']}
-              copy={ICON_COPY}
+              copy={copy.icon}
             />
             {iconRefText ? (
               <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
@@ -269,10 +274,10 @@ export function AdminServersPage() {
           </Field>
           <div className="sdkwork-surface-drawer-form-actions">
             <Button type="button" variant="secondary" onClick={closeCreateDrawer}>
-              Cancel
+              {copy.common.cancel}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Creating…' : 'Create server'}
+              {submitting ? copy.servers.creating : copy.servers.create}
             </Button>
           </div>
         </form>
@@ -280,10 +285,10 @@ export function AdminServersPage() {
 
       <ConfirmModal
         open={deleteTarget != null}
-        title="Delete MCP server?"
-        description={`Delete “${deleteTarget?.name ?? ''}”. This cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={copy.servers.delete.title}
+        description={copy.servers.delete.description(deleteTarget?.name ?? '')}
+        confirmLabel={copy.common.delete}
+        cancelLabel={copy.common.cancel}
         busy={deleting}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {

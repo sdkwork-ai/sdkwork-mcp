@@ -4,8 +4,6 @@ import {
   Button,
   ErrorAlert,
   Field,
-  formatMcpPublishStatus,
-  formatMcpTransport,
   LoadingState,
   PageHeader,
   TextInput,
@@ -23,6 +21,7 @@ import {
 
 import { AdminCapabilityPanel } from '../components/AdminCapabilityPanel';
 import { AdminServerSettingsPanel } from '../components/AdminServerSettingsPanel';
+import { mcpAdminLabel, useMcpAdminCopy } from '../copy/mcpAdminCopy';
 import { useMcpAdminServersBasePath } from '../routeContext';
 
 const defaultConnector: UpsertMcpConnectorCommand = {
@@ -40,6 +39,7 @@ type AdminTab = 'connectors' | 'capabilities' | 'settings';
 
 export function AdminServerDetailPage() {
   const clients = useMCPClients();
+  const copy = useMcpAdminCopy();
   const serversBasePath = useMcpAdminServersBasePath();
   const { serverKey = '' } = useParams();
   const [tab, setTab] = useState<AdminTab>('connectors');
@@ -88,7 +88,7 @@ export function AdminServerDetailPage() {
   }
 
   if (loading) {
-    return <LoadingState label="Loading server admin view…" />;
+    return <LoadingState label={copy.serverDetail.loading} />;
   }
 
   if (detailError) {
@@ -108,12 +108,12 @@ export function AdminServerDetailPage() {
           to={serversBasePath}
           className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          ← Back to servers
+          {copy.serverDetail.back}
         </Link>
       </div>
       <PageHeader
         title={server.name}
-        description={`Manage connectors, capabilities, and lifecycle settings for ${server.server_key}.`}
+        description={copy.serverDetail.description(server.server_key)}
       />
       {error ? (
         <div className="mb-4">
@@ -122,9 +122,12 @@ export function AdminServerDetailPage() {
       ) : null}
       <div className="mb-6 flex gap-2 border-b border-slate-200 dark:border-zinc-800">
         {([
-          ['connectors', `Connectors (${connectors.length})`],
-          ['capabilities', `Capabilities (${tools.length + resources.length + prompts.length})`],
-          ['settings', 'Settings'],
+          ['connectors', copy.serverDetail.connectorsTab(connectors.length)],
+          [
+            'capabilities',
+            copy.serverDetail.capabilitiesTab(tools.length + resources.length + prompts.length),
+          ],
+          ['settings', copy.serverDetail.settingsTab],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -146,15 +149,15 @@ export function AdminServerDetailPage() {
                 setConnectorDrawerOpen(true);
               }}
             >
-              Add connector
+              {copy.serverDetail.connectors.add}
             </Button>
           </div>
           <div className="data-surface">
             <div className="table-frame">
               {connectors.length === 0 ? (
                 <div className="empty-state">
-                  <h3>No connectors</h3>
-                  <p>Add a connector to publish runtime configuration.</p>
+                  <h3>{copy.serverDetail.connectors.empty.title}</h3>
+                  <p>{copy.serverDetail.connectors.empty.description}</p>
                   <button
                     type="button"
                     className="skills-console-primary"
@@ -163,33 +166,33 @@ export function AdminServerDetailPage() {
                       setConnectorDrawerOpen(true);
                     }}
                   >
-                    Add connector
+                    {copy.serverDetail.connectors.empty.action}
                   </button>
                 </div>
               ) : (
                 <table>
                   <thead>
                     <tr>
-                      <th>Connector</th>
-                      <th>Transport</th>
-                      <th>Publish</th>
-                      <th>Lifecycle</th>
-                      <th>Actions</th>
+                      <th>{copy.serverDetail.connectors.table.connector}</th>
+                      <th>{copy.serverDetail.connectors.table.transport}</th>
+                      <th>{copy.serverDetail.connectors.table.publish}</th>
+                      <th>{copy.serverDetail.connectors.table.lifecycle}</th>
+                      <th>{copy.serverDetail.connectors.table.actions}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {connectors.map((connector) => (
                       <tr key={connector.id}>
                         <td>{connector.connector_key}</td>
-                        <td>{formatMcpTransport(connector.transport)}</td>
-                        <td>{formatMcpPublishStatus(connector.publish_status)}</td>
-                        <td>{connector.lifecycle_status}</td>
+                        <td>{mcpAdminLabel(copy, 'transport', connector.transport)}</td>
+                        <td>{mcpAdminLabel(copy, 'publishStatus', connector.publish_status)}</td>
+                        <td>{mcpAdminLabel(copy, 'lifecycle', connector.lifecycle_status)}</td>
                         <td>
                           <Button
                             variant="danger"
                             onClick={() => setDeleteConnectorKey(connector.connector_key)}
                           >
-                            Delete
+                            {copy.common.delete}
                           </Button>
                         </td>
                       </tr>
@@ -201,13 +204,13 @@ export function AdminServerDetailPage() {
           </div>
           <SurfaceDrawer
             open={connectorDrawerOpen}
-            title="Upsert connector"
+            title={copy.serverDetail.connectors.drawer.title}
             onClose={() => setConnectorDrawerOpen(false)}
           >
             {/* `skills-console-form` is the host console contract; `grid gap-4` covers the
                 standalone `sdkwork-mcp-pc` app, whose Tailwind entry defines no contract. */}
             <form onSubmit={onCreateConnector} className="skills-console-form grid gap-4">
-              <Field label="Connector key">
+              <Field label={copy.serverDetail.fields.connectorKey}>
                 <TextInput
                   value={connectorForm.connector_key}
                   onChange={(event) =>
@@ -216,7 +219,7 @@ export function AdminServerDetailPage() {
                   required
                 />
               </Field>
-              <Field label="Transport">
+              <Field label={copy.serverDetail.fields.transport}>
                 <TextInput
                   value={connectorForm.transport}
                   onChange={(event) =>
@@ -225,7 +228,7 @@ export function AdminServerDetailPage() {
                   required
                 />
               </Field>
-              <Field label="Command ref">
+              <Field label={copy.serverDetail.fields.commandRef}>
                 <TextInput
                   value={connectorForm.command_ref ?? ''}
                   onChange={(event) =>
@@ -233,7 +236,7 @@ export function AdminServerDetailPage() {
                   }
                 />
               </Field>
-              <Field label="Endpoint URL">
+              <Field label={copy.serverDetail.fields.endpointUrl}>
                 <TextInput
                   value={connectorForm.endpoint_url ?? ''}
                   onChange={(event) =>
@@ -241,7 +244,10 @@ export function AdminServerDetailPage() {
                   }
                 />
               </Field>
-              <Field label="Secret ref" hint="Never store plaintext secrets in MCP tables.">
+              <Field
+                label={copy.serverDetail.fields.secretRef}
+                hint={copy.serverDetail.fields.secretRefHint}
+              >
                 <TextInput
                   value={connectorForm.secret_ref ?? ''}
                   onChange={(event) =>
@@ -251,18 +257,18 @@ export function AdminServerDetailPage() {
               </Field>
               <div className="sdkwork-surface-drawer-form-actions">
                 <Button type="button" variant="secondary" onClick={() => setConnectorDrawerOpen(false)}>
-                  Cancel
+                  {copy.common.cancel}
                 </Button>
-                <Button type="submit">Save connector</Button>
+                <Button type="submit">{copy.serverDetail.connectors.save}</Button>
               </div>
             </form>
           </SurfaceDrawer>
           <ConfirmModal
             open={deleteConnectorKey != null}
-            title="Delete connector?"
-            description={`Delete “${deleteConnectorKey ?? ''}”. This cannot be undone.`}
-            confirmLabel="Delete"
-            cancelLabel="Cancel"
+            title={copy.serverDetail.connectors.delete.title}
+            description={copy.serverDetail.connectors.delete.description(deleteConnectorKey ?? '')}
+            confirmLabel={copy.common.delete}
+            cancelLabel={copy.common.cancel}
             busy={deletingConnector}
             onCancel={() => setDeleteConnectorKey(null)}
             onConfirm={() => {
