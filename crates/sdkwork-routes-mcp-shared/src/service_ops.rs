@@ -6,9 +6,7 @@ use sdkwork_mcp_contract::{
 use sdkwork_utils_rust::{SdkWorkPageData, SdkWorkResourceData};
 
 use crate::list_query::{McpInvocationListQuery, SdkWorkListQuery};
-use crate::response::{
-    item_data, page_data, page_data_from_total, paginate_items, ApiProblem, ApiResult,
-};
+use crate::response::{item_data, page_data_from_total, paginate_items, ApiProblem, ApiResult};
 
 impl From<McpServiceError> for ApiProblem {
     fn from(error: McpServiceError) -> Self {
@@ -127,19 +125,84 @@ pub async fn list_catalog_categories<R: McpRepository>(
     Ok(page_data_from_total(items, total, query))
 }
 
+fn catalog_server_not_found(server_key: &str) -> ApiProblem {
+    ApiProblem::not_found(format!("MCP server {server_key} is not published"))
+}
+
+/// Caller visibility scope for app-facing catalog reads: the organization and
+/// user id that select the `organization` and `private` lanes of a server.
+///
+/// Admin/backend surfaces pass `None` where a shared operation accepts one, so
+/// they keep reading every tenant row; the app surface always builds a scope
+/// from the request principal.
+#[derive(Debug, Clone, Copy)]
+pub struct CatalogScope {
+    organization_id: u64,
+    user_id: u64,
+}
+
+impl CatalogScope {
+    pub fn new(organization_id: u64, user_id: u64) -> Self {
+        Self {
+            organization_id,
+            user_id,
+        }
+    }
+}
+
+/// Fail-closed decision for an app-facing sub-resource read: unless the parent
+/// server is catalog-visible to the caller, the child read is reported with the
+/// same `404` vocabulary as an unknown server, so a known `server_id` of a
+/// private or other-organization server does not expose its tools, resources,
+/// prompts or invocations.
+fn sub_resource_scope(server_visible: bool) -> Result<(), ApiProblem> {
+    if server_visible {
+        Ok(())
+    } else {
+        Err(ApiProblem::not_found("MCP server is not published"))
+    }
+}
+
+/// Asserts that the parent server of an app-facing sub-resource read is
+/// catalog-visible to the caller.
+///
+/// `None` keeps an admin surface unscoped: the shared operations are also used
+/// by the backend routes, which must still read drafts and every visibility
+/// lane. `Some(scope)` is the fail-closed application path.
+async fn ensure_sub_resource_server_visible<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    server_id: u64,
+    scope: Option<CatalogScope>,
+) -> ApiResult<()> {
+    let Some(scope) = scope else {
+        return Ok(());
+    };
+    let server_visible = service
+        .catalog_server_exists(tenant_id, scope.organization_id, scope.user_id, server_id)
+        .await?;
+    sub_resource_scope(server_visible)
+}
+
 /// Application catalog retrieval: a server the marketplace list would not
-/// publish must not be readable by key either, so a draft stays admin-only
-/// instead of leaking through a guessed `server_key`.
+/// publish or expose to this caller must not be readable by key either, so a
+/// draft, a disabled row or another scope's row stays hidden instead of
+/// leaking through a guessed `server_key`.
 pub async fn get_catalog_server<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
     server_key: &str,
 ) -> ApiResult<SdkWorkResourceData<McpServerRecord>> {
-    let record = service.get_server(tenant_id, server_key).await?;
+    let record = service
+        .get_catalog_server(tenant_id, organization_id, user_id, server_key)
+        .await?
+        .ok_or_else(|| catalog_server_not_found(server_key))?;
+    // The store already applies the catalog lifecycle gate and the visibility
+    // scope; this check keeps the active-only contract at the boundary too.
     if !catalog_visible_server(&record) {
-        return Err(ApiProblem::not_found(format!(
-            "MCP server {server_key} is not published"
-        )));
+        return Err(catalog_server_not_found(server_key));
     }
     Ok(item_data(record))
 }
@@ -170,18 +233,28 @@ pub async fn list_servers<R: McpRepository>(
 }
 
 /// Application catalog listing: only catalog-visible servers
-/// (`lifecycle_status = active`, not soft-deleted), narrowed by the catalog
-/// view filters and the keyword.
+/// (`lifecycle_status = active`, not soft-deleted) within the caller's
+/// visibility scope, narrowed by the catalog view filters and the keyword.
 pub async fn list_catalog_servers<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
     query: &SdkWorkListQuery,
 ) -> ApiResult<SdkWorkPageData<McpServerRecord>> {
     query.validate()?;
     let filter = query.catalog_filter();
     let (limit, offset) = page_bounds(query);
     let (items, total) = service
-        .list_catalog_servers_page(tenant_id, &filter, query.search_keyword(), limit, offset)
+        .list_catalog_servers_page(
+            tenant_id,
+            organization_id,
+            user_id,
+            &filter,
+            query.search_keyword(),
+            limit,
+            offset,
+        )
         .await?;
     Ok(page_data_from_total(items, total, query))
 }
@@ -217,23 +290,33 @@ pub async fn list_connectors<R: McpRepository>(
     Ok(paginate_items(filter_connectors(items, query), query))
 }
 
+/// Application tool listing for one server. The parent server must be
+/// catalog-visible to the caller first: a known but hidden `server_id` is
+/// reported as not found instead of listing its tools.
 pub async fn list_tools<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: CatalogScope,
     query: &SdkWorkListQuery,
 ) -> ApiResult<SdkWorkPageData<McpToolRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, Some(scope)).await?;
     query.validate()?;
     let items = service.list_tools(tenant_id, server_id).await?;
     Ok(paginate_items(filter_tools(items, query), query))
 }
 
+/// Shared tool retrieval. The app surface passes the caller scope and gets a
+/// `404` when the parent server is not catalog-visible; the backend passes
+/// `None` and keeps its unscoped admin behaviour.
 pub async fn get_tool<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: Option<CatalogScope>,
     tool_key: &str,
 ) -> ApiResult<SdkWorkResourceData<McpToolRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, scope).await?;
     let record = service.get_tool(tenant_id, server_id, tool_key).await?;
     Ok(item_data(record))
 }
@@ -259,67 +342,105 @@ pub async fn get_connector<R: McpRepository>(
     Ok(item_data(record))
 }
 
+/// Shared resource retrieval, guarded by the parent server's catalog scope on
+/// the application surface and unscoped (`None`) for the backend.
 pub async fn get_resource<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: Option<CatalogScope>,
     resource_key: &str,
 ) -> ApiResult<SdkWorkResourceData<McpResourceRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, scope).await?;
     let record = service
         .get_resource(tenant_id, server_id, resource_key)
         .await?;
     Ok(item_data(record))
 }
 
+/// Shared prompt retrieval, guarded by the parent server's catalog scope on the
+/// application surface and unscoped (`None`) for the backend.
 pub async fn get_prompt<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: Option<CatalogScope>,
     prompt_key: &str,
 ) -> ApiResult<SdkWorkResourceData<McpPromptRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, scope).await?;
     let record = service.get_prompt(tenant_id, server_id, prompt_key).await?;
     Ok(item_data(record))
 }
 
+/// Application resource listing for one server, guarded by the parent server's
+/// catalog scope.
 pub async fn list_resources<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: CatalogScope,
     query: &SdkWorkListQuery,
 ) -> ApiResult<SdkWorkPageData<McpResourceRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, Some(scope)).await?;
     query.validate()?;
     let items = service.list_resources(tenant_id, server_id).await?;
     Ok(paginate_items(filter_resources(items, query), query))
 }
 
+/// Application prompt listing for one server, guarded by the parent server's
+/// catalog scope.
 pub async fn list_prompts<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
     server_id: u64,
+    scope: CatalogScope,
     query: &SdkWorkListQuery,
 ) -> ApiResult<SdkWorkPageData<McpPromptRecord>> {
+    ensure_sub_resource_server_visible(service, tenant_id, server_id, Some(scope)).await?;
     query.validate()?;
     let items = service.list_prompts(tenant_id, server_id).await?;
     Ok(paginate_items(filter_prompts(items, query), query))
 }
 
+/// Owner scope of the shared invocation list.
+///
+/// `None` is the tenant-wide admin view: only the backend asks for it. The
+/// application surface always passes a scope and the store filters rows by the
+/// scope's user id, so a request without a resolved actor records `0` and
+/// reads no other user's row instead of widening to the tenant.
+fn invocation_user_scope(scope: Option<CatalogScope>) -> Option<u64> {
+    scope.map(|scope| scope.user_id)
+}
+
+/// Shared invocation listing, filtered and windowed by the store.
+///
+/// The application surface passes the caller scope and reads only that user's
+/// invocations; the backend passes `None` and keeps the tenant-wide admin view.
+/// When the query narrows to a `server_id`, the app surface also runs the
+/// parent-server visibility guard so a hidden parent server stays unreadable.
 pub async fn list_invocations<R: McpRepository>(
     service: &McpService<R>,
     tenant_id: u64,
+    scope: Option<CatalogScope>,
     query: &McpInvocationListQuery,
 ) -> ApiResult<SdkWorkPageData<McpInvocationRecord>> {
+    if let Some(server_id) = query.server_id {
+        ensure_sub_resource_server_visible(service, tenant_id, server_id, scope).await?;
+    }
     query.validate()?;
-    let page_size = query.list.effective_page_size() as u32;
-    let page = query.list.effective_page() as u32;
-    let offset = (page.saturating_sub(1)) * page_size;
-    let search = query.list.search_keyword();
-    let total = service
-        .count_invocations(tenant_id, query.server_id, search)
+    let user_id = invocation_user_scope(scope);
+    let (limit, offset) = page_bounds(&query.list);
+    let (items, total) = service
+        .list_invocations(
+            tenant_id,
+            query.server_id,
+            user_id,
+            query.list.search_keyword(),
+            limit,
+            offset,
+        )
         .await?;
-    let items = service
-        .list_invocations(tenant_id, query.server_id, search, offset, page_size)
-        .await?;
-    Ok(page_data(items, total as usize, &query.list))
+    Ok(page_data_from_total(items, total, &query.list))
 }
 
 pub async fn append_invocation<R: McpRepository>(
@@ -479,5 +600,45 @@ mod tests {
         let mut archived = server("archived", None, &[]);
         archived.lifecycle_status = McpLifecycleStatus::Archived;
         assert!(!catalog_visible_server(&archived));
+    }
+
+    /// The parent-server guard is the only decision an app-facing sub-resource
+    /// read makes before reading the tools/resources/prompts/invocations of a
+    /// `server_id`: a catalog-visible parent lets the read through, while a
+    /// hidden one (draft, private of someone else, other organization) fails
+    /// closed with the same `404` vocabulary as an unknown server.
+    #[test]
+    fn sub_resource_scope_allows_a_visible_parent_and_404s_a_hidden_one() {
+        assert!(sub_resource_scope(true).is_ok());
+
+        let hidden =
+            sub_resource_scope(false).expect_err("a hidden parent server must be rejected");
+        let rendered = format!("{hidden:?}");
+        assert!(
+            rendered.contains("404"),
+            "expected the not-found status, got {rendered}"
+        );
+        assert!(
+            rendered.contains("MCP server is not published"),
+            "expected the catalog 404 vocabulary, got {rendered}"
+        );
+    }
+
+    /// The invocation owner scope is the only difference between the app and
+    /// backend call sites: the backend passes `None` and keeps the tenant-wide
+    /// admin view, while the app scope becomes the row-owner filter. A request
+    /// whose actor was never resolved carries the `0` sentinel and therefore
+    /// stays scoped to nothing owned by another user.
+    #[test]
+    fn invocation_user_scope_is_none_for_admin_and_owner_scoped_for_the_app() {
+        assert_eq!(invocation_user_scope(None), None);
+        assert_eq!(
+            invocation_user_scope(Some(CatalogScope::new(9, 42))),
+            Some(42)
+        );
+        assert_eq!(
+            invocation_user_scope(Some(CatalogScope::new(0, 0))),
+            Some(0)
+        );
     }
 }

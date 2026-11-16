@@ -43,19 +43,57 @@ impl McpRepository for SqlxMcpRepository {
         postgres::list_servers_page(&self.pool, tenant_id, filter, keyword, limit, offset).await
     }
 
-    async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
-        postgres::list_catalog_servers(&self.pool, tenant_id).await
+    async fn list_catalog_servers(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+    ) -> McpResult<Vec<McpServerRecord>> {
+        postgres::list_catalog_servers(&self.pool, tenant_id, organization_id, user_id).await
     }
 
     async fn list_catalog_servers_page(
         &self,
         tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
         filter: &CatalogViewFilter,
         keyword: Option<&str>,
         limit: i64,
         offset: i64,
     ) -> McpResult<(Vec<McpServerRecord>, i64)> {
-        postgres::list_catalog_servers_page(&self.pool, tenant_id, filter, keyword, limit, offset)
+        postgres::list_catalog_servers_page(
+            &self.pool,
+            tenant_id,
+            organization_id,
+            user_id,
+            filter,
+            keyword,
+            limit,
+            offset,
+        )
+        .await
+    }
+
+    async fn get_catalog_server(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_key: &str,
+    ) -> McpResult<Option<McpServerRecord>> {
+        postgres::get_catalog_server(&self.pool, tenant_id, organization_id, user_id, server_key)
+            .await
+    }
+
+    async fn catalog_server_exists(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_id: u64,
+    ) -> McpResult<bool> {
+        postgres::catalog_server_exists(&self.pool, tenant_id, organization_id, user_id, server_id)
             .await
     }
 
@@ -258,24 +296,19 @@ impl McpRepository for SqlxMcpRepository {
         postgres::delete_prompt(&self.pool, tenant_id, server_id, prompt_key).await
     }
 
-    async fn count_invocations(
-        &self,
-        tenant_id: u64,
-        server_id: Option<u64>,
-        search: Option<&str>,
-    ) -> McpResult<u64> {
-        postgres::count_invocations(&self.pool, tenant_id, server_id, search).await
-    }
-
     async fn list_invocations(
         &self,
         tenant_id: u64,
         server_id: Option<u64>,
+        user_id: Option<u64>,
         search: Option<&str>,
-        offset: u32,
-        limit: u32,
-    ) -> McpResult<Vec<McpInvocationRecord>> {
-        postgres::list_invocations(&self.pool, tenant_id, server_id, search, offset, limit).await
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpInvocationRecord>, i64)> {
+        postgres::list_invocations(
+            &self.pool, tenant_id, server_id, user_id, search, limit, offset,
+        )
+        .await
     }
 
     async fn append_invocation(

@@ -38,20 +38,58 @@ pub trait McpRepository: Send + Sync {
         limit: i64,
         offset: i64,
     ) -> McpResult<(Vec<McpServerRecord>, i64)>;
-    /// Catalog-visible servers only: `lifecycle_status = active` and not
-    /// soft-deleted. Draft and disabled rows stay visible to the admin surface
-    /// through [`McpRepository::list_servers`] but never reach application
-    /// users.
-    async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>>;
-    /// Catalog-visible server listing, filtered and windowed by the store.
+    /// Catalog-visible servers only: `lifecycle_status = active`, not
+    /// soft-deleted, and within the caller's visibility scope (`tenant` and
+    /// `public` for the whole tenant, `organization` for the caller's
+    /// organization and `private` for its owner). Draft and disabled rows stay
+    /// visible to the admin surface through [`McpRepository::list_servers`] but
+    /// never reach application users.
+    async fn list_catalog_servers(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+    ) -> McpResult<Vec<McpServerRecord>>;
+    /// Catalog-visible server listing, filtered and windowed by the store and
+    /// scoped to the caller's organization and user id.
     async fn list_catalog_servers_page(
         &self,
         tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
         filter: &CatalogViewFilter,
         keyword: Option<&str>,
         limit: i64,
         offset: i64,
     ) -> McpResult<(Vec<McpServerRecord>, i64)>;
+    /// Catalog-visible server lookup by key under the same lifecycle gate and
+    /// visibility scope as [`McpRepository::list_catalog_servers`].
+    ///
+    /// The plain [`McpRepository::get_server`] stays unscoped for admin and
+    /// owned paths; this read returns `None` for rows the catalog would not
+    /// list instead of leaking them through a guessed key.
+    async fn get_catalog_server(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_key: &str,
+    ) -> McpResult<Option<McpServerRecord>>;
+    /// True when `server_id` is catalog-visible to the caller, on the same
+    /// lifecycle gate and visibility scope as
+    /// [`McpRepository::get_catalog_server`].
+    ///
+    /// App-facing sub-resource reads (`tools`, `resources`, `prompts`,
+    /// invocations filtered by `server_id`) use this to reject a known but
+    /// hidden parent server before reading its children. The admin path keeps
+    /// using [`McpRepository::get_server_by_id`], which stays unscoped.
+    async fn catalog_server_exists(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_id: u64,
+    ) -> McpResult<bool>;
     async fn list_owned_servers(
         &self,
         tenant_id: u64,
@@ -177,20 +215,21 @@ pub trait McpRepository: Send + Sync {
         prompt_key: &str,
     ) -> McpResult<McpPromptRecord>;
 
-    async fn count_invocations(
-        &self,
-        tenant_id: u64,
-        server_id: Option<u64>,
-        search: Option<&str>,
-    ) -> McpResult<u64>;
+    /// Invocation page filtered and windowed by the store.
+    ///
+    /// `user_id` narrows the rows to one owner: the application surface binds
+    /// the caller's user id so it cannot read another user's request/response
+    /// payloads, while `None` is the tenant-wide admin view. The returned total
+    /// is the filtered row count, not the page size.
     async fn list_invocations(
         &self,
         tenant_id: u64,
         server_id: Option<u64>,
+        user_id: Option<u64>,
         search: Option<&str>,
-        offset: u32,
-        limit: u32,
-    ) -> McpResult<Vec<McpInvocationRecord>>;
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpInvocationRecord>, i64)>;
     async fn append_invocation(
         &self,
         record: McpInvocationRecord,
@@ -226,22 +265,70 @@ impl<R: McpRepository> McpService<R> {
     }
 
     /// Catalog listing for application users; drafts and disabled rows are
-    /// excluded by the repository query.
-    pub async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
-        self.repository.list_catalog_servers(tenant_id).await
+    /// excluded by the repository query, which also applies the caller's
+    /// organization and user visibility scope.
+    pub async fn list_catalog_servers(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+    ) -> McpResult<Vec<McpServerRecord>> {
+        self.repository
+            .list_catalog_servers(tenant_id, organization_id, user_id)
+            .await
     }
 
-    /// Catalog-visible server page, filtered and windowed by the store.
+    /// Catalog-visible server page, filtered and windowed by the store and
+    /// scoped to the caller.
     pub async fn list_catalog_servers_page(
         &self,
         tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
         filter: &CatalogViewFilter,
         keyword: Option<&str>,
         limit: i64,
         offset: i64,
     ) -> McpResult<(Vec<McpServerRecord>, i64)> {
         self.repository
-            .list_catalog_servers_page(tenant_id, filter, keyword, limit, offset)
+            .list_catalog_servers_page(
+                tenant_id,
+                organization_id,
+                user_id,
+                filter,
+                keyword,
+                limit,
+                offset,
+            )
+            .await
+    }
+
+    /// Catalog-visible server lookup by key; `None` when the catalog would not
+    /// list the row for this caller.
+    pub async fn get_catalog_server(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_key: &str,
+    ) -> McpResult<Option<McpServerRecord>> {
+        validation::validate_server_key(server_key)?;
+        self.repository
+            .get_catalog_server(tenant_id, organization_id, user_id, server_key)
+            .await
+    }
+
+    /// True when the parent server of an app-facing sub-resource read is
+    /// catalog-visible to the caller.
+    pub async fn catalog_server_exists(
+        &self,
+        tenant_id: u64,
+        organization_id: u64,
+        user_id: u64,
+        server_id: u64,
+    ) -> McpResult<bool> {
+        self.repository
+            .catalog_server_exists(tenant_id, organization_id, user_id, server_id)
             .await
     }
 
@@ -521,27 +608,20 @@ impl<R: McpRepository> McpService<R> {
             .await
     }
 
-    pub async fn count_invocations(
-        &self,
-        tenant_id: u64,
-        server_id: Option<u64>,
-        search: Option<&str>,
-    ) -> McpResult<u64> {
-        self.repository
-            .count_invocations(tenant_id, server_id, search)
-            .await
-    }
-
+    /// Invocation page: the store applies the `server_id`, owner `user_id` and
+    /// keyword filters plus the page window, and returns the filtered total
+    /// with the page rows.
     pub async fn list_invocations(
         &self,
         tenant_id: u64,
         server_id: Option<u64>,
+        user_id: Option<u64>,
         search: Option<&str>,
-        offset: u32,
-        limit: u32,
-    ) -> McpResult<Vec<McpInvocationRecord>> {
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpInvocationRecord>, i64)> {
         self.repository
-            .list_invocations(tenant_id, server_id, search, offset, limit)
+            .list_invocations(tenant_id, server_id, user_id, search, limit, offset)
             .await
     }
 

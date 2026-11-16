@@ -66,6 +66,33 @@ const INVOCATION_SELECT: &str = r#"
     error_message, duration_ms, invoked_at, created_at
 "#;
 
+/// Invocation page: one static statement whose nullable binds express every
+/// filter combination, so the store owns optional `server_id`, owner `user_id`,
+/// keyword filtering and the page window instead of four hand-written variants.
+///
+/// `$1` is the tenant, `$2` the optional `server_id`, `$3` the optional owner
+/// `user_id`, `$4` the lowercased keyword pattern and `$5`/`$6` the page
+/// window. A `NULL` bind disables its predicate: the backend admin list passes
+/// `NULL` for `$2`/`$3` and reads every tenant row, while the application
+/// surface binds the caller's user id so it can only read its own payloads.
+///
+/// `COUNT(*) OVER()` runs after the predicates, so the window total is the
+/// filtered count while `LIMIT`/`OFFSET` return one page.
+const INVOCATION_PAGE_SQL: &str = r#"
+    SELECT
+        id, uuid, tenant_id, organization_id, user_id, server_id, connector_id, invocation_kind,
+        target_key, request_id, trace_id, idempotency_key, request_json, response_json, status,
+        error_message, duration_ms, invoked_at, created_at,
+        COUNT(*) OVER() AS __list_total
+    FROM ai_mcp_invocation_log
+    WHERE tenant_id = $1
+      AND ($2::bigint IS NULL OR server_id = $2)
+      AND ($3::bigint IS NULL OR user_id = $3)
+      AND ($4::text IS NULL OR target_key ILIKE $4)
+    ORDER BY invoked_at DESC, id DESC
+    LIMIT $5 OFFSET $6
+"#;
+
 /// Admin server page: `COUNT(*) OVER()` runs after the filters, so the window
 /// total is the filtered count while `LIMIT`/`OFFSET` return one page.
 ///
@@ -99,6 +126,13 @@ const SERVER_PAGE_SQL: &str = r#"
 
 /// Catalog server page: same shape as [`SERVER_PAGE_SQL`] restricted to
 /// catalog-visible rows, so drafts and disabled servers never enter the total.
+///
+/// `$1` is the tenant, `$2` the caller's organization id, `$3` the caller's
+/// user id, `$4` the normalized category code, `$5` the caller's IAM role
+/// scope, `$6` the lowercased keyword pattern and `$7`/`$8` the page window.
+/// The visibility predicate gives `tenant` and `public` rows to the whole
+/// tenant, `organization` rows to the caller's organization (`0` is the
+/// tenant-level sentinel) and `private` rows to their owner.
 const CATALOG_SERVER_PAGE_SQL: &str = r#"
     SELECT
         id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
@@ -109,18 +143,21 @@ const CATALOG_SERVER_PAGE_SQL: &str = r#"
         COUNT(*) OVER() AS __list_total
     FROM ai_mcp_server
     WHERE tenant_id = $1 AND deleted_at IS NULL AND lifecycle_status = 1
-      AND ($2::text IS NULL OR LOWER(category_code) = $2)
-      AND (cardinality($3::text[]) = 0
+      AND (visibility IN ('tenant', 'public')
+           OR (visibility = 'organization' AND organization_id = $2)
+           OR (visibility = 'private' AND owner_user_id = $3))
+      AND ($4::text IS NULL OR LOWER(category_code) = $4)
+      AND (cardinality($5::text[]) = 0
            OR jsonb_array_length(allowed_role_codes) = 0
-           OR allowed_role_codes ?| $3::text[])
-      AND ($4::text IS NULL
-           OR LOWER(server_key) LIKE $4
-           OR LOWER(name) LIKE $4
-           OR LOWER(COALESCE(description, '')) LIKE $4
-           OR LOWER(COALESCE(category_code, '')) LIKE $4
-           OR LOWER(tags_json::text) LIKE $4)
+           OR allowed_role_codes ?| $5::text[])
+      AND ($6::text IS NULL
+           OR LOWER(server_key) LIKE $6
+           OR LOWER(name) LIKE $6
+           OR LOWER(COALESCE(description, '')) LIKE $6
+           OR LOWER(COALESCE(category_code, '')) LIKE $6
+           OR LOWER(tags_json::text) LIKE $6)
     ORDER BY updated_at DESC, server_key ASC
-    LIMIT $5 OFFSET $6
+    LIMIT $7 OFFSET $8
 "#;
 
 /// Admin category page: `$2` is the normalized category code, `$3` the
@@ -160,6 +197,63 @@ const CATALOG_CATEGORY_PAGE_SQL: &str = r#"
     ORDER BY sort_order ASC, category_code ASC
     LIMIT $4 OFFSET $5
 "#;
+
+/// Visibility scope predicate shared by every catalog read of `ai_mcp_server`.
+///
+/// `tenant` and `public` rows are visible to the whole tenant; `organization`
+/// rows only to a caller inside that organization (`0` is the tenant-level
+/// sentinel) and `private` rows only to their owner. The two placeholders are
+/// passed in so each statement can position its own bind parameters while all
+/// catalog statements keep the same rule: `$2` is the organization id and `$3`
+/// the user id in [`CATALOG_SERVER_PAGE_SQL`], `list_catalog_servers` and the
+/// `get_catalog_server`/`catalog_server_exists` statements.
+fn catalog_visibility_scope(organization_param: &str, user_param: &str) -> String {
+    format!(
+        "(visibility IN ('tenant', 'public') \
+         OR (visibility = 'organization' AND organization_id = {organization_param}) \
+         OR (visibility = 'private' AND owner_user_id = {user_param}))"
+    )
+}
+
+/// Catalog server lookup by key: the catalog lifecycle gate plus the caller's
+/// visibility scope narrowed to one `server_key`.
+///
+/// `$1` is the tenant, `$2` the caller's organization id, `$3` the caller's
+/// user id and `$4` the server key.
+fn catalog_server_get_sql() -> String {
+    format!(
+        r#"
+        SELECT {SERVER_SELECT}
+        FROM ai_mcp_server
+        WHERE tenant_id = $1 AND {CATALOG_VISIBLE_FILTER}
+          AND {}
+          AND server_key = $4
+        LIMIT 1
+        "#,
+        catalog_visibility_scope("$2", "$3")
+    )
+}
+
+/// Catalog server existence by id: the same lifecycle gate and caller scope as
+/// [`catalog_server_get_sql`], narrowed to one `id` so an app-facing
+/// sub-resource read cannot reach a parent server the catalog hides.
+///
+/// `$1` is the tenant, `$2` the caller's organization id, `$3` the caller's
+/// user id and `$4` the server id. `SELECT 1` keeps the guard a pure existence
+/// probe: the caller needs a boolean, not the row.
+fn catalog_server_exists_sql() -> String {
+    format!(
+        r#"
+        SELECT 1
+        FROM ai_mcp_server
+        WHERE tenant_id = $1 AND {CATALOG_VISIBLE_FILTER}
+          AND {}
+          AND id = $4
+        LIMIT 1
+        "#,
+        catalog_visibility_scope("$2", "$3")
+    )
+}
 
 fn map_sqlx(error: sqlx::Error) -> McpServiceError {
     McpServiceError::Repository(error.to_string())
@@ -808,20 +902,31 @@ pub async fn list_servers(pool: &PgPool, tenant_id: u64) -> McpResult<Vec<McpSer
     rows.iter().map(row_to_server).collect()
 }
 
+/// Catalog-visible servers for one caller: the lifecycle gate plus the
+/// visibility scope (see [`catalog_visibility_scope`]).
+///
+/// `$1` is the tenant, `$2` the caller's organization id and `$3` the caller's
+/// user id.
 pub async fn list_catalog_servers(
     pool: &PgPool,
     tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
 ) -> McpResult<Vec<McpServerRecord>> {
     let query = format!(
         r#"
         SELECT {SERVER_SELECT}
         FROM ai_mcp_server
         WHERE tenant_id = $1 AND {CATALOG_VISIBLE_FILTER}
+          AND {}
         ORDER BY updated_at DESC, server_key ASC
-        "#
+        "#,
+        catalog_visibility_scope("$2", "$3")
     );
     let rows = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
         .bind(tenant_id as i64)
+        .bind(organization_id as i64)
+        .bind(user_id as i64)
         .fetch_all(pool)
         .await
         .map_err(map_sqlx)?;
@@ -869,10 +974,12 @@ pub async fn list_servers_page(
 }
 
 /// Catalog-visible server page: same filters and window, restricted to
-/// [`CATALOG_VISIBLE_FILTER`] rows.
+/// [`CATALOG_VISIBLE_FILTER`] and the caller's visibility scope.
 pub async fn list_catalog_servers_page(
     pool: &PgPool,
     tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
     filter: &CatalogViewFilter,
     keyword: Option<&str>,
     limit: i64,
@@ -880,6 +987,8 @@ pub async fn list_catalog_servers_page(
 ) -> McpResult<(Vec<McpServerRecord>, i64)> {
     let rows = sqlx::query(CATALOG_SERVER_PAGE_SQL)
         .bind(tenant_id as i64)
+        .bind(organization_id as i64)
+        .bind(user_id as i64)
         .bind(filter.category_code())
         .bind(filter.role_codes().to_vec())
         .bind(keyword_like_pattern(keyword))
@@ -892,6 +1001,8 @@ pub async fn list_catalog_servers_page(
     if items.is_empty() && offset > 0 {
         total = sqlx::query(CATALOG_SERVER_PAGE_SQL)
             .bind(tenant_id as i64)
+            .bind(organization_id as i64)
+            .bind(user_id as i64)
             .bind(filter.category_code())
             .bind(filter.role_codes().to_vec())
             .bind(keyword_like_pattern(keyword))
@@ -953,6 +1064,55 @@ pub async fn get_server(
         .map(row_to_server)
         .transpose()?
         .ok_or_else(|| McpServiceError::NotFound(server_key.to_string()))
+}
+
+/// Catalog-visible server lookup by key, scoped like the catalog list.
+///
+/// Unlike [`get_server`], a row the caller's visibility scope hides, a draft or
+/// a disabled server is reported as `None` instead of leaking it through a
+/// guessed key.
+pub async fn get_catalog_server(
+    pool: &PgPool,
+    tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
+    server_key: &str,
+) -> McpResult<Option<McpServerRecord>> {
+    let query = catalog_server_get_sql();
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(organization_id as i64)
+        .bind(user_id as i64)
+        .bind(server_key)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    row.as_ref().map(row_to_server).transpose()
+}
+
+/// True when `server_id` is catalog-visible to the caller.
+///
+/// The read mirrors [`get_catalog_server`] by id, so the parent check of an
+/// app-facing sub-resource operation applies the same lifecycle gate and
+/// visibility scope as the catalog list. Admin reads keep using
+/// [`get_server_by_id`], which stays unscoped on purpose.
+pub async fn catalog_server_exists(
+    pool: &PgPool,
+    tenant_id: u64,
+    organization_id: u64,
+    user_id: u64,
+    server_id: u64,
+) -> McpResult<bool> {
+    let query = catalog_server_exists_sql();
+    let row = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .bind(organization_id as i64)
+        .bind(user_id as i64)
+        .bind(server_id as i64)
+        .fetch_optional(pool)
+        .await
+        .map_err(map_sqlx)?;
+    Ok(row.is_some())
 }
 
 pub async fn get_server_by_id(
@@ -1615,156 +1775,54 @@ pub async fn delete_prompt(
         .ok_or_else(|| McpServiceError::NotFound(prompt_key.to_string()))
 }
 
-pub async fn count_invocations(
-    pool: &PgPool,
-    tenant_id: u64,
-    server_id: Option<u64>,
-    search: Option<&str>,
-) -> McpResult<u64> {
-    let search_pattern = search.map(|value| format!("%{value}%"));
-    let count: i64 = match (server_id, search_pattern.as_deref()) {
-        (Some(server_id), Some(pattern)) => sqlx::query_scalar(
-            r#"
-                SELECT COUNT(*)::bigint
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND server_id = $2 AND target_key ILIKE $3
-                "#,
-        )
-        .bind(tenant_id as i64)
-        .bind(server_id as i64)
-        .bind(pattern)
-        .fetch_one(pool)
-        .await
-        .map_err(map_sqlx)?,
-        (Some(server_id), None) => sqlx::query_scalar(
-            r#"
-                SELECT COUNT(*)::bigint
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND server_id = $2
-                "#,
-        )
-        .bind(tenant_id as i64)
-        .bind(server_id as i64)
-        .fetch_one(pool)
-        .await
-        .map_err(map_sqlx)?,
-        (None, Some(pattern)) => sqlx::query_scalar(
-            r#"
-                SELECT COUNT(*)::bigint
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND target_key ILIKE $2
-                "#,
-        )
-        .bind(tenant_id as i64)
-        .bind(pattern)
-        .fetch_one(pool)
-        .await
-        .map_err(map_sqlx)?,
-        (None, None) => sqlx::query_scalar(
-            r#"
-                SELECT COUNT(*)::bigint
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1
-                "#,
-        )
-        .bind(tenant_id as i64)
-        .fetch_one(pool)
-        .await
-        .map_err(map_sqlx)?,
-    };
-    Ok(count.max(0) as u64)
-}
-
+/// Invocation page filtered and windowed by the store, returning the rows with
+/// the filtered total.
+///
+/// `server_id` narrows to one server, `user_id` narrows to that owner (the
+/// application surface binds the caller; the backend passes `None` for the
+/// tenant-wide admin view) and `search` matches `target_key` (`ILIKE`, escaped
+/// literal substring). A page past the end re-reads the first row of the same
+/// filters so `pageInfo.totalItems` never depends on the requested page.
 pub async fn list_invocations(
     pool: &PgPool,
     tenant_id: u64,
     server_id: Option<u64>,
+    user_id: Option<u64>,
     search: Option<&str>,
-    offset: u32,
-    limit: u32,
-) -> McpResult<Vec<McpInvocationRecord>> {
-    let limit = limit.clamp(1, 200) as i64;
-    let offset = offset as i64;
-    let search_pattern = search.map(|value| format!("%{value}%"));
-    let rows = match (server_id, search_pattern.as_deref()) {
-        (Some(server_id), Some(pattern)) => {
-            let query = format!(
-                r#"
-                SELECT {INVOCATION_SELECT}
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND server_id = $2 AND target_key ILIKE $3
-                ORDER BY invoked_at DESC
-                LIMIT $4 OFFSET $5
-                "#
-            );
-            sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
-                .bind(tenant_id as i64)
-                .bind(server_id as i64)
-                .bind(pattern)
-                .bind(limit)
-                .bind(offset)
-                .fetch_all(pool)
-                .await
-                .map_err(map_sqlx)?
-        }
-        (Some(server_id), None) => {
-            let query = format!(
-                r#"
-                SELECT {INVOCATION_SELECT}
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND server_id = $2
-                ORDER BY invoked_at DESC
-                LIMIT $3 OFFSET $4
-                "#
-            );
-            sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
-                .bind(tenant_id as i64)
-                .bind(server_id as i64)
-                .bind(limit)
-                .bind(offset)
-                .fetch_all(pool)
-                .await
-                .map_err(map_sqlx)?
-        }
-        (None, Some(pattern)) => {
-            let query = format!(
-                r#"
-                SELECT {INVOCATION_SELECT}
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1 AND target_key ILIKE $2
-                ORDER BY invoked_at DESC
-                LIMIT $3 OFFSET $4
-                "#
-            );
-            sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
-                .bind(tenant_id as i64)
-                .bind(pattern)
-                .bind(limit)
-                .bind(offset)
-                .fetch_all(pool)
-                .await
-                .map_err(map_sqlx)?
-        }
-        (None, None) => {
-            let query = format!(
-                r#"
-                SELECT {INVOCATION_SELECT}
-                FROM ai_mcp_invocation_log
-                WHERE tenant_id = $1
-                ORDER BY invoked_at DESC
-                LIMIT $2 OFFSET $3
-                "#
-            );
-            sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
-                .bind(tenant_id as i64)
-                .bind(limit)
-                .bind(offset)
-                .fetch_all(pool)
-                .await
-                .map_err(map_sqlx)?
-        }
-    };
-    rows.iter().map(row_to_invocation).collect()
+    limit: i64,
+    offset: i64,
+) -> McpResult<(Vec<McpInvocationRecord>, i64)> {
+    let server_id = server_id.map(|value| value as i64);
+    let user_id = user_id.map(|value| value as i64);
+    let keyword = keyword_like_pattern(search);
+    let rows = sqlx::query(INVOCATION_PAGE_SQL)
+        .bind(tenant_id as i64)
+        .bind(server_id)
+        .bind(user_id)
+        .bind(keyword.clone())
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    let (items, mut total) = map_page(rows, row_to_invocation)?;
+    if items.is_empty() && offset > 0 {
+        total = sqlx::query(INVOCATION_PAGE_SQL)
+            .bind(tenant_id as i64)
+            .bind(server_id)
+            .bind(user_id)
+            .bind(keyword)
+            .bind(1_i64)
+            .bind(0_i64)
+            .fetch_optional(pool)
+            .await
+            .map_err(map_sqlx)?
+            .map(|row| row.try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN))
+            .transpose()
+            .map_err(map_sqlx)?
+            .unwrap_or(0);
+    }
+    Ok((items, total))
 }
 
 pub async fn get_invocation_by_idempotency(
@@ -1879,26 +1937,136 @@ mod tests {
         assert_ne!(catalog, admin);
     }
 
+    /// Every catalog read of `ai_mcp_server` shares one visibility rule: rows
+    /// scoped to `tenant`/`public`, rows scoped to the caller's organization and
+    /// rows scoped to the owner. Pinning the helper output keeps a later edit
+    /// from rewording the rule in only one of the catalog statements.
+    #[test]
+    fn catalog_visibility_scope_has_three_branches() {
+        let predicate = catalog_visibility_scope("$7", "$8");
+        assert!(predicate.contains("(visibility IN ('tenant', 'public')"));
+        assert!(predicate.contains("(visibility = 'organization' AND organization_id = $7)"));
+        assert!(predicate.contains("(visibility = 'private' AND owner_user_id = $8)"));
+    }
+
+    /// The catalog server page scopes visibility to the caller, while the admin
+    /// page stays tenant-wide on purpose: a mis-scoped row is exactly what an
+    /// admin needs to see.
+    #[test]
+    fn catalog_server_page_scopes_visibility_to_the_caller() {
+        let page = normalized(CATALOG_SERVER_PAGE_SQL);
+        assert!(page.contains(&normalized(&catalog_visibility_scope("$2", "$3"))));
+        assert!(page.contains("organization_id = $2"));
+        assert!(page.contains("owner_user_id = $3"));
+
+        let admin = normalized(SERVER_PAGE_SQL);
+        assert!(!admin.contains("visibility IN ('tenant', 'public')"));
+        assert!(!admin.contains("visibility = 'organization'"));
+        assert!(!admin.contains("visibility = 'private'"));
+    }
+
+    /// The by-key catalog read has to use the same lifecycle gate and scope as
+    /// the catalog list, otherwise a guessed `server_key` bypasses the list.
+    #[test]
+    fn catalog_server_get_scopes_visibility_to_the_caller() {
+        let get = normalized(&catalog_server_get_sql());
+        assert!(get.contains(&normalized(&catalog_visibility_scope("$2", "$3"))));
+        assert!(get.contains(&normalized(CATALOG_VISIBLE_FILTER)));
+        assert!(get.contains("tenant_id = $1"));
+        assert!(get.contains("organization_id = $2"));
+        assert!(get.contains("owner_user_id = $3"));
+        assert!(get.contains("server_key = $4"));
+        assert!(get.contains(&normalized(SERVER_SELECT)));
+    }
+
+    /// The by-id parent guard of the app-facing sub-resource reads has to carry
+    /// the same three-branch visibility predicate and lifecycle gate as the
+    /// by-key catalog read, on the same bind parameters, or a known
+    /// `server_id` reaches the tools/resources/prompts of a hidden server.
+    #[test]
+    fn catalog_server_exists_scopes_visibility_to_the_caller() {
+        let exists = normalized(&catalog_server_exists_sql());
+        let get = normalized(&catalog_server_get_sql());
+        let scope = normalized(&catalog_visibility_scope("$2", "$3"));
+
+        for statement in [&exists, &get] {
+            assert!(statement.contains(&scope));
+            assert!(statement.contains(&normalized(CATALOG_VISIBLE_FILTER)));
+            assert!(!statement.contains(&normalized(ACTIVE_ENTITY_FILTER)));
+            assert!(statement.contains("tenant_id = $1"));
+            assert!(statement.contains("organization_id = $2"));
+            assert!(statement.contains("owner_user_id = $3"));
+        }
+
+        assert!(exists.contains("SELECT 1"));
+        assert!(exists.contains("id = $4"));
+        assert!(get.contains("server_key = $4"));
+        assert!(get.contains(&normalized(SERVER_SELECT)));
+    }
+
     /// The paged listings must push the page window and the filtered total
     /// into the store: `COUNT(*) OVER()` after the predicates, then
     /// `LIMIT`/`OFFSET`. Selecting every row and slicing it in memory is the
     /// contract violation this pins against.
+    ///
+    /// The catalog page inserts the caller scope as `$2`/`$3`, so its filter
+    /// and window parameters shift by two relative to the admin page.
     #[test]
     fn paged_server_queries_count_filter_and_window_in_the_store() {
-        for sql in [SERVER_PAGE_SQL, CATALOG_SERVER_PAGE_SQL] {
+        for (sql, window, category, roles, keyword) in [
+            (SERVER_PAGE_SQL, "LIMIT $5 OFFSET $6", "$2", "$3", "$4"),
+            (
+                CATALOG_SERVER_PAGE_SQL,
+                "LIMIT $7 OFFSET $8",
+                "$4",
+                "$5",
+                "$6",
+            ),
+        ] {
             assert!(sql.contains("COUNT(*) OVER()"));
             assert!(sql.contains(LIST_TOTAL_SQL_COLUMN));
-            assert!(sql.contains("LIMIT $5 OFFSET $6"));
-            assert!(sql.contains("LOWER(category_code) = $2"));
-            assert!(sql.contains("cardinality($3::text[]) = 0"));
+            assert!(sql.contains(window));
+            assert!(sql.contains(&format!("LOWER(category_code) = {category}")));
+            assert!(sql.contains(&format!("cardinality({roles}::text[]) = 0")));
             assert!(sql.contains("jsonb_array_length(allowed_role_codes) = 0"));
-            assert!(sql.contains("allowed_role_codes ?| $3::text[]"));
-            assert!(sql.contains("LOWER(server_key) LIKE $4"));
-            assert!(sql.contains("LOWER(name) LIKE $4"));
-            assert!(sql.contains("LOWER(COALESCE(description, '')) LIKE $4"));
-            assert!(sql.contains("LOWER(tags_json::text) LIKE $4"));
+            assert!(sql.contains(&format!("allowed_role_codes ?| {roles}::text[]")));
+            assert!(sql.contains(&format!("LOWER(server_key) LIKE {keyword}")));
+            assert!(sql.contains(&format!("LOWER(name) LIKE {keyword}")));
+            assert!(sql.contains(&format!("LOWER(COALESCE(description, '')) LIKE {keyword}")));
+            assert!(sql.contains(&format!("LOWER(tags_json::text) LIKE {keyword}")));
             assert!(normalized(sql).contains(&normalized(SERVER_SELECT)));
         }
+    }
+
+    /// The invocation list must be one static statement whose nullable binds
+    /// express the `server_id`, owner `user_id` and keyword filters, so the
+    /// store owns filtering, the page window and the filtered total. Four
+    /// hand-written variants (and a separate count query) are exactly the
+    /// duplication that let `pageInfo` describe something other than the
+    /// filtered set.
+    ///
+    /// The exact clause is pinned so the bind order cannot drift: `$1` tenant,
+    /// `$2` optional server, `$3` optional owner, `$4` optional keyword,
+    /// `$5`/`$6` the page window.
+    #[test]
+    fn paged_invocation_query_counts_filters_and_windows_in_the_store() {
+        let sql = normalized(INVOCATION_PAGE_SQL);
+        assert!(sql.contains("COUNT(*) OVER()"));
+        assert!(sql.contains(LIST_TOTAL_SQL_COLUMN));
+        assert!(sql.contains(&normalized(INVOCATION_SELECT)));
+        assert_eq!(
+            sql.matches("FROM ai_mcp_invocation_log").count(),
+            1,
+            "the invocation page must be one static statement"
+        );
+        assert!(sql.contains(&normalized(
+            "WHERE tenant_id = $1
+             AND ($2::bigint IS NULL OR server_id = $2)
+             AND ($3::bigint IS NULL OR user_id = $3)
+             AND ($4::text IS NULL OR target_key ILIKE $4)
+             ORDER BY invoked_at DESC, id DESC
+             LIMIT $5 OFFSET $6"
+        )));
     }
 
     #[test]

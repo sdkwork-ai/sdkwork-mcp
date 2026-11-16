@@ -165,7 +165,10 @@ where
         .route(paths::ADMIN_CATEGORIES_LIST, get(list_categories_handler))
         .route(paths::ADMIN_CATEGORY_UPSERT, post(upsert_category_handler))
         .route(paths::ADMIN_CATEGORY_GET, get(get_category_handler))
-        .route(paths::ADMIN_CATEGORY_DELETE, delete(delete_category_handler))
+        .route(
+            paths::ADMIN_CATEGORY_DELETE,
+            delete(delete_category_handler),
+        )
         .route(paths::ADMIN_SERVERS_LIST, get(list_servers_handler))
         .route(paths::ADMIN_SERVER_CREATE, post(create_server_handler))
         .route(paths::ADMIN_SERVER_UPDATE, put(update_server_handler))
@@ -185,7 +188,10 @@ where
         .route(paths::ADMIN_TOOL_DELETE, delete(delete_tool_handler))
         .route(paths::ADMIN_RESOURCE_UPSERT, post(upsert_resource_handler))
         .route(paths::ADMIN_RESOURCE_GET, get(get_resource_handler))
-        .route(paths::ADMIN_RESOURCE_DELETE, delete(delete_resource_handler))
+        .route(
+            paths::ADMIN_RESOURCE_DELETE,
+            delete(delete_resource_handler),
+        )
         .route(paths::ADMIN_PROMPT_UPSERT, post(upsert_prompt_handler))
         .route(paths::ADMIN_PROMPT_GET, get(get_prompt_handler))
         .route(paths::ADMIN_PROMPT_DELETE, delete(delete_prompt_handler))
@@ -456,9 +462,7 @@ where
         async {
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(
-                get_category(state.service.as_ref(), tenant_id, category_code.as_str()).await?,
-            )
+            ok_json(get_category(state.service.as_ref(), tenant_id, category_code.as_str()).await?)
         }
         .await,
     )
@@ -624,6 +628,7 @@ where
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    None,
                     tool_key.as_str(),
                 )
                 .await?,
@@ -682,6 +687,7 @@ where
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    None,
                     resource_key.as_str(),
                 )
                 .await?,
@@ -740,6 +746,7 @@ where
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    None,
                     prompt_key.as_str(),
                 )
                 .await?,
@@ -877,6 +884,9 @@ where
     )
 }
 
+/// Admin invocation audit: the tenant-wide view on purpose, so an operator can
+/// see every user's rows. The `None` scope is what keeps the shared list
+/// unscoped; only the application surface narrows invocations to their owner.
 async fn list_invocations_handler<R>(
     ctx: WebRequestContext,
     State(state): State<BackendState<R>>,
@@ -892,7 +902,7 @@ where
         async {
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_invocations(state.service.as_ref(), tenant_id, &query).await?)
+            ok_json(list_invocations(state.service.as_ref(), tenant_id, None, &query).await?)
         }
         .await,
     )

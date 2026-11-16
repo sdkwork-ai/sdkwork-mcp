@@ -33,7 +33,7 @@ use sqlx::PgPool;
 pub use handlers::{
     finish_api_json, get_catalog_server, get_prompt, get_resource, get_server, get_tool,
     list_catalog_categories, list_catalog_servers, list_categories, list_invocations, list_prompts,
-    list_resources, list_tools, ok_json, resolve_tenant_id, McpInvocationListQuery,
+    list_resources, list_tools, ok_json, resolve_tenant_id, CatalogScope, McpInvocationListQuery,
     SdkWorkListQuery, SharedMcpService,
 };
 pub use health::DbReadinessCheck;
@@ -176,6 +176,27 @@ fn resolve_request_tenant_id(
     sdkwork_routes_mcp_shared::resolve_tenant_id_from_context(ctx, default_tenant_id)
 }
 
+/// Catalog read scope: the tenant from the request plus the caller's
+/// organization and user id.
+///
+/// A missing organization or user falls back to the `0` tenant-level sentinel,
+/// so `organization` and `private` rows stay hidden instead of becoming
+/// visible to a caller without that scope.
+fn resolve_catalog_scope(
+    ctx: &WebRequestContext,
+    context: Option<&Extension<McpAppRequestContext>>,
+    default_tenant_id: u64,
+) -> (u64, u64, u64) {
+    let tenant_id = resolve_request_tenant_id(ctx, context, default_tenant_id);
+    let organization_id = context
+        .and_then(|extension| extension.0.organization_id)
+        .unwrap_or(0);
+    let user_id = context
+        .and_then(|extension| extension.0.actor_id)
+        .unwrap_or(0);
+    (tenant_id, organization_id, user_id)
+}
+
 async fn list_categories_handler<R>(
     ctx: WebRequestContext,
     State(state): State<AppState<R>>,
@@ -212,9 +233,18 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_catalog_servers(state.service.as_ref(), tenant_id, &query).await?)
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                list_catalog_servers(
+                    state.service.as_ref(),
+                    tenant_id,
+                    organization_id,
+                    user_id,
+                    &query,
+                )
+                .await?,
+            )
         }
         .await,
     )
@@ -233,12 +263,20 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            // The marketplace retrieves only what it would list: a draft the
-            // catalog hides must not be readable by its key.
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            // The marketplace retrieves only what it would list: a draft or a
+            // row outside the caller's visibility scope must not be readable by
+            // its key.
             ok_json(
-                get_catalog_server(state.service.as_ref(), tenant_id, server_key.as_str()).await?,
+                get_catalog_server(
+                    state.service.as_ref(),
+                    tenant_id,
+                    organization_id,
+                    user_id,
+                    server_key.as_str(),
+                )
+                .await?,
             )
         }
         .await,
@@ -259,9 +297,20 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_tools(state.service.as_ref(), tenant_id, server_id, &query).await?)
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            // Guarded by the parent server's catalog scope: knowing a private or
+            // other-organization `serverId` must not expose its tools.
+            ok_json(
+                list_tools(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    CatalogScope::new(organization_id, user_id),
+                    &query,
+                )
+                .await?,
+            )
         }
         .await,
     )
@@ -280,13 +329,14 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
             ok_json(
                 get_tool(
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    Some(CatalogScope::new(organization_id, user_id)),
                     tool_key.as_str(),
                 )
                 .await?,
@@ -310,9 +360,18 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_resources(state.service.as_ref(), tenant_id, server_id, &query).await?)
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                list_resources(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    CatalogScope::new(organization_id, user_id),
+                    &query,
+                )
+                .await?,
+            )
         }
         .await,
     )
@@ -332,9 +391,18 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_prompts(state.service.as_ref(), tenant_id, server_id, &query).await?)
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            ok_json(
+                list_prompts(
+                    state.service.as_ref(),
+                    tenant_id,
+                    server_id,
+                    CatalogScope::new(organization_id, user_id),
+                    &query,
+                )
+                .await?,
+            )
         }
         .await,
     )
@@ -353,13 +421,14 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
             ok_json(
                 get_resource(
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    Some(CatalogScope::new(organization_id, user_id)),
                     resource_key.as_str(),
                 )
                 .await?,
@@ -382,13 +451,14 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
+            let (tenant_id, organization_id, user_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
             ok_json(
                 get_prompt(
                     state.service.as_ref(),
                     tenant_id,
                     server_id,
+                    Some(CatalogScope::new(organization_id, user_id)),
                     prompt_key.as_str(),
                 )
                 .await?,
@@ -411,9 +481,22 @@ where
     finish_api_json(
         &ctx,
         async {
-            let tenant_id =
-                resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_invocations(state.service.as_ref(), tenant_id, &query).await?)
+            let (tenant_id, organization_id, actor_id) =
+                resolve_catalog_scope(&ctx, context.as_ref(), state.default_tenant_id);
+            // The caller's actor id is the invocation owner scope, so the app
+            // list reads only this user's rows (a missing actor resolves to the
+            // `0` sentinel, never to the tenant). A `server_id` filter is a
+            // sub-resource read of that server, so the same parent-server guard
+            // applies.
+            ok_json(
+                list_invocations(
+                    state.service.as_ref(),
+                    tenant_id,
+                    Some(CatalogScope::new(organization_id, actor_id)),
+                    &query,
+                )
+                .await?,
+            )
         }
         .await,
     )
