@@ -1,7 +1,7 @@
 use sdkwork_intelligence_mcp_service::{McpRepository, McpService, McpServiceError};
 use sdkwork_mcp_contract::{
-    category_matches, role_scope_allows, McpConnectorRecord, McpInvocationRecord, McpPromptRecord,
-    McpResourceRecord, McpServerCategoryRecord, McpServerRecord, McpToolRecord,
+    McpConnectorRecord, McpInvocationRecord, McpPromptRecord, McpResourceRecord,
+    McpServerCategoryRecord, McpServerRecord, McpToolRecord,
 };
 use sdkwork_utils_rust::{SdkWorkPageData, SdkWorkResourceData};
 
@@ -65,24 +65,19 @@ fn filter_servers(items: Vec<McpServerRecord>, query: &SdkWorkListQuery) -> Vec<
     })
 }
 
-/// Applies the two catalog view filters (`category_code`, `role_codes`) and
+/// Applies the shared catalog view filter (`category_code`, `role_codes`) and
 /// then the free-text keyword to a server listing.
 ///
-/// Both catalog filters only remove rows from the tenant-scoped set the
+/// Both catalog halves only remove rows from the tenant-scoped set the
 /// repository already returned; they never widen visibility.
 fn filter_catalog_servers(
     items: Vec<McpServerRecord>,
     query: &SdkWorkListQuery,
 ) -> Vec<McpServerRecord> {
-    let category = query.category_filter();
-    let role_scope = query.role_scope();
+    let filter = query.catalog_filter();
     let items = items
         .into_iter()
-        .filter(|item| match category.as_deref() {
-            Some(code) => category_matches(item.category_code.as_deref(), code),
-            None => true,
-        })
-        .filter(|item| role_scope_allows(&item.allowed_role_codes, &role_scope))
+        .filter(|item| filter.allows(item.category_code.as_deref(), &item.allowed_role_codes))
         .collect();
     filter_servers(items, query)
 }
@@ -126,6 +121,19 @@ pub async fn list_categories<R: McpRepository>(
 ) -> ApiResult<SdkWorkPageData<McpServerCategoryRecord>> {
     query.validate()?;
     let items = service.list_categories(tenant_id).await?;
+    Ok(paginate_items(filter_categories(items, query), query))
+}
+
+/// Application catalog category listing: only catalog-visible categories
+/// (`lifecycle_status = active`, not soft-deleted), so the marketplace never
+/// offers a chip that files nothing.
+pub async fn list_catalog_categories<R: McpRepository>(
+    service: &McpService<R>,
+    tenant_id: u64,
+    query: &SdkWorkListQuery,
+) -> ApiResult<SdkWorkPageData<McpServerCategoryRecord>> {
+    query.validate()?;
+    let items = service.list_catalog_categories(tenant_id).await?;
     Ok(paginate_items(filter_categories(items, query), query))
 }
 
@@ -441,8 +449,10 @@ mod tests {
 
     fn query(category_code: Option<&str>, role_codes: Option<&str>) -> SdkWorkListQuery {
         SdkWorkListQuery {
-            category_code: category_code.map(str::to_string),
-            role_codes: role_codes.map(str::to_string),
+            catalog: sdkwork_utils_rust::CatalogViewQuery {
+                category_code: category_code.map(str::to_string),
+                role_codes: role_codes.map(str::to_string),
+            },
             ..Default::default()
         }
     }
@@ -459,6 +469,9 @@ mod tests {
     fn all_view_keeps_every_category_and_role() {
         let filtered = filter_catalog_servers(catalog(), &query(None, None));
         assert_eq!(keys(&filtered), vec!["search", "ocr", "audit"]);
+
+        let all_selector = filter_catalog_servers(catalog(), &query(Some("all"), Some(" ")));
+        assert_eq!(keys(&all_selector), vec!["search", "ocr", "audit"]);
     }
 
     #[test]
@@ -466,8 +479,24 @@ mod tests {
         let filtered = filter_catalog_servers(catalog(), &query(Some("image-processing"), None));
         assert_eq!(keys(&filtered), vec!["ocr"]);
 
-        let all_selector = filter_catalog_servers(catalog(), &query(Some("all"), None));
-        assert_eq!(keys(&all_selector), vec!["search", "ocr", "audit"]);
+        let case_insensitive =
+            filter_catalog_servers(catalog(), &query(Some(" Image-Processing "), None));
+        assert_eq!(keys(&case_insensitive), vec!["ocr"]);
+    }
+
+    #[test]
+    fn category_filter_never_matches_a_server_without_a_category() {
+        let mut items = catalog();
+        items.push(server("uncategorized", None, &[]));
+
+        let all_view = filter_catalog_servers(items.clone(), &query(None, None));
+        assert_eq!(
+            keys(&all_view),
+            vec!["search", "ocr", "audit", "uncategorized"]
+        );
+
+        let narrowed = filter_catalog_servers(items, &query(Some("data-retrieval"), None));
+        assert_eq!(keys(&narrowed), vec!["search"]);
     }
 
     #[test]
@@ -477,6 +506,21 @@ mod tests {
 
         let other_role = filter_catalog_servers(catalog(), &query(None, Some("org_operations")));
         assert_eq!(keys(&other_role), vec!["search", "ocr"]);
+    }
+
+    #[test]
+    fn role_scope_matches_named_roles_case_insensitively() {
+        let operator = filter_catalog_servers(catalog(), &query(None, Some("Org_Auditor")));
+        assert_eq!(keys(&operator), vec!["search", "ocr", "audit"]);
+
+        let mut items = catalog();
+        items.push(server(
+            "billing",
+            Some("document-processing"),
+            &["ORG_FINANCE"],
+        ));
+        let finance = filter_catalog_servers(items, &query(None, Some("org_finance")));
+        assert_eq!(keys(&finance), vec!["search", "ocr", "billing"]);
     }
 
     #[test]

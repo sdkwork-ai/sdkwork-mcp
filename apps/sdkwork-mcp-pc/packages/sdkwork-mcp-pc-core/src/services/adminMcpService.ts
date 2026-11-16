@@ -18,6 +18,22 @@ import { unwrapSdkWorkPage } from '../sdk/sdkPage';
 
 const catalogListParams = { pageSize: 200 } as const;
 
+/**
+ * Catalog view filters accepted by the admin server list.
+ *
+ * The admin list applies the same `category_code` / `role_codes` filters as the
+ * marketplace catalog, so the console and the catalog cannot disagree on what
+ * a category or a role scope selects.
+ */
+export interface AdminServerListFilters {
+  /** One registry category code; omit for every category. */
+  categoryCode?: string;
+  /** Comma-separated IAM role codes; omit for the all-data view. */
+  roleCodes?: string;
+  /** Free-text keyword matched by the backend. */
+  q?: string;
+}
+
 export async function listAdminCategories(clients: MCPClients) {
   const response = await clients.backend.mcp.mcpAdmin.listCategories(catalogListParams);
   return unwrapSdkWorkPage<McpServerCategoryRecord>(response).items;
@@ -30,8 +46,13 @@ export async function upsertAdminCategory(
   return clients.backend.mcp.mcpAdmin.upsertCategory(command);
 }
 
-export async function listAdminServers(clients: MCPClients) {
-  const response = await clients.backend.mcp.mcpAdmin.listServers(catalogListParams);
+export async function listAdminServers(clients: MCPClients, filters: AdminServerListFilters = {}) {
+  const response = await clients.backend.mcp.mcpAdmin.listServers({
+    ...catalogListParams,
+    ...(filters.q === undefined ? {} : { q: filters.q }),
+    ...(filters.categoryCode === undefined ? {} : { categoryCode: filters.categoryCode }),
+    ...(filters.roleCodes === undefined ? {} : { roleCodes: filters.roleCodes }),
+  });
   return unwrapSdkWorkPage<McpServerRecord>(response).items;
 }
 

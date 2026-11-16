@@ -63,6 +63,13 @@ impl McpRepository for SqlxMcpRepository {
         postgres::list_categories(&self.pool, tenant_id).await
     }
 
+    async fn list_catalog_categories(
+        &self,
+        tenant_id: u64,
+    ) -> McpResult<Vec<McpServerCategoryRecord>> {
+        postgres::list_catalog_categories(&self.pool, tenant_id).await
+    }
+
     async fn get_category(
         &self,
         tenant_id: u64,

@@ -31,9 +31,10 @@ use serde::Deserialize;
 use sqlx::PgPool;
 
 pub use handlers::{
-    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_catalog_servers,
-    list_categories, list_invocations, list_prompts, list_resources, list_tools, ok_json,
-    resolve_tenant_id, McpInvocationListQuery, SdkWorkListQuery, SharedMcpService,
+    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_catalog_categories,
+    list_catalog_servers, list_categories, list_invocations, list_prompts, list_resources,
+    list_tools, ok_json, resolve_tenant_id, McpInvocationListQuery, SdkWorkListQuery,
+    SharedMcpService,
 };
 pub use health::DbReadinessCheck;
 pub use http_route_manifest::app_route_manifest;
@@ -190,7 +191,9 @@ where
         async {
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(list_categories(state.service.as_ref(), tenant_id, &query).await?)
+            // The marketplace lists the taxonomy a visitor can file against:
+            // only active categories, in registry order.
+            ok_json(list_catalog_categories(state.service.as_ref(), tenant_id, &query).await?)
         }
         .await,
     )

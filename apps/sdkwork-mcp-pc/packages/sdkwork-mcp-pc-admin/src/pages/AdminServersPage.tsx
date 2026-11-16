@@ -17,10 +17,12 @@ import {
   createAdminServer,
   createMcpServerIconImageService,
   deleteAdminServer,
+  listAdminCategories,
   listAdminServers,
   updateAdminServer,
   useAsyncResource,
   useMCPClients,
+  type AdminServerListFilters,
   type CreateMcpServerCommand,
 } from '@sdkwork/mcp-pc-core';
 import {
@@ -60,7 +62,22 @@ function roleSummary(copy: McpAdminCopy, codes: readonly string[] | null | undef
 
 type OwnedServer = Awaited<ReturnType<typeof listAdminServers>>[number];
 
-export function AdminServersPage() {
+/** Data-scope selector of the catalog list; `mine` = the operator's roles. */
+type RoleScope = 'all' | 'mine';
+
+export interface AdminServersPageProps {
+  /**
+   * IAM role codes of the signed-in operator, supplied by the composing host.
+   *
+   * The page offers the catalog's role-scope switch with them: `All data`
+   * lists the whole tenant registry, `My roles` keeps the servers this
+   * operator can reach. Without role codes the switch stays on `All data`,
+   * because a scope the host cannot name would silently empty the table.
+   */
+  roleCodes?: readonly string[];
+}
+
+export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {}) {
   const clients = useMCPClients();
   const copy = useMcpAdminCopy();
   const serversBasePath = useMcpAdminServersBasePath();
@@ -70,8 +87,30 @@ export function AdminServersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<OwnedServer | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [categoryCode, setCategoryCode] = useState('');
+  const [roleScope, setRoleScope] = useState<RoleScope>('all');
+
+  const usableRoleCodes = useMemo(
+    () => roleCodes.map((code) => trim(code)).filter((code) => !isBlank(code)),
+    [roleCodes],
+  );
+  const roleScopeCodes = roleScope === 'mine' ? [...usableRoleCodes].sort().join(',') : '';
+  const listFilters = useMemo<AdminServerListFilters>(
+    () => ({
+      ...(isBlank(trim(keyword)) ? {} : { q: trim(keyword) }),
+      ...(isBlank(trim(categoryCode)) ? {} : { categoryCode: trim(categoryCode) }),
+      ...(isBlank(roleScopeCodes) ? {} : { roleCodes: roleScopeCodes }),
+    }),
+    [keyword, categoryCode, roleScopeCodes],
+  );
+
   const { data: servers, error: loadError, loading, reload } = useAsyncResource(
-    () => listAdminServers(clients),
+    () => listAdminServers(clients, listFilters),
+    [clients, listFilters],
+  );
+  const { data: categories } = useAsyncResource(
+    () => listAdminCategories(clients),
     [clients],
   );
 
@@ -134,10 +173,6 @@ export function AdminServersPage() {
     }
   }
 
-  if (loading) {
-    return <p className="text-sm text-slate-500 dark:text-zinc-400">{copy.servers.loading}</p>;
-  }
-
   return (
     <div className="embedded-fill-page">
       <PageHeader
@@ -150,9 +185,82 @@ export function AdminServersPage() {
         )}
       />
       {error || loadError ? <div className="mb-4"><ErrorAlert message={error ?? loadError ?? ''} /></div> : null}
+
+      {/* Catalog filters: keyword, category, and the operator's role scope.
+          They narrow the list endpoint itself, so the totals and the visible
+          rows agree, and the four AI-foundation catalogs read consistently. */}
+      <div className="mb-4 flex flex-wrap items-end gap-4">
+        <label className="grid max-w-xs gap-1 text-sm">
+          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+            {copy.servers.filters.keywordLabel}
+          </span>
+          <TextInput
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder={copy.servers.filters.keywordPlaceholder}
+          />
+        </label>
+        <label className="grid gap-1 text-sm">
+          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+            {copy.servers.filters.categoryLabel}
+          </span>
+          <select
+            className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            value={categoryCode}
+            onChange={(event) => setCategoryCode(event.target.value)}
+          >
+            <option value="">{copy.servers.filters.allCategories}</option>
+            {(categories ?? [])
+              .filter((category) => category.lifecycle_status === 'active')
+              .slice()
+              .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+              .map((category) => (
+                <option key={category.category_code} value={category.category_code}>
+                  {category.name}
+                </option>
+              ))}
+          </select>
+        </label>
+        <div className="grid gap-1 text-sm">
+          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+            {copy.servers.filters.roleScopeLabel}
+          </span>
+          <div
+            className="inline-flex overflow-hidden rounded border border-slate-300 dark:border-zinc-700"
+            role="group"
+            aria-label={copy.servers.filters.roleScopeLabel}
+          >
+            {(['all', 'mine'] as const).map((scope) => {
+              const disabled = scope === 'mine' && usableRoleCodes.length === 0;
+              return (
+                <button
+                  key={scope}
+                  type="button"
+                  className={
+                    roleScope === scope
+                      ? 'bg-blue-600 px-3 py-1 text-xs font-medium text-white'
+                      : 'px-3 py-1 text-xs text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                  }
+                  aria-pressed={roleScope === scope}
+                  disabled={disabled}
+                  title={disabled ? copy.servers.filters.roleScopeUnavailable : undefined}
+                  onClick={() => setRoleScope(scope)}
+                >
+                  {scope === 'all'
+                    ? copy.servers.filters.roleScopeAll
+                    : copy.servers.filters.roleScopeMine}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="data-surface">
         <div className="table-frame">
-          {!servers || servers.length === 0 ? (
+          {loading && !servers ? (
+            <p className="text-sm text-slate-500 dark:text-zinc-400">{copy.servers.loading}</p>
+          ) : !servers || servers.length === 0 ? (
             <div className="empty-state">
               <h3>{copy.servers.empty.title}</h3>
               <p>{copy.servers.empty.description}</p>

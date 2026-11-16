@@ -41,6 +41,15 @@ pub trait McpRepository: Send + Sync {
     async fn delete_server(&self, tenant_id: u64, server_key: &str) -> McpResult<McpServerRecord>;
 
     async fn list_categories(&self, tenant_id: u64) -> McpResult<Vec<McpServerCategoryRecord>>;
+    /// Catalog-visible categories only: `lifecycle_status = active` and not
+    /// soft-deleted. Draft, disabled and archived categories stay visible to
+    /// the admin surface through [`McpRepository::list_categories`] but never
+    /// reach application users, so the marketplace cannot offer a chip that
+    /// files nothing.
+    async fn list_catalog_categories(
+        &self,
+        tenant_id: u64,
+    ) -> McpResult<Vec<McpServerCategoryRecord>>;
     async fn get_category(
         &self,
         tenant_id: u64,
@@ -203,6 +212,14 @@ impl<R: McpRepository> McpService<R> {
 
     pub async fn list_categories(&self, tenant_id: u64) -> McpResult<Vec<McpServerCategoryRecord>> {
         self.repository.list_categories(tenant_id).await
+    }
+
+    /// Catalog-visible categories for the marketplace surface.
+    pub async fn list_catalog_categories(
+        &self,
+        tenant_id: u64,
+    ) -> McpResult<Vec<McpServerCategoryRecord>> {
+        self.repository.list_catalog_categories(tenant_id).await
     }
 
     pub async fn get_category(

@@ -455,6 +455,31 @@ pub async fn list_categories(
     rows.iter().map(row_to_category).collect()
 }
 
+/// Catalog-visible categories: only `active` rows, in registry order.
+///
+/// Mirrors [`list_catalog_servers`] on the same table family: the marketplace
+/// offers the taxonomy a visitor can file against, while draft, disabled and
+/// archived categories stay admin-only through [`ACTIVE_ENTITY_FILTER`].
+pub async fn list_catalog_categories(
+    pool: &PgPool,
+    tenant_id: u64,
+) -> McpResult<Vec<McpServerCategoryRecord>> {
+    let query = format!(
+        r#"
+        SELECT {CATEGORY_SELECT}
+        FROM ai_mcp_server_category
+        WHERE tenant_id IN (0, $1) AND {CATALOG_VISIBLE_FILTER}
+        ORDER BY sort_order ASC, category_code ASC
+        "#
+    );
+    let rows = sqlx::query(sqlx::AssertSqlSafe(query.as_str()))
+        .bind(tenant_id as i64)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    rows.iter().map(row_to_category).collect()
+}
+
 pub async fn get_category(
     pool: &PgPool,
     tenant_id: u64,
@@ -1540,5 +1565,22 @@ mod tests {
         );
         assert_eq!(CATALOG_VISIBLE_FILTER, expected);
         assert_ne!(ACTIVE_ENTITY_FILTER, CATALOG_VISIBLE_FILTER);
+    }
+
+    /// Both category listings read the same table; the pair of predicates is
+    /// what keeps the marketplace taxonomy active-only while the admin still
+    /// sees drafts. Pinning the split here keeps a later edit from collapsing
+    /// the two callers back onto one predicate.
+    #[test]
+    fn category_listings_keep_the_catalog_admin_split() {
+        let catalog = format!(
+            "FROM ai_mcp_server_category\n        WHERE tenant_id IN (0, $1) AND {CATALOG_VISIBLE_FILTER}"
+        );
+        let admin = format!(
+            "FROM ai_mcp_server_category\n        WHERE tenant_id IN (0, $1) AND {ACTIVE_ENTITY_FILTER}"
+        );
+        assert!(catalog.contains("lifecycle_status = 1"));
+        assert!(admin.contains("lifecycle_status <> 4"));
+        assert_ne!(catalog, admin);
     }
 }

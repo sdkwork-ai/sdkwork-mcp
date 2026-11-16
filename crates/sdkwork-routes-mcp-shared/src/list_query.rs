@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use sdkwork_mcp_contract::{normalize_category_filter, normalize_role_code_filter};
+use sdkwork_utils_rust::{CatalogViewFilter, CatalogViewQuery};
 
 use crate::response::ApiProblem;
 
@@ -8,17 +8,23 @@ use crate::response::ApiProblem;
 /// catalog view filters (`category_code`, `role_codes`).
 #[derive(Debug, Default, Deserialize)]
 pub struct SdkWorkListQuery {
+    #[serde(
+        default,
+        deserialize_with = "sdkwork_utils_rust::serde_query_int::option_i32"
+    )]
     pub page: Option<i32>,
+    #[serde(
+        default,
+        deserialize_with = "sdkwork_utils_rust::serde_query_int::option_i32"
+    )]
     pub page_size: Option<i32>,
     pub cursor: Option<String>,
     pub q: Option<String>,
-    /// One category code from the registry; `all` keeps every category.
-    #[serde(alias = "categoryCode")]
-    pub category_code: Option<String>,
-    /// Comma-separated IAM role codes of the signed-in caller. Empty keeps the
-    /// "all data" view.
-    #[serde(alias = "roleCodes")]
-    pub role_codes: Option<String>,
+    /// Shared catalog view vocabulary: one category code from the registry
+    /// (`all` keeps every category) plus the comma-separated IAM role codes of
+    /// the signed-in caller (empty keeps the "all data" view).
+    #[serde(flatten)]
+    pub catalog: CatalogViewQuery,
 }
 
 impl SdkWorkListQuery {
@@ -51,14 +57,10 @@ impl SdkWorkListQuery {
             .filter(|value| !value.is_empty())
     }
 
-    /// Normalized category selector: `None` keeps every category.
-    pub fn category_filter(&self) -> Option<String> {
-        normalize_category_filter(self.category_code.as_deref())
-    }
-
-    /// Normalized role scope: empty keeps the "all data" view.
-    pub fn role_scope(&self) -> Vec<String> {
-        normalize_role_code_filter(self.role_codes.as_deref())
+    /// Normalized catalog view: `all`/blank keeps every category, and an empty
+    /// role scope keeps the "all data" view. Values are canonical lowercase.
+    pub fn catalog_filter(&self) -> CatalogViewFilter {
+        self.catalog.to_filter()
     }
 }
 
@@ -68,10 +70,16 @@ mod tests {
 
     fn query_with(category_code: Option<&str>, role_codes: Option<&str>) -> SdkWorkListQuery {
         SdkWorkListQuery {
-            category_code: category_code.map(str::to_string),
-            role_codes: role_codes.map(str::to_string),
+            catalog: CatalogViewQuery {
+                category_code: category_code.map(str::to_string),
+                role_codes: role_codes.map(str::to_string),
+            },
             ..Default::default()
         }
+    }
+
+    fn roles(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| value.to_string()).collect()
     }
 
     #[test]
@@ -111,21 +119,57 @@ mod tests {
     }
 
     #[test]
-    fn category_filter_keeps_all_for_the_all_selector() {
-        assert_eq!(query_with(Some("all"), None).category_filter(), None);
+    fn omitted_and_all_selectors_keep_the_all_data_view() {
+        assert!(query_with(None, None).catalog_filter().is_all_data());
+        assert!(query_with(Some("all"), Some(" "))
+            .catalog_filter()
+            .is_all_data());
+        assert!(query_with(Some("  "), None).catalog_filter().is_all_data());
+        assert!(query_with(Some("ALL"), None).catalog_filter().is_all_data());
+        assert!(query_with(Some("全部"), None)
+            .catalog_filter()
+            .is_all_data());
         assert_eq!(
-            query_with(Some("data-retrieval"), None).category_filter(),
-            Some("data-retrieval".to_string())
+            query_with(None, None).catalog_filter().category_code(),
+            None
         );
     }
 
     #[test]
-    fn role_scope_is_empty_for_the_all_view() {
-        assert!(query_with(None, None).role_scope().is_empty());
+    fn category_filter_keeps_all_for_the_all_selector() {
+        let all_selector = query_with(Some("all"), None);
+        assert_eq!(all_selector.catalog_filter().category_code(), None);
+
+        let narrowed = query_with(Some(" data-retrieval "), None);
         assert_eq!(
-            query_with(None, Some("org_admin,org_operations")).role_scope(),
-            vec!["org_admin".to_string(), "org_operations".to_string()]
+            narrowed.catalog_filter().category_code(),
+            Some("data-retrieval")
         );
+        assert!(!narrowed.catalog_filter().is_all_data());
+    }
+
+    #[test]
+    fn role_scope_is_empty_for_the_all_view() {
+        assert!(query_with(None, None)
+            .catalog_filter()
+            .role_codes()
+            .is_empty());
+        assert_eq!(
+            query_with(None, Some("org_operations, Org_Admin,,ORG_ADMIN,"))
+                .catalog_filter()
+                .role_codes(),
+            roles(&["org_admin", "org_operations"]).as_slice()
+        );
+    }
+
+    #[test]
+    fn catalog_filter_composes_category_and_role_scope() {
+        let filter = query_with(Some("data-retrieval"), Some("org_auditor")).catalog_filter();
+        assert!(filter.allows(Some("data-retrieval"), &[]));
+        assert!(filter.allows(Some("DATA-RETRIEVAL"), &roles(&["org_auditor"])));
+        assert!(!filter.allows(Some("data-retrieval"), &roles(&["org_finance"])));
+        assert!(!filter.allows(Some("image-processing"), &[]));
+        assert!(!filter.allows(None, &[]));
     }
 
     #[test]
@@ -133,8 +177,66 @@ mod tests {
         let query: SdkWorkListQuery =
             serde_json::from_str(r#"{"categoryCode":"all","roleCodes":"org_admin"}"#)
                 .expect("query deserializes");
-        assert_eq!(query.category_filter(), None);
-        assert_eq!(query.role_scope(), vec!["org_admin".to_string()]);
+        assert_eq!(query.catalog_filter().category_code(), None);
+        assert_eq!(
+            query.catalog_filter().role_codes(),
+            roles(&["org_admin"]).as_slice()
+        );
+    }
+
+    #[test]
+    fn flatten_keeps_the_url_wire_form() {
+        use axum::http::Uri;
+
+        let uri: Uri = "/api/v1/mcp/servers?page=2&page_size=10&q=ocr&category_code=all&role_codes=org_admin%2Corg_auditor"
+            .parse()
+            .expect("uri parses");
+        let axum::extract::Query(query) =
+            axum::extract::Query::<SdkWorkListQuery>::try_from_uri(&uri)
+                .expect("list query deserializes");
+        assert_eq!(query.page, Some(2));
+        assert_eq!(query.page_size, Some(10));
+        assert_eq!(query.search_keyword(), Some("ocr"));
+        assert_eq!(query.catalog_filter().category_code(), None);
+        assert_eq!(
+            query.catalog_filter().role_codes(),
+            roles(&["org_admin", "org_auditor"]).as_slice()
+        );
+    }
+
+    #[test]
+    fn nested_flatten_parses_paging_and_catalog_filters() {
+        use axum::http::Uri;
+
+        // The wrapper flattens the base list query, so the numeric paging fields
+        // reach the inner DTO through serde's content buffer; the shared lenient
+        // reader keeps them parseable next to the catalog filters.
+        let uri: Uri =
+            "/api/v1/mcp/invocations?page=2&page_size=10&server_id=42&category_code=all&role_codes=org_admin"
+                .parse()
+                .expect("uri parses");
+        let axum::extract::Query(query) =
+            axum::extract::Query::<McpInvocationListQuery>::try_from_uri(&uri)
+                .expect("invocation query deserializes");
+        assert_eq!(query.server_id, Some(42));
+        assert_eq!(query.list.page, Some(2));
+        assert_eq!(query.list.page_size, Some(10));
+        assert_eq!(query.list.effective_page(), 2);
+        assert_eq!(query.list.effective_page_size(), 10);
+        let filter = query.list.catalog_filter();
+        assert_eq!(filter.category_code(), None);
+        assert_eq!(filter.role_codes(), roles(&["org_admin"]).as_slice());
+        assert!(!filter.is_all_data());
+    }
+
+    #[test]
+    fn nested_flatten_still_rejects_junk_paging() {
+        use axum::http::Uri;
+
+        let uri: Uri = "/api/v1/mcp/invocations?page=later"
+            .parse()
+            .expect("uri parses");
+        assert!(axum::extract::Query::<McpInvocationListQuery>::try_from_uri(&uri).is_err());
     }
 }
 

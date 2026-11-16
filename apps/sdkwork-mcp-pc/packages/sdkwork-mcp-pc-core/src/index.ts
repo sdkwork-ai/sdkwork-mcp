@@ -73,6 +73,7 @@ export {
   deleteAdminPrompt,
   deleteAdminCategory,
   listAdminInvocations,
+  type AdminServerListFilters,
   appendAdminInvocation,
 } from './services/adminMcpService';
 

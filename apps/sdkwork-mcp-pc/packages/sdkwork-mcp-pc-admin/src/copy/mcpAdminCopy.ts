@@ -145,6 +145,16 @@ const en = {
     loading: 'Loading servers…',
     create: 'Create server',
     creating: 'Creating…',
+    filters: {
+      keywordLabel: 'Search servers',
+      keywordPlaceholder: 'name, server key, category',
+      categoryLabel: 'Category',
+      allCategories: 'All categories',
+      roleScopeLabel: 'Data scope',
+      roleScopeAll: 'All data',
+      roleScopeMine: 'My roles',
+      roleScopeUnavailable: 'The host did not supply the operator role codes.',
+    },
     empty: {
       title: 'No MCP servers yet',
       description: 'Create the first server from the header action.',
@@ -362,6 +372,16 @@ const zh: McpAdminCopy = {
     loading: '正在加载服务…',
     create: '创建服务',
     creating: '创建中…',
+    filters: {
+      keywordLabel: '搜索服务',
+      keywordPlaceholder: '名称、服务标识、分类',
+      categoryLabel: '分类',
+      allCategories: '全部分类',
+      roleScopeLabel: '数据范围',
+      roleScopeAll: '全部数据',
+      roleScopeMine: '我的角色',
+      roleScopeUnavailable: '宿主未提供当前操作者的角色编码。',
+    },
     empty: {
       title: '还没有 MCP 服务',
       description: '使用页头的创建操作添加第一个服务。',
