@@ -31,10 +31,10 @@ use serde::Deserialize;
 use sqlx::PgPool;
 
 pub use handlers::{
-    finish_api_json, get_prompt, get_resource, get_server, get_tool, list_catalog_categories,
-    list_catalog_servers, list_categories, list_invocations, list_prompts, list_resources,
-    list_tools, ok_json, resolve_tenant_id, McpInvocationListQuery, SdkWorkListQuery,
-    SharedMcpService,
+    finish_api_json, get_catalog_server, get_prompt, get_resource, get_server, get_tool,
+    list_catalog_categories, list_catalog_servers, list_categories, list_invocations, list_prompts,
+    list_resources, list_tools, ok_json, resolve_tenant_id, McpInvocationListQuery,
+    SdkWorkListQuery, SharedMcpService,
 };
 pub use health::DbReadinessCheck;
 pub use http_route_manifest::app_route_manifest;
@@ -235,7 +235,11 @@ where
         async {
             let tenant_id =
                 resolve_request_tenant_id(&ctx, context.as_ref(), state.default_tenant_id);
-            ok_json(get_server(state.service.as_ref(), tenant_id, server_key.as_str()).await?)
+            // The marketplace retrieves only what it would list: a draft the
+            // catalog hides must not be readable by its key.
+            ok_json(
+                get_catalog_server(state.service.as_ref(), tenant_id, server_key.as_str()).await?,
+            )
         }
         .await,
     )

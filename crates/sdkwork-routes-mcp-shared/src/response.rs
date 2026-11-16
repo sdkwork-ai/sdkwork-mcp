@@ -4,7 +4,8 @@ use axum::{
     Json,
 };
 use sdkwork_utils_rust::{
-    PageInfo, PageMode, SdkWorkApiResponse, SdkWorkPageData, SdkWorkResourceData,
+    PageInfo, PageMode, SdkWorkApiResponse, SdkWorkPageData, SdkWorkProblemDetail,
+    SdkWorkResourceData, SdkWorkResultCode,
 };
 use sdkwork_web_core::{
     problem_response, WebFrameworkError, WebFrameworkErrorKind, WebRequestContext,
@@ -44,13 +45,22 @@ pub fn paginate_items<T>(items: Vec<T>, query: &SdkWorkListQuery) -> SdkWorkPage
     }
 }
 
-pub fn page_data<T>(items: Vec<T>, total: usize, query: &SdkWorkListQuery) -> SdkWorkPageData<T> {
-    let page_size = query.effective_page_size() as usize;
-    let page = query.effective_page() as usize;
-    let total_pages = if total == 0 {
+/// Builds offset page metadata from a store-computed total.
+///
+/// The total is the filtered row count the store returned (for example
+/// `COUNT(*) OVER()`), not the size of the page, so `totalItems`, `totalPages`
+/// and `hasMore` describe the whole result set.
+pub fn page_data_from_total<T>(
+    items: Vec<T>,
+    total: i64,
+    query: &SdkWorkListQuery,
+) -> SdkWorkPageData<T> {
+    let page_size = i64::from(query.effective_page_size());
+    let page = i64::from(query.effective_page());
+    let total_pages = if total <= 0 {
         0
     } else {
-        total.div_ceil(page_size) as i32
+        ((total + page_size - 1) / page_size) as i32
     };
     SdkWorkPageData {
         items,
@@ -61,9 +71,13 @@ pub fn page_data<T>(items: Vec<T>, total: usize, query: &SdkWorkListQuery) -> Sd
             total_items: Some(total.to_string()),
             total_pages: Some(total_pages),
             next_cursor: None,
-            has_more: Some((page * page_size) < total),
+            has_more: Some(page * page_size < total),
         },
     }
+}
+
+pub fn page_data<T>(items: Vec<T>, total: usize, query: &SdkWorkListQuery) -> SdkWorkPageData<T> {
+    page_data_from_total(items, i64::try_from(total).unwrap_or(i64::MAX), query)
 }
 
 pub fn item_data<T>(item: T) -> SdkWorkResourceData<T> {
@@ -98,6 +112,12 @@ pub fn finish_api_json<T: Serialize>(ctx: &WebRequestContext, result: ApiResult<
 pub struct ApiProblem {
     message: String,
     status: StatusCode,
+    /// Platform result code rendered as the problem `code`.
+    ///
+    /// Most failures let the framework derive the code from the status; a
+    /// pagination violation must carry `40003 INVALID_PARAMETER`
+    /// (`PAGINATION_SPEC` §3), so it names the code explicitly.
+    result_code: Option<SdkWorkResultCode>,
 }
 
 impl ApiProblem {
@@ -105,6 +125,17 @@ impl ApiProblem {
         Self {
             message: message.into(),
             status: StatusCode::BAD_REQUEST,
+            result_code: None,
+        }
+    }
+
+    /// A rejected list parameter (`page`/`page_size` outside the declared
+    /// range), rendered as `40003 INVALID_PARAMETER`.
+    pub fn invalid_parameter(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            status: StatusCode::BAD_REQUEST,
+            result_code: Some(SdkWorkResultCode::InvalidParameter),
         }
     }
 
@@ -112,6 +143,7 @@ impl ApiProblem {
         Self {
             message: message.into(),
             status: StatusCode::NOT_FOUND,
+            result_code: None,
         }
     }
 
@@ -119,6 +151,7 @@ impl ApiProblem {
         Self {
             message: message.into(),
             status: StatusCode::FORBIDDEN,
+            result_code: None,
         }
     }
 
@@ -126,6 +159,7 @@ impl ApiProblem {
         Self {
             message: message.into(),
             status: StatusCode::INTERNAL_SERVER_ERROR,
+            result_code: None,
         }
     }
 
@@ -148,6 +182,34 @@ impl ApiProblem {
     }
 
     pub fn into_response_for(self, ctx: &WebRequestContext) -> Response {
+        if let Some(result_code) = self.result_code {
+            let correlation = ctx.problem_correlation();
+            let mut problem = SdkWorkProblemDetail::platform_enriched(
+                result_code,
+                self.message.clone(),
+                correlation.resolved_trace_id().unwrap_or_default(),
+                correlation.routing(),
+            );
+            problem.status = self.status.as_u16();
+            if !self.message.trim().is_empty() {
+                problem.detail = Some(self.message.clone());
+            }
+            let body = Json(serde_json::to_value(&problem).unwrap_or(serde_json::Value::Null));
+            let mut response = (
+                self.status,
+                [(axum::http::header::CONTENT_TYPE, "application/problem+json")],
+                body,
+            )
+                .into_response();
+            if let Some(trace_id) = correlation.resolved_trace_id() {
+                if let Ok(value) = HeaderValue::from_str(trace_id.as_str()) {
+                    response
+                        .headers_mut()
+                        .insert(HeaderName::from_static("x-sdkwork-trace-id"), value);
+                }
+            }
+            return response;
+        }
         problem_response(&self.framework_error(), ctx.problem_correlation())
     }
 }
@@ -184,5 +246,30 @@ mod tests {
         assert_eq!(page.items.len(), 3);
         assert_eq!(page.page_info.total_items, Some("120".to_string()));
         assert_eq!(page.page_info.total_pages, Some(6));
+    }
+
+    #[test]
+    fn page_data_from_total_uses_the_filtered_store_total() {
+        let query = SdkWorkListQuery {
+            page: Some(2),
+            page_size: Some(20),
+            ..Default::default()
+        };
+        let page = page_data_from_total(vec![21, 22], 45, &query);
+        assert_eq!(page.items, vec![21, 22]);
+        assert_eq!(page.page_info.total_items, Some("45".to_string()));
+        assert_eq!(page.page_info.total_pages, Some(3));
+        assert_eq!(page.page_info.has_more, Some(true));
+
+        let last = page_data_from_total(
+            vec![41, 42, 43, 44, 45],
+            45,
+            &SdkWorkListQuery {
+                page: Some(3),
+                page_size: Some(20),
+                ..Default::default()
+            },
+        );
+        assert_eq!(last.page_info.has_more, Some(false));
     }
 }

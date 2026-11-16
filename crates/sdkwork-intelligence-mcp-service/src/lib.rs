@@ -8,6 +8,7 @@ use sdkwork_mcp_contract::{
     McpConnectorRecord, McpInvocationRecord, McpPromptRecord, McpResourceRecord,
     McpServerCategoryRecord, McpServerRecord, McpToolRecord,
 };
+use sdkwork_utils_rust::CatalogViewFilter;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -25,11 +26,32 @@ pub type McpResult<T> = Result<T, McpServiceError>;
 #[async_trait]
 pub trait McpRepository: Send + Sync {
     async fn list_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>>;
+    /// Admin server listing, filtered and windowed by the store.
+    ///
+    /// The view filter, the keyword and `limit`/`offset` all reach the database;
+    /// the returned total is the filtered row count, not the page size.
+    async fn list_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)>;
     /// Catalog-visible servers only: `lifecycle_status = active` and not
     /// soft-deleted. Draft and disabled rows stay visible to the admin surface
     /// through [`McpRepository::list_servers`] but never reach application
     /// users.
     async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>>;
+    /// Catalog-visible server listing, filtered and windowed by the store.
+    async fn list_catalog_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)>;
     async fn list_owned_servers(
         &self,
         tenant_id: u64,
@@ -41,6 +63,18 @@ pub trait McpRepository: Send + Sync {
     async fn delete_server(&self, tenant_id: u64, server_key: &str) -> McpResult<McpServerRecord>;
 
     async fn list_categories(&self, tenant_id: u64) -> McpResult<Vec<McpServerCategoryRecord>>;
+    /// Admin category listing, filtered and windowed by the store.
+    ///
+    /// The category selector, the keyword and `limit`/`offset` all reach the
+    /// database; the returned total is the filtered row count.
+    async fn list_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)>;
     /// Catalog-visible categories only: `lifecycle_status = active` and not
     /// soft-deleted. Draft, disabled and archived categories stay visible to
     /// the admin surface through [`McpRepository::list_categories`] but never
@@ -50,6 +84,15 @@ pub trait McpRepository: Send + Sync {
         &self,
         tenant_id: u64,
     ) -> McpResult<Vec<McpServerCategoryRecord>>;
+    /// Catalog-visible category listing, filtered and windowed by the store.
+    async fn list_catalog_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)>;
     async fn get_category(
         &self,
         tenant_id: u64,
@@ -167,10 +210,39 @@ impl<R: McpRepository> McpService<R> {
         self.repository.list_servers(tenant_id).await
     }
 
+    /// Admin server page: the store applies the view filter, the keyword and
+    /// the page window, and returns the filtered total with the page rows.
+    pub async fn list_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)> {
+        self.repository
+            .list_servers_page(tenant_id, filter, keyword, limit, offset)
+            .await
+    }
+
     /// Catalog listing for application users; drafts and disabled rows are
     /// excluded by the repository query.
     pub async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
         self.repository.list_catalog_servers(tenant_id).await
+    }
+
+    /// Catalog-visible server page, filtered and windowed by the store.
+    pub async fn list_catalog_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)> {
+        self.repository
+            .list_catalog_servers_page(tenant_id, filter, keyword, limit, offset)
+            .await
     }
 
     pub async fn list_owned_servers(
@@ -214,12 +286,41 @@ impl<R: McpRepository> McpService<R> {
         self.repository.list_categories(tenant_id).await
     }
 
+    /// Admin category page: the store applies the category selector, the
+    /// keyword and the page window, and returns the filtered total.
+    pub async fn list_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+        self.repository
+            .list_categories_page(tenant_id, filter, keyword, limit, offset)
+            .await
+    }
+
     /// Catalog-visible categories for the marketplace surface.
     pub async fn list_catalog_categories(
         &self,
         tenant_id: u64,
     ) -> McpResult<Vec<McpServerCategoryRecord>> {
         self.repository.list_catalog_categories(tenant_id).await
+    }
+
+    /// Catalog-visible category page, filtered and windowed by the store.
+    pub async fn list_catalog_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+        self.repository
+            .list_catalog_categories_page(tenant_id, filter, keyword, limit, offset)
+            .await
     }
 
     pub async fn get_category(

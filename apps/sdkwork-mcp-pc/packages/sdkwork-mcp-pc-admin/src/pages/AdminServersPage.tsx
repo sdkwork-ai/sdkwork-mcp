@@ -24,6 +24,7 @@ import {
   useMCPClients,
   type AdminServerListFilters,
   type CreateMcpServerCommand,
+  type McpServerCategoryRecord,
 } from '@sdkwork/mcp-pc-core';
 import {
   DriveUploadImage,
@@ -61,6 +62,30 @@ function roleSummary(copy: McpAdminCopy, codes: readonly string[] | null | undef
 }
 
 type OwnedServer = Awaited<ReturnType<typeof listAdminServers>>[number];
+
+/**
+ * Active category options for the filter select.
+ *
+ * A category can be retired after it was selected; retaining the selected
+ * value as an option keeps the select from rendering blank while the server
+ * list stays filtered by that code.
+ */
+function activeCategoryOptions(
+  categories: readonly McpServerCategoryRecord[] | null | undefined,
+  selected: string,
+): { value: string; label: string }[] {
+  const rows = categories ?? [];
+  const options = rows
+    .filter((category) => category.lifecycle_status === 'active')
+    .slice()
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .map((category) => ({ value: category.category_code, label: category.name }));
+  if (selected.length > 0 && !options.some((option) => option.value === selected)) {
+    const retained = rows.find((category) => category.category_code === selected);
+    options.push({ value: selected, label: retained?.name ?? selected });
+  }
+  return options;
+}
 
 /** Data-scope selector of the catalog list; `mine` = the operator's roles. */
 type RoleScope = 'all' | 'mine';
@@ -210,15 +235,11 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
             onChange={(event) => setCategoryCode(event.target.value)}
           >
             <option value="">{copy.servers.filters.allCategories}</option>
-            {(categories ?? [])
-              .filter((category) => category.lifecycle_status === 'active')
-              .slice()
-              .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
-              .map((category) => (
-                <option key={category.category_code} value={category.category_code}>
-                  {category.name}
-                </option>
-              ))}
+            {activeCategoryOptions(categories, categoryCode).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </label>
         <div className="grid gap-1 text-sm">

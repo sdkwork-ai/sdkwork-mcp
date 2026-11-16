@@ -8,6 +8,7 @@ use sdkwork_mcp_contract::{
     McpConnectorRecord, McpInvocationRecord, McpPromptRecord, McpResourceRecord,
     McpServerCategoryRecord, McpServerRecord, McpToolRecord,
 };
+use sdkwork_utils_rust::CatalogViewFilter;
 use sqlx::PgPool;
 
 #[derive(Clone)]
@@ -31,8 +32,31 @@ impl McpRepository for SqlxMcpRepository {
         postgres::list_servers(&self.pool, tenant_id).await
     }
 
+    async fn list_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)> {
+        postgres::list_servers_page(&self.pool, tenant_id, filter, keyword, limit, offset).await
+    }
+
     async fn list_catalog_servers(&self, tenant_id: u64) -> McpResult<Vec<McpServerRecord>> {
         postgres::list_catalog_servers(&self.pool, tenant_id).await
+    }
+
+    async fn list_catalog_servers_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerRecord>, i64)> {
+        postgres::list_catalog_servers_page(&self.pool, tenant_id, filter, keyword, limit, offset)
+            .await
     }
 
     async fn list_owned_servers(
@@ -63,11 +87,36 @@ impl McpRepository for SqlxMcpRepository {
         postgres::list_categories(&self.pool, tenant_id).await
     }
 
+    async fn list_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+        postgres::list_categories_page(&self.pool, tenant_id, filter, keyword, limit, offset).await
+    }
+
     async fn list_catalog_categories(
         &self,
         tenant_id: u64,
     ) -> McpResult<Vec<McpServerCategoryRecord>> {
         postgres::list_catalog_categories(&self.pool, tenant_id).await
+    }
+
+    async fn list_catalog_categories_page(
+        &self,
+        tenant_id: u64,
+        filter: &CatalogViewFilter,
+        keyword: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+        postgres::list_catalog_categories_page(
+            &self.pool, tenant_id, filter, keyword, limit, offset,
+        )
+        .await
     }
 
     async fn get_category(

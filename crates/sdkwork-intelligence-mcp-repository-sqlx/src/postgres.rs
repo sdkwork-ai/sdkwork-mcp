@@ -4,6 +4,7 @@ use sdkwork_mcp_contract::{
     McpInvocationRecord, McpLifecycleStatus, McpPromptRecord, McpPublishStatus, McpResourceRecord,
     McpServerCategoryRecord, McpServerRecord, McpToolRecord, McpTransportKind, McpVisibility,
 };
+use sdkwork_utils_rust::{CatalogViewFilter, LIST_TOTAL_SQL_COLUMN};
 use sqlx::{PgPool, Row};
 
 use crate::entity_ids::{new_mcp_snowflake_id, new_mcp_uuid};
@@ -65,8 +66,142 @@ const INVOCATION_SELECT: &str = r#"
     error_message, duration_ms, invoked_at, created_at
 "#;
 
+/// Admin server page: `COUNT(*) OVER()` runs after the filters, so the window
+/// total is the filtered count while `LIMIT`/`OFFSET` return one page.
+///
+/// `$2` is the normalized category code, `$3` the caller's IAM role scope,
+/// `$4` the lowercased keyword pattern and `$5`/`$6` the page window. The role
+/// predicate keeps open rows (`allowed_role_codes` empty) plus rows that name
+/// one of the caller's roles.
+const SERVER_PAGE_SQL: &str = r#"
+    SELECT
+        id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
+        category_id, category_code, transport, visibility, data_scope, latest_connector_id,
+        published_connector_id, health_status, last_checked_at, last_error_masked,
+        lifecycle_status, tags_json, allowed_role_codes, icon_ref, published_at, deprecated_at,
+        version, created_at, updated_at, created_by, updated_by, deleted_at,
+        COUNT(*) OVER() AS __list_total
+    FROM ai_mcp_server
+    WHERE tenant_id = $1 AND deleted_at IS NULL AND lifecycle_status <> 4
+      AND ($2::text IS NULL OR LOWER(category_code) = $2)
+      AND (cardinality($3::text[]) = 0
+           OR jsonb_array_length(allowed_role_codes) = 0
+           OR allowed_role_codes ?| $3::text[])
+      AND ($4::text IS NULL
+           OR LOWER(server_key) LIKE $4
+           OR LOWER(name) LIKE $4
+           OR LOWER(COALESCE(description, '')) LIKE $4
+           OR LOWER(COALESCE(category_code, '')) LIKE $4
+           OR LOWER(tags_json::text) LIKE $4)
+    ORDER BY updated_at DESC, server_key ASC
+    LIMIT $5 OFFSET $6
+"#;
+
+/// Catalog server page: same shape as [`SERVER_PAGE_SQL`] restricted to
+/// catalog-visible rows, so drafts and disabled servers never enter the total.
+const CATALOG_SERVER_PAGE_SQL: &str = r#"
+    SELECT
+        id, uuid, tenant_id, organization_id, owner_user_id, server_key, name, description,
+        category_id, category_code, transport, visibility, data_scope, latest_connector_id,
+        published_connector_id, health_status, last_checked_at, last_error_masked,
+        lifecycle_status, tags_json, allowed_role_codes, icon_ref, published_at, deprecated_at,
+        version, created_at, updated_at, created_by, updated_by, deleted_at,
+        COUNT(*) OVER() AS __list_total
+    FROM ai_mcp_server
+    WHERE tenant_id = $1 AND deleted_at IS NULL AND lifecycle_status = 1
+      AND ($2::text IS NULL OR LOWER(category_code) = $2)
+      AND (cardinality($3::text[]) = 0
+           OR jsonb_array_length(allowed_role_codes) = 0
+           OR allowed_role_codes ?| $3::text[])
+      AND ($4::text IS NULL
+           OR LOWER(server_key) LIKE $4
+           OR LOWER(name) LIKE $4
+           OR LOWER(COALESCE(description, '')) LIKE $4
+           OR LOWER(COALESCE(category_code, '')) LIKE $4
+           OR LOWER(tags_json::text) LIKE $4)
+    ORDER BY updated_at DESC, server_key ASC
+    LIMIT $5 OFFSET $6
+"#;
+
+/// Admin category page: `$2` is the normalized category code, `$3` the
+/// lowercased keyword pattern and `$4`/`$5` the page window.
+const CATEGORY_PAGE_SQL: &str = r#"
+    SELECT
+        id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+        sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by,
+        updated_by, deleted_at,
+        COUNT(*) OVER() AS __list_total
+    FROM ai_mcp_server_category
+    WHERE tenant_id IN (0, $1) AND deleted_at IS NULL AND lifecycle_status <> 4
+      AND ($2::text IS NULL OR LOWER(category_code) = $2)
+      AND ($3::text IS NULL
+           OR LOWER(category_code) LIKE $3
+           OR LOWER(name) LIKE $3
+           OR LOWER(COALESCE(description, '')) LIKE $3)
+    ORDER BY sort_order ASC, category_code ASC
+    LIMIT $4 OFFSET $5
+"#;
+
+/// Catalog category page: same shape as [`CATEGORY_PAGE_SQL`] restricted to
+/// the marketplace taxonomy.
+const CATALOG_CATEGORY_PAGE_SQL: &str = r#"
+    SELECT
+        id, uuid, tenant_id, organization_id, category_code, name, description, parent_id,
+        sort_order, icon_ref, lifecycle_status, version, created_at, updated_at, created_by,
+        updated_by, deleted_at,
+        COUNT(*) OVER() AS __list_total
+    FROM ai_mcp_server_category
+    WHERE tenant_id IN (0, $1) AND deleted_at IS NULL AND lifecycle_status = 1
+      AND ($2::text IS NULL OR LOWER(category_code) = $2)
+      AND ($3::text IS NULL
+           OR LOWER(category_code) LIKE $3
+           OR LOWER(name) LIKE $3
+           OR LOWER(COALESCE(description, '')) LIKE $3)
+    ORDER BY sort_order ASC, category_code ASC
+    LIMIT $4 OFFSET $5
+"#;
+
 fn map_sqlx(error: sqlx::Error) -> McpServiceError {
     McpServiceError::Repository(error.to_string())
+}
+
+/// Lowercased `%keyword%` pattern for the paged list predicates.
+///
+/// `LIKE` metacharacters in user input are escaped so the store keyword keeps
+/// the literal-substring meaning of the in-memory filters it replaces; `None`
+/// leaves the keyword predicate inactive.
+fn keyword_like_pattern(keyword: Option<&str>) -> Option<String> {
+    keyword
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(|value| {
+            let escaped = value
+                .to_lowercase()
+                .replace('\\', "\\\\")
+                .replace('%', "\\%")
+                .replace('_', "\\_");
+            format!("%{escaped}%")
+        })
+}
+
+/// Splits a windowed page into its rows and the `COUNT(*) OVER()` total.
+///
+/// The window counts the whole filtered set, so an in-range page carries the
+/// exact total. A page past the end has no row to carry it and reports zero
+/// here; the paged readers re-read the first row of the same query in that case
+/// so `pageInfo.totalItems` never depends on the requested page.
+fn map_page<T>(
+    rows: Vec<sqlx::postgres::PgRow>,
+    mapper: fn(&sqlx::postgres::PgRow) -> McpResult<T>,
+) -> McpResult<(Vec<T>, i64)> {
+    let total = match rows.first() {
+        Some(row) => row
+            .try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN)
+            .map_err(map_sqlx)?,
+        None => 0,
+    };
+    let items = rows.iter().map(mapper).collect::<McpResult<Vec<_>>>()?;
+    Ok((items, total))
 }
 
 fn resolve_entity_id(id: u64) -> i64 {
@@ -480,6 +615,82 @@ pub async fn list_catalog_categories(
     rows.iter().map(row_to_category).collect()
 }
 
+/// Admin category page: the store applies the category selector, the keyword
+/// and the page window, and returns the filtered total with the rows.
+pub async fn list_categories_page(
+    pool: &PgPool,
+    tenant_id: u64,
+    filter: &CatalogViewFilter,
+    keyword: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+    let rows = sqlx::query(CATEGORY_PAGE_SQL)
+        .bind(tenant_id as i64)
+        .bind(filter.category_code())
+        .bind(keyword_like_pattern(keyword))
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    let (items, mut total) = map_page(rows, row_to_category)?;
+    if items.is_empty() && offset > 0 {
+        total = sqlx::query(CATEGORY_PAGE_SQL)
+            .bind(tenant_id as i64)
+            .bind(filter.category_code())
+            .bind(keyword_like_pattern(keyword))
+            .bind(1_i64)
+            .bind(0_i64)
+            .fetch_optional(pool)
+            .await
+            .map_err(map_sqlx)?
+            .map(|row| row.try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN))
+            .transpose()
+            .map_err(map_sqlx)?
+            .unwrap_or(0);
+    }
+    Ok((items, total))
+}
+
+/// Catalog-visible category page: same filters and window, restricted to the
+/// marketplace taxonomy by [`CATALOG_VISIBLE_FILTER`].
+pub async fn list_catalog_categories_page(
+    pool: &PgPool,
+    tenant_id: u64,
+    filter: &CatalogViewFilter,
+    keyword: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> McpResult<(Vec<McpServerCategoryRecord>, i64)> {
+    let rows = sqlx::query(CATALOG_CATEGORY_PAGE_SQL)
+        .bind(tenant_id as i64)
+        .bind(filter.category_code())
+        .bind(keyword_like_pattern(keyword))
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    let (items, mut total) = map_page(rows, row_to_category)?;
+    if items.is_empty() && offset > 0 {
+        total = sqlx::query(CATALOG_CATEGORY_PAGE_SQL)
+            .bind(tenant_id as i64)
+            .bind(filter.category_code())
+            .bind(keyword_like_pattern(keyword))
+            .bind(1_i64)
+            .bind(0_i64)
+            .fetch_optional(pool)
+            .await
+            .map_err(map_sqlx)?
+            .map(|row| row.try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN))
+            .transpose()
+            .map_err(map_sqlx)?
+            .unwrap_or(0);
+    }
+    Ok((items, total))
+}
+
 pub async fn get_category(
     pool: &PgPool,
     tenant_id: u64,
@@ -615,6 +826,86 @@ pub async fn list_catalog_servers(
         .await
         .map_err(map_sqlx)?;
     rows.iter().map(row_to_server).collect()
+}
+
+/// Admin server page: the store applies the catalog view, the keyword and the
+/// page window, and returns the filtered total with the rows.
+pub async fn list_servers_page(
+    pool: &PgPool,
+    tenant_id: u64,
+    filter: &CatalogViewFilter,
+    keyword: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> McpResult<(Vec<McpServerRecord>, i64)> {
+    let rows = sqlx::query(SERVER_PAGE_SQL)
+        .bind(tenant_id as i64)
+        .bind(filter.category_code())
+        .bind(filter.role_codes().to_vec())
+        .bind(keyword_like_pattern(keyword))
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    let (items, mut total) = map_page(rows, row_to_server)?;
+    if items.is_empty() && offset > 0 {
+        total = sqlx::query(SERVER_PAGE_SQL)
+            .bind(tenant_id as i64)
+            .bind(filter.category_code())
+            .bind(filter.role_codes().to_vec())
+            .bind(keyword_like_pattern(keyword))
+            .bind(1_i64)
+            .bind(0_i64)
+            .fetch_optional(pool)
+            .await
+            .map_err(map_sqlx)?
+            .map(|row| row.try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN))
+            .transpose()
+            .map_err(map_sqlx)?
+            .unwrap_or(0);
+    }
+    Ok((items, total))
+}
+
+/// Catalog-visible server page: same filters and window, restricted to
+/// [`CATALOG_VISIBLE_FILTER`] rows.
+pub async fn list_catalog_servers_page(
+    pool: &PgPool,
+    tenant_id: u64,
+    filter: &CatalogViewFilter,
+    keyword: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> McpResult<(Vec<McpServerRecord>, i64)> {
+    let rows = sqlx::query(CATALOG_SERVER_PAGE_SQL)
+        .bind(tenant_id as i64)
+        .bind(filter.category_code())
+        .bind(filter.role_codes().to_vec())
+        .bind(keyword_like_pattern(keyword))
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await
+        .map_err(map_sqlx)?;
+    let (items, mut total) = map_page(rows, row_to_server)?;
+    if items.is_empty() && offset > 0 {
+        total = sqlx::query(CATALOG_SERVER_PAGE_SQL)
+            .bind(tenant_id as i64)
+            .bind(filter.category_code())
+            .bind(filter.role_codes().to_vec())
+            .bind(keyword_like_pattern(keyword))
+            .bind(1_i64)
+            .bind(0_i64)
+            .fetch_optional(pool)
+            .await
+            .map_err(map_sqlx)?
+            .map(|row| row.try_get::<i64, _>(LIST_TOTAL_SQL_COLUMN))
+            .transpose()
+            .map_err(map_sqlx)?
+            .unwrap_or(0);
+    }
+    Ok((items, total))
 }
 
 pub async fn list_owned_servers(
@@ -1555,6 +1846,10 @@ pub async fn append_invocation(
 mod tests {
     use super::*;
 
+    fn normalized(sql: &str) -> String {
+        sql.split_whitespace().collect::<Vec<_>>().join(" ")
+    }
+
     /// The catalog filter is a literal SQL clause, so it is pinned to the
     /// contract's active lifecycle code to keep the two in step.
     #[test]
@@ -1582,5 +1877,74 @@ mod tests {
         assert!(catalog.contains("lifecycle_status = 1"));
         assert!(admin.contains("lifecycle_status <> 4"));
         assert_ne!(catalog, admin);
+    }
+
+    /// The paged listings must push the page window and the filtered total
+    /// into the store: `COUNT(*) OVER()` after the predicates, then
+    /// `LIMIT`/`OFFSET`. Selecting every row and slicing it in memory is the
+    /// contract violation this pins against.
+    #[test]
+    fn paged_server_queries_count_filter_and_window_in_the_store() {
+        for sql in [SERVER_PAGE_SQL, CATALOG_SERVER_PAGE_SQL] {
+            assert!(sql.contains("COUNT(*) OVER()"));
+            assert!(sql.contains(LIST_TOTAL_SQL_COLUMN));
+            assert!(sql.contains("LIMIT $5 OFFSET $6"));
+            assert!(sql.contains("LOWER(category_code) = $2"));
+            assert!(sql.contains("cardinality($3::text[]) = 0"));
+            assert!(sql.contains("jsonb_array_length(allowed_role_codes) = 0"));
+            assert!(sql.contains("allowed_role_codes ?| $3::text[]"));
+            assert!(sql.contains("LOWER(server_key) LIKE $4"));
+            assert!(sql.contains("LOWER(name) LIKE $4"));
+            assert!(sql.contains("LOWER(COALESCE(description, '')) LIKE $4"));
+            assert!(sql.contains("LOWER(tags_json::text) LIKE $4"));
+            assert!(normalized(sql).contains(&normalized(SERVER_SELECT)));
+        }
+    }
+
+    #[test]
+    fn paged_category_queries_count_filter_and_window_in_the_store() {
+        for sql in [CATEGORY_PAGE_SQL, CATALOG_CATEGORY_PAGE_SQL] {
+            assert!(sql.contains("COUNT(*) OVER()"));
+            assert!(sql.contains(LIST_TOTAL_SQL_COLUMN));
+            assert!(sql.contains("LIMIT $4 OFFSET $5"));
+            assert!(sql.contains("LOWER(category_code) = $2"));
+            assert!(sql.contains("LOWER(category_code) LIKE $3"));
+            assert!(sql.contains("LOWER(name) LIKE $3"));
+            assert!(sql.contains("LOWER(COALESCE(description, '')) LIKE $3"));
+            assert!(normalized(sql).contains(&normalized(CATEGORY_SELECT)));
+        }
+    }
+
+    /// The catalog half of each paged pair keeps the marketplace predicate and
+    /// the admin half keeps the admin predicate; the two must not collapse.
+    #[test]
+    fn paged_listings_keep_the_catalog_admin_split() {
+        assert!(SERVER_PAGE_SQL.contains(ACTIVE_ENTITY_FILTER));
+        assert!(!SERVER_PAGE_SQL.contains(CATALOG_VISIBLE_FILTER));
+        assert!(CATALOG_SERVER_PAGE_SQL.contains(CATALOG_VISIBLE_FILTER));
+        assert!(!CATALOG_SERVER_PAGE_SQL.contains(ACTIVE_ENTITY_FILTER));
+
+        assert!(CATEGORY_PAGE_SQL.contains(ACTIVE_ENTITY_FILTER));
+        assert!(!CATEGORY_PAGE_SQL.contains(CATALOG_VISIBLE_FILTER));
+        assert!(CATALOG_CATEGORY_PAGE_SQL.contains(CATALOG_VISIBLE_FILTER));
+        assert!(!CATALOG_CATEGORY_PAGE_SQL.contains(ACTIVE_ENTITY_FILTER));
+    }
+
+    #[test]
+    fn keyword_pattern_is_a_lowercased_escaped_contains_match() {
+        assert_eq!(keyword_like_pattern(None), None);
+        assert_eq!(keyword_like_pattern(Some("   ")), None);
+        assert_eq!(
+            keyword_like_pattern(Some(" OCR ")),
+            Some("%ocr%".to_string())
+        );
+        assert_eq!(
+            keyword_like_pattern(Some("100%_done")),
+            Some("%100\\%\\_done%".to_string())
+        );
+        assert_eq!(
+            keyword_like_pattern(Some("a\\b")),
+            Some("%a\\\\b%".to_string())
+        );
     }
 }

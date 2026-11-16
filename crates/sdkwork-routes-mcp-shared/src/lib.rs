@@ -13,14 +13,16 @@ pub use http::{
 };
 pub use list_query::{McpInvocationListQuery, SdkWorkListQuery};
 pub use response::{
-    finish_api_json, item_data, ok_json, page_data, paginate_items, ApiProblem, ApiResult,
+    finish_api_json, item_data, ok_json, page_data, page_data_from_total, paginate_items,
+    ApiProblem, ApiResult,
 };
 pub use service_ops::{
-    append_invocation, delete_category, delete_connector, delete_prompt, delete_resource,
-    delete_server, delete_tool, get_category, get_connector, get_prompt, get_resource, get_server,
-    get_tool, list_catalog_categories, list_catalog_servers, list_categories, list_connectors,
-    list_invocations, list_owned_servers, list_prompts, list_resources, list_servers, list_tools,
-    upsert_category, upsert_connector, upsert_prompt, upsert_resource, upsert_server, upsert_tool,
+    append_invocation, catalog_visible_server, delete_category, delete_connector, delete_prompt,
+    delete_resource, delete_server, delete_tool, get_catalog_server, get_category, get_connector,
+    get_prompt, get_resource, get_server, get_tool, list_catalog_categories, list_catalog_servers,
+    list_categories, list_connectors, list_invocations, list_owned_servers, list_prompts,
+    list_resources, list_servers, list_tools, upsert_category, upsert_connector, upsert_prompt,
+    upsert_resource, upsert_server, upsert_tool,
 };
 
 pub fn gateway_mount() -> axum::Router {
