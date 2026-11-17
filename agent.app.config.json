@@ -19,7 +19,10 @@
     "platform": "WEB",
     "appId": "sdkwork-mcp",
     "tenantId": "100001",
-    "organizationId": "0"
+    "organizationId": "0",
+    "accessTokenPermissionScope": [
+      "iam:self"
+    ]
   },
   "runtime": {
     "family": "web",
