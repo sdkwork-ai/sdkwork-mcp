@@ -2,9 +2,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import {
   Badge,
   Button,
-  ErrorAlert,
   Field,
-  LoadingState,
   PageHeader,
   SelectInput,
   TextInput,
@@ -159,24 +157,28 @@ export function AdminCategoriesPage() {
 
   return (
     <div className="embedded-fill-page">
-      <PageHeader
+      <PageHeader dense
         title={copy.categories.title}
         description={copy.categories.description}
         actions={(
-          <Button type="button" onClick={openCreate}>
+          <Button
+            type="button"
+            className="admin-button admin-button--primary"
+            onClick={openCreate}
+          >
             {copy.categories.create}
           </Button>
         )}
       />
       {error || loadError ? (
-        <div className="mb-4">
-          <ErrorAlert message={error ?? loadError ?? ''} />
+        <div role="alert" className="admin-alert admin-alert--error">
+          {error ?? loadError ?? ''}
         </div>
       ) : null}
       <div className="data-surface">
         <div className="table-frame">
           {loading ? (
-            <LoadingState label={copy.categories.loading} />
+            <p className="admin-list-state">{copy.categories.loading}</p>
           ) : sorted.length === 0 ? (
             <div className="empty-state">
               <h3>{copy.categories.empty.title}</h3>
@@ -186,34 +188,34 @@ export function AdminCategoriesPage() {
               </button>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
+            <table className="admin-list-table min-w-full">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3">{copy.categories.table.name}</th>
-                  <th className="px-4 py-3">{copy.categories.table.code}</th>
-                  <th className="px-4 py-3">{copy.categories.table.parent}</th>
-                  <th className="px-4 py-3">{copy.categories.table.sort}</th>
-                  <th className="px-4 py-3">{copy.categories.table.lifecycle}</th>
-                  <th className="px-4 py-3">{copy.categories.table.actions}</th>
+                  <th>{copy.categories.table.name}</th>
+                  <th>{copy.categories.table.code}</th>
+                  <th>{copy.categories.table.parent}</th>
+                  <th>{copy.categories.table.sort}</th>
+                  <th>{copy.categories.table.lifecycle}</th>
+                  <th>{copy.categories.table.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+              <tbody>
                 {sorted.map((category) => (
                   <tr key={category.id}>
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-zinc-100">
+                    <td className="font-medium text-slate-900 dark:text-zinc-100">
                       {category.name}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-zinc-400">
+                    <td className="font-mono text-xs text-slate-600 dark:text-zinc-400">
                       {category.category_code}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       {category.parent_id ? nameById.get(category.parent_id) ?? '—' : '—'}
                     </td>
-                    <td className="px-4 py-3">{category.sort_order}</td>
-                    <td className="px-4 py-3">
+                    <td>{category.sort_order}</td>
+                    <td>
                       <Badge>{mcpAdminLabel(copy, 'lifecycle', category.lifecycle_status)}</Badge>
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex gap-2">
                         <Button type="button" variant="secondary" onClick={() => openEdit(category)}>
                           {copy.categories.table.edit}

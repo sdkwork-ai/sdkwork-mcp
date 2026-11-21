@@ -4,7 +4,6 @@ import { isBlank, trim } from '@sdkwork/utils';
 import {
   Badge,
   Button,
-  ErrorAlert,
   Field,
   healthTone,
   normalizeAllowedRoleCodes,
@@ -200,7 +199,7 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
 
   return (
     <div className="embedded-fill-page">
-      <PageHeader
+      <PageHeader dense
         title={copy.servers.title}
         description={copy.servers.description}
         actions={(
@@ -209,78 +208,83 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
           </Button>
         )}
       />
-      {error || loadError ? <div className="mb-4"><ErrorAlert message={error ?? loadError ?? ''} /></div> : null}
-
-      {/* Catalog filters: keyword, category, and the operator's role scope.
-          They narrow the list endpoint itself, so the totals and the visible
-          rows agree, and the four AI-foundation catalogs read consistently. */}
-      <div className="mb-4 flex flex-wrap items-end gap-4">
-        <label className="grid max-w-xs gap-1 text-sm">
-          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
-            {copy.servers.filters.keywordLabel}
-          </span>
-          <TextInput
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            placeholder={copy.servers.filters.keywordPlaceholder}
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
-            {copy.servers.filters.categoryLabel}
-          </span>
-          <select
-            className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
-            value={categoryCode}
-            onChange={(event) => setCategoryCode(event.target.value)}
-          >
-            <option value="">{copy.servers.filters.allCategories}</option>
-            {activeCategoryOptions(categories, categoryCode).map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="grid gap-1 text-sm">
-          <span className="text-xs font-medium text-slate-500 dark:text-zinc-400">
-            {copy.servers.filters.roleScopeLabel}
-          </span>
-          <div
-            className="inline-flex overflow-hidden rounded border border-slate-300 dark:border-zinc-700"
-            role="group"
-            aria-label={copy.servers.filters.roleScopeLabel}
-          >
-            {(['all', 'mine'] as const).map((scope) => {
-              const disabled = scope === 'mine' && usableRoleCodes.length === 0;
-              return (
-                <button
-                  key={scope}
-                  type="button"
-                  className={
-                    roleScope === scope
-                      ? 'bg-blue-600 px-3 py-1 text-xs font-medium text-white'
-                      : 'px-3 py-1 text-xs text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                  }
-                  aria-pressed={roleScope === scope}
-                  disabled={disabled}
-                  title={disabled ? copy.servers.filters.roleScopeUnavailable : undefined}
-                  onClick={() => setRoleScope(scope)}
-                >
-                  {scope === 'all'
-                    ? copy.servers.filters.roleScopeAll
-                    : copy.servers.filters.roleScopeMine}
-                </button>
-              );
-            })}
-          </div>
+      {error || loadError ? (
+        <div role="alert" className="admin-alert admin-alert--error">
+          {error ?? loadError ?? ''}
         </div>
-      </div>
+      ) : null}
 
       <div className="data-surface">
+        {/* Catalog filters: keyword, category, and the operator's role scope.
+            They narrow the list endpoint itself, so the totals and the visible
+            rows agree, and the four AI-foundation catalogs read consistently.
+            They are the table card's header band (`.admin-list-toolbar`), not a
+            floating row above the card. */}
+        <div className="admin-list-toolbar">
+          <div className="admin-list-toolbar__filters">
+            <label className="admin-field admin-field--search">
+              <span className="admin-field__label">
+                {copy.servers.filters.keywordLabel}
+              </span>
+              <TextInput
+                className="admin-control"
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                placeholder={copy.servers.filters.keywordPlaceholder}
+              />
+            </label>
+            <label className="admin-field admin-field--compact">
+              <span className="admin-field__label">
+                {copy.servers.filters.categoryLabel}
+              </span>
+              <select
+                className="admin-control"
+                value={categoryCode}
+                onChange={(event) => setCategoryCode(event.target.value)}
+              >
+                <option value="">{copy.servers.filters.allCategories}</option>
+                {activeCategoryOptions(categories, categoryCode).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="admin-field">
+              <span className="admin-field__label">
+                {copy.servers.filters.roleScopeLabel}
+              </span>
+              <div
+                className="admin-segmented"
+                role="group"
+                aria-label={copy.servers.filters.roleScopeLabel}
+              >
+                {(['all', 'mine'] as const).map((scope) => {
+                  const disabled = scope === 'mine' && usableRoleCodes.length === 0;
+                  return (
+                    <button
+                      key={scope}
+                      type="button"
+                      className="admin-segmented__item"
+                      aria-pressed={roleScope === scope}
+                      disabled={disabled}
+                      title={disabled ? copy.servers.filters.roleScopeUnavailable : undefined}
+                      onClick={() => setRoleScope(scope)}
+                    >
+                      {scope === 'all'
+                        ? copy.servers.filters.roleScopeAll
+                        : copy.servers.filters.roleScopeMine}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="table-frame">
           {loading && !servers ? (
-            <p className="text-sm text-slate-500 dark:text-zinc-400">{copy.servers.loading}</p>
+            <p className="admin-list-state">{copy.servers.loading}</p>
           ) : !servers || servers.length === 0 ? (
             <div className="empty-state">
               <h3>{copy.servers.empty.title}</h3>
@@ -290,46 +294,46 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
               </button>
             </div>
           ) : (
-        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
-              <tr>
-                <th className="px-4 py-3">{copy.servers.table.server}</th>
-                <th className="px-4 py-3">{copy.servers.table.transport}</th>
-                <th className="px-4 py-3">{copy.servers.table.health}</th>
-                <th className="px-4 py-3">{copy.servers.table.lifecycle}</th>
-                <th className="px-4 py-3">{copy.servers.table.roles}</th>
-                <th className="px-4 py-3">{copy.servers.table.actions}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-              {servers.map((server) => (
-                <tr key={server.id}>
-                  <td className="px-4 py-3">
-                    <Link
-                      to={`${serversBasePath}/${encodeURIComponent(server.server_key)}`}
-                      className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      {server.name}
-                    </Link>
-                    <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">{server.server_key}</p>
-                  </td>
-                  <td className="px-4 py-3">{mcpAdminLabel(copy, 'transport', server.transport)}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={healthTone(server.health_status)}>
-                      {mcpAdminLabel(copy, 'health', server.health_status)}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">{mcpAdminLabel(copy, 'lifecycle', server.lifecycle_status)}</td>
-                  <td className="px-4 py-3">{roleSummary(copy, server.allowed_role_codes)}</td>
-                  <td className="px-4 py-3">
-                    <Button variant="danger" onClick={() => setDeleteTarget(server)}>
-                      {copy.common.delete}
-                    </Button>
-                  </td>
+            <table className="admin-list-table min-w-full">
+              <thead>
+                <tr>
+                  <th>{copy.servers.table.server}</th>
+                  <th>{copy.servers.table.transport}</th>
+                  <th>{copy.servers.table.health}</th>
+                  <th>{copy.servers.table.lifecycle}</th>
+                  <th>{copy.servers.table.roles}</th>
+                  <th>{copy.servers.table.actions}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {servers.map((server) => (
+                  <tr key={server.id}>
+                    <td>
+                      <Link
+                        to={`${serversBasePath}/${encodeURIComponent(server.server_key)}`}
+                        className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        {server.name}
+                      </Link>
+                      <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">{server.server_key}</p>
+                    </td>
+                    <td>{mcpAdminLabel(copy, 'transport', server.transport)}</td>
+                    <td>
+                      <Badge tone={healthTone(server.health_status)}>
+                        {mcpAdminLabel(copy, 'health', server.health_status)}
+                      </Badge>
+                    </td>
+                    <td>{mcpAdminLabel(copy, 'lifecycle', server.lifecycle_status)}</td>
+                    <td>{roleSummary(copy, server.allowed_role_codes)}</td>
+                    <td>
+                      <Button variant="danger" onClick={() => setDeleteTarget(server)}>
+                        {copy.common.delete}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>

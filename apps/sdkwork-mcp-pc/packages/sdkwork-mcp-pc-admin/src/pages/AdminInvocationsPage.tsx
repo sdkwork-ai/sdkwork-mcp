@@ -31,7 +31,7 @@ export function AdminInvocationsPage() {
 
   return (
     <div className="embedded-fill-page">
-      <PageHeader
+      <PageHeader dense
         title={copy.invocations.title}
         description={copy.invocations.description}
       />
@@ -43,43 +43,43 @@ export function AdminInvocationsPage() {
               <p>{copy.invocations.empty.description}</p>
             </div>
           ) : (
-        <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-zinc-800">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
-              <tr>
-                <th className="px-4 py-3">{copy.invocations.table.target}</th>
-                <th className="px-4 py-3">{copy.invocations.table.kind}</th>
-                <th className="px-4 py-3">{copy.invocations.table.status}</th>
-                <th className="px-4 py-3">{copy.invocations.table.trace}</th>
-                <th className="px-4 py-3">{copy.invocations.table.invoked}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-              {invocations.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900 dark:text-zinc-100">{item.target_key}</p>
-                    <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">
-                      {copy.invocations.server(item.server_id)}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge tone="brand">{item.invocation_kind}</Badge>
-                  </td>
-                  <td className="px-4 py-3">{item.status}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-zinc-400">
-                    {item.trace_id ?? item.request_id ?? '—'}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-zinc-400">{item.invoked_at}</td>
+            <table className="admin-list-table min-w-full">
+              <thead>
+                <tr>
+                  <th>{copy.invocations.table.target}</th>
+                  <th>{copy.invocations.table.kind}</th>
+                  <th>{copy.invocations.table.status}</th>
+                  <th>{copy.invocations.table.trace}</th>
+                  <th>{copy.invocations.table.invoked}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {invocations.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <p className="font-medium text-slate-900 dark:text-zinc-100">{item.target_key}</p>
+                      <p className="font-mono text-xs text-slate-500 dark:text-zinc-400">
+                        {copy.invocations.server(item.server_id)}
+                      </p>
+                    </td>
+                    <td>
+                      <Badge tone="brand">{item.invocation_kind}</Badge>
+                    </td>
+                    <td>{item.status}</td>
+                    <td className="font-mono text-xs text-slate-600 dark:text-zinc-400">
+                      {item.trace_id ?? item.request_id ?? '—'}
+                    </td>
+                    <td className="text-slate-600 dark:text-zinc-400">{item.invoked_at}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
+        <div className="admin-list-footer">
+          <span>{copy.invocations.footer(invocations?.length ?? 0)}</span>
+        </div>
       </div>
-      <p className="text-xs text-slate-500 dark:text-zinc-400">
-        {copy.invocations.footer(invocations?.length ?? 0)}
-      </p>
     </div>
   );
 }

@@ -111,7 +111,7 @@ export function AdminServerDetailPage() {
           {copy.serverDetail.back}
         </Link>
       </div>
-      <PageHeader
+      <PageHeader dense
         title={server.name}
         description={copy.serverDetail.description(server.server_key)}
       />
@@ -141,18 +141,23 @@ export function AdminServerDetailPage() {
       </div>
       {tab === 'connectors' ? (
         <section className="embedded-fill-page" style={{ padding: 0 }}>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => {
-                setConnectorForm(defaultConnector);
-                setConnectorDrawerOpen(true);
-              }}
-            >
-              {copy.serverDetail.connectors.add}
-            </Button>
-          </div>
           <div className="data-surface">
+            {/* The connectors card owns the "add connector" control, so it is
+                the card's header band instead of a row floating above it. */}
+            <div className="admin-list-toolbar">
+              <div className="admin-list-toolbar__actions">
+                <Button
+                  type="button"
+                  className="admin-button admin-button--primary"
+                  onClick={() => {
+                    setConnectorForm(defaultConnector);
+                    setConnectorDrawerOpen(true);
+                  }}
+                >
+                  {copy.serverDetail.connectors.add}
+                </Button>
+              </div>
+            </div>
             <div className="table-frame">
               {connectors.length === 0 ? (
                 <div className="empty-state">
@@ -170,7 +175,7 @@ export function AdminServerDetailPage() {
                   </button>
                 </div>
               ) : (
-                <table>
+                <table className="admin-list-table">
                   <thead>
                     <tr>
                       <th>{copy.serverDetail.connectors.table.connector}</th>
