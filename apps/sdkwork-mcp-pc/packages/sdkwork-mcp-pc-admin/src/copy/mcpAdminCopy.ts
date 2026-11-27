@@ -192,6 +192,14 @@ const en = {
       description: (name: string) => `Delete “${name}”. This cannot be undone.`,
     },
   },
+  pagination: {
+    previous: 'Previous page',
+    next: 'Next page',
+    pageSize: 'Rows per page',
+    page: (page: number, totalPages: number) => `Page ${page} / ${totalPages}`,
+    showing: (start: number, end: number, total: number) =>
+      `Showing ${start} - ${end} of ${total}`,
+  },
   serverDetail: {
     loading: 'Loading server admin view…',
     back: '← Back to servers',
@@ -417,6 +425,13 @@ const zh: McpAdminCopy = {
       title: '删除 MCP 服务？',
       description: (name) => `将删除“${name}”，此操作不可撤销。`,
     },
+  },
+  pagination: {
+    previous: '上一页',
+    next: '下一页',
+    pageSize: '每页行数',
+    page: (page, totalPages) => `第 ${page} / ${totalPages} 页`,
+    showing: (start, end, total) => `显示第 ${start} - ${end} 条，共 ${total} 条`,
   },
   serverDetail: {
     loading: '正在加载服务管理视图…',

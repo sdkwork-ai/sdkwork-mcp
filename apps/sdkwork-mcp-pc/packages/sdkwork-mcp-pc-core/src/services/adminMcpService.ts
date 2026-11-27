@@ -14,9 +14,12 @@ import type {
 } from '@sdkwork/mcp-backend-sdk';
 
 import type { MCPClients } from '../clients';
-import { unwrapSdkWorkPage } from '../sdk/sdkPage';
+import { unwrapSdkWorkPage, type SdkWorkPage } from '../sdk/sdkPage';
 
 const catalogListParams = { pageSize: 200 } as const;
+
+/** Page a filterless admin read requests when the caller names none. */
+const DEFAULT_ADMIN_LIST_PAGE_SIZE = 20;
 
 /**
  * Catalog view filters accepted by the admin server list.
@@ -32,6 +35,10 @@ export interface AdminServerListFilters {
   roleCodes?: string;
   /** Free-text keyword matched by the backend. */
   q?: string;
+  /** 1-based page requested from the backend; defaults to page 1. */
+  page?: number;
+  /** Rows requested per page; defaults to 20. */
+  pageSize?: number;
 }
 
 export async function listAdminCategories(clients: MCPClients) {
@@ -46,14 +53,26 @@ export async function upsertAdminCategory(
   return clients.backend.mcp.mcpAdmin.upsertCategory(command);
 }
 
-export async function listAdminServers(clients: MCPClients, filters: AdminServerListFilters = {}) {
+/**
+ * Admin server inventory, one backend page at a time.
+ *
+ * The console renders a pagination bar over `pageInfo` (`totalItems`,
+ * `hasMore`), so this returns the whole page instead of only `items`: the
+ * backend counts the filtered result set, and hiding `pageInfo` here would
+ * force the page to page over a truncated list.
+ */
+export async function listAdminServers(
+  clients: MCPClients,
+  filters: AdminServerListFilters = {},
+): Promise<SdkWorkPage<McpServerRecord>> {
   const response = await clients.backend.mcp.mcpAdmin.listServers({
-    ...catalogListParams,
+    page: filters.page ?? 1,
+    pageSize: filters.pageSize ?? DEFAULT_ADMIN_LIST_PAGE_SIZE,
     ...(filters.q === undefined ? {} : { q: filters.q }),
     ...(filters.categoryCode === undefined ? {} : { categoryCode: filters.categoryCode }),
     ...(filters.roleCodes === undefined ? {} : { roleCodes: filters.roleCodes }),
   });
-  return unwrapSdkWorkPage<McpServerRecord>(response).items;
+  return unwrapSdkWorkPage<McpServerRecord>(response);
 }
 
 export async function createAdminServer(clients: MCPClients, command: CreateMcpServerCommand) {

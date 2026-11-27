@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   Badge,
   Button,
@@ -16,6 +16,7 @@ import {
   type UpsertMcpServerCategoryCommand,
 } from '@sdkwork/mcp-pc-core';
 
+import { AdminListPagination, DEFAULT_ADMIN_LIST_PAGE_SIZE } from '../components/AdminListPagination';
 import { SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
 import { mcpAdminLabel, useMcpAdminCopy, type McpAdminCopy } from '../copy/mcpAdminCopy';
 
@@ -70,6 +71,8 @@ export function AdminCategoriesPage() {
   const [form, setForm] = useState<UpsertMcpServerCategoryCommand>(() => createCategoryForm(copy));
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_ADMIN_LIST_PAGE_SIZE);
   const { data: categories, error: loadError, loading, reload } = useAsyncResource(
     () => listAdminCategories(clients),
     [clients],
@@ -83,6 +86,23 @@ export function AdminCategoriesPage() {
       return (a.category_code ?? '').localeCompare(b.category_code ?? '');
     });
   }, [categories]);
+
+  // The table is paged client-side over the whole taxonomy: the parent picker
+  // and the overwrite check below still read every row, so only the rendered
+  // slice is cut here.
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const pageItems = useMemo(
+    () => sorted.slice((page - 1) * pageSize, page * pageSize),
+    [sorted, page, pageSize],
+  );
+
+  // Deleting the last row of the last page shrinks the taxonomy below the
+  // current page; the guard makes this effect converge instead of looping.
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -200,7 +220,7 @@ export function AdminCategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((category) => (
+                {pageItems.map((category) => (
                   <tr key={category.id}>
                     <td className="font-medium text-slate-900 dark:text-zinc-100">
                       {category.name}
@@ -235,6 +255,24 @@ export function AdminCategoriesPage() {
             </table>
           )}
         </div>
+        {pageItems.length > 0 ? (
+          <AdminListPagination
+            page={page}
+            pageSize={pageSize}
+            itemCount={pageItems.length}
+            totalItems={sorted.length}
+            hasNextPage={page * pageSize < sorted.length}
+            copy={copy.pagination}
+            disabled={loading}
+            onPageChange={setPage}
+            onPageSizeChange={(nextPageSize) => {
+              // A different page size renumbers every row, so the taxonomy
+              // restarts at its first page like the other catalogs.
+              setPageSize(nextPageSize);
+              setPage(1);
+            }}
+          />
+        ) : null}
       </div>
 
       <SurfaceDrawer

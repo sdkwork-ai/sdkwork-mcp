@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isBlank, trim } from '@sdkwork/utils';
 import {
@@ -24,6 +24,7 @@ import {
   type AdminServerListFilters,
   type CreateMcpServerCommand,
   type McpServerCategoryRecord,
+  type McpServerRecord,
 } from '@sdkwork/mcp-pc-core';
 import {
   DriveUploadImage,
@@ -31,6 +32,7 @@ import {
   useDriveUploadImageSnapshot,
 } from 'sdkwork-drive-pc-upload-image';
 
+import { AdminListPagination, DEFAULT_ADMIN_LIST_PAGE_SIZE } from '../components/AdminListPagination';
 import { ConfirmModal, SurfaceDrawer } from '../components/SurfaceOverlay.tsx';
 import { mcpAdminLabel, useMcpAdminCopy, type McpAdminCopy } from '../copy/mcpAdminCopy';
 import { useMcpAdminServersBasePath } from '../routeContext';
@@ -60,7 +62,8 @@ function roleSummary(copy: McpAdminCopy, codes: readonly string[] | null | undef
   return allowed.length === 0 ? copy.servers.table.allRoles : allowed.join(', ');
 }
 
-type OwnedServer = Awaited<ReturnType<typeof listAdminServers>>[number];
+/** One row of the admin server inventory, as the list endpoint returns it. */
+type OwnedServer = McpServerRecord;
 
 /**
  * Active category options for the filter select.
@@ -114,6 +117,8 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
   const [keyword, setKeyword] = useState('');
   const [categoryCode, setCategoryCode] = useState('');
   const [roleScope, setRoleScope] = useState<RoleScope>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_ADMIN_LIST_PAGE_SIZE);
 
   const usableRoleCodes = useMemo(
     () => roleCodes.map((code) => trim(code)).filter((code) => !isBlank(code)),
@@ -122,14 +127,16 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
   const roleScopeCodes = roleScope === 'mine' ? [...usableRoleCodes].sort().join(',') : '';
   const listFilters = useMemo<AdminServerListFilters>(
     () => ({
+      page,
+      pageSize,
       ...(isBlank(trim(keyword)) ? {} : { q: trim(keyword) }),
       ...(isBlank(trim(categoryCode)) ? {} : { categoryCode: trim(categoryCode) }),
       ...(isBlank(roleScopeCodes) ? {} : { roleCodes: roleScopeCodes }),
     }),
-    [keyword, categoryCode, roleScopeCodes],
+    [page, pageSize, keyword, categoryCode, roleScopeCodes],
   );
 
-  const { data: servers, error: loadError, loading, reload } = useAsyncResource(
+  const { data: serverPage, error: loadError, loading, reload } = useAsyncResource(
     () => listAdminServers(clients, listFilters),
     [clients, listFilters],
   );
@@ -137,6 +144,43 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
     () => listAdminCategories(clients),
     [clients],
   );
+
+  const servers = serverPage?.items ?? null;
+  const totalItems = Number(serverPage?.pageInfo.totalItems ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // A filter or page-size change rewrites the result set, so the page the
+  // operator was reading no longer means the same rows: restart at page 1.
+  // Resetting next to the state it narrows keeps it to one request per change;
+  // a reset effect would first refetch the old page against the new query.
+  function changeKeyword(next: string) {
+    setKeyword(next);
+    setPage(1);
+  }
+
+  function changeCategoryCode(next: string) {
+    setCategoryCode(next);
+    setPage(1);
+  }
+
+  function changeRoleScope(next: RoleScope) {
+    setRoleScope(next);
+    setPage(1);
+  }
+
+  function changePageSize(next: number) {
+    setPageSize(next);
+    setPage(1);
+  }
+
+  // Deleting the last row of the last page shrinks the result set below the
+  // current page. Clamping after a load keeps the table from reporting an empty
+  // page; the guard makes the effect converge instead of looping.
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   // Persist-first icon flow: the server record does not exist while the picker
   // is open, so the controller holds the picked image in `pending` and the
@@ -229,7 +273,7 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
               <TextInput
                 className="admin-control"
                 value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
+                onChange={(event) => changeKeyword(event.target.value)}
                 placeholder={copy.servers.filters.keywordPlaceholder}
               />
             </label>
@@ -240,7 +284,7 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
               <select
                 className="admin-control"
                 value={categoryCode}
-                onChange={(event) => setCategoryCode(event.target.value)}
+                onChange={(event) => changeCategoryCode(event.target.value)}
               >
                 <option value="">{copy.servers.filters.allCategories}</option>
                 {activeCategoryOptions(categories, categoryCode).map((option) => (
@@ -269,7 +313,7 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
                       aria-pressed={roleScope === scope}
                       disabled={disabled}
                       title={disabled ? copy.servers.filters.roleScopeUnavailable : undefined}
-                      onClick={() => setRoleScope(scope)}
+                      onClick={() => changeRoleScope(scope)}
                     >
                       {scope === 'all'
                         ? copy.servers.filters.roleScopeAll
@@ -336,6 +380,19 @@ export function AdminServersPage({ roleCodes = [] }: AdminServersPageProps = {})
             </table>
           )}
         </div>
+        {servers && servers.length > 0 ? (
+          <AdminListPagination
+            page={page}
+            pageSize={pageSize}
+            itemCount={servers.length}
+            totalItems={totalItems}
+            hasNextPage={page * pageSize < totalItems}
+            copy={copy.pagination}
+            disabled={loading}
+            onPageChange={setPage}
+            onPageSizeChange={changePageSize}
+          />
+        ) : null}
       </div>
 
       <SurfaceDrawer
